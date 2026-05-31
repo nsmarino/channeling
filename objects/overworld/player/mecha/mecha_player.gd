@@ -16,7 +16,7 @@ extends CharacterBody3D
 ## frame, so the crosshair and the world aim point can never desync.
 
 @export_category("Movement")
-## Ship cursor speed across its plane, in world units per second.
+## Movement speed in world units per second.
 @export var move_speed: float = 12.0
 ## Distance in front of the camera where the ship plane sits (its rail depth).
 @export var player_plane_distance: float = 10.0
@@ -34,6 +34,12 @@ extends CharacterBody3D
 @export_category("Combat")
 ## Weapon instantiated and mounted to the WeaponSocket on ready.
 @export var default_weapon_scene: PackedScene
+## Player hit points (no UI yet — logged to console).
+@export var max_hp: int = 100
+## Half-angle (degrees) of the aim cone around the reticle for homing lock-on.
+@export var homing_cone_deg: float = 18.0
+## Max world distance an enemy can be to be eligible for homing lock-on.
+@export var homing_max_range: float = 120.0
 
 @export_category("References")
 ## Active camera used for aiming/reticle projection. Falls back to the
@@ -53,8 +59,11 @@ var _equipped_weapon: Node3D = null
 var _player_cursor: Vector2 = Vector2.ZERO
 var _aim_cursor: Vector2 = Vector2.ZERO
 
+var hp: int = 0
+
 
 func _ready() -> void:
+	hp = max_hp
 	_resolve_camera()
 	_resolve_aim_target()
 	_equip_default_weapon()
@@ -139,6 +148,10 @@ func _process_combat() -> void:
 	if not _equipped_weapon:
 		return
 
+	# Refresh the homing lock every frame so non-locked shots fly straight.
+	if "homing_target" in _equipped_weapon:
+		_equipped_weapon.homing_target = _acquire_homing_target()
+
 	var pressed := Input.is_action_pressed("CombatAttack")
 	var just := Input.is_action_just_pressed("CombatAttack")
 	var wants_fire := pressed
@@ -147,6 +160,45 @@ func _process_combat() -> void:
 
 	if wants_fire:
 		_equipped_weapon.try_fire(_get_aim_direction())
+
+
+## Pick the enemy nearest the reticle, within an aim cone and range, in front of
+## the camera. Returns null when nothing qualifies (shots then fly straight).
+func _acquire_homing_target() -> Node3D:
+	if not _camera or not _aim_target:
+		return null
+
+	var reticle_screen: Vector2 = get_reticle_screen_position()
+	var cam_origin: Vector3 = _camera.global_position
+	var cone_cos: float = cos(deg_to_rad(homing_cone_deg))
+	var aim_dir: Vector3 = (_aim_target.global_position - cam_origin).normalized()
+
+	var best: Node3D = null
+	var best_screen_dist: float = INF
+
+	for node in get_tree().get_nodes_in_group("enemy"):
+		var enemy := node as Node3D
+		if not enemy:
+			continue
+		if enemy.has_method("is_defeated") and enemy.is_defeated():
+			continue
+
+		var to_enemy: Vector3 = enemy.global_position - cam_origin
+		var dist: float = to_enemy.length()
+		if dist > homing_max_range or dist < 0.01:
+			continue
+		# Must be within the aim cone and in front of the camera.
+		if aim_dir.dot(to_enemy / dist) < cone_cos:
+			continue
+		if _camera.is_position_behind(enemy.global_position):
+			continue
+
+		var screen_dist: float = reticle_screen.distance_to(_camera.unproject_position(enemy.global_position))
+		if screen_dist < best_screen_dist:
+			best_screen_dist = screen_dist
+			best = enemy
+
+	return best
 
 
 func _get_aim_direction() -> Vector3:
@@ -168,6 +220,23 @@ func _get_muzzle_position() -> Vector3:
 	if weapon_socket:
 		return weapon_socket.global_position
 	return global_position
+
+
+## Damage entry point used by enemy projectiles (body group "player") and contact.
+func receive_attack(amount: int) -> void:
+	take_damage(amount)
+
+
+func take_damage(amount: int) -> void:
+	if hp <= 0:
+		return
+	var prev: int = hp
+	hp = maxi(0, hp - amount)
+	print("[Player] Took %d damage. HP: %d -> %d / %d" % [amount, prev, hp, max_hp])
+	if hp <= 0:
+		print("[Player] Destroyed!")
+		if Events:
+			Events.player_killed.emit()
 
 #endregion
 

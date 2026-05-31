@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FseEnemyData" format=3]
+
+[ext_resource type="Script" path="res://objects/enemy/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = &"Weaver"
+max_hp = 70
+move_speed = 7.0
+contact_damage = 10
+score = 100

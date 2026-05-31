@@ -12,6 +12,9 @@ class_name FseBaseWeapon
 
 var ammo_count: int = -1
 var owner_character: CharacterBody3D = null
+## Optional homing target assigned per-frame by the shooter; passed to each
+## spawned projectile that supports it. Null = projectiles fly straight.
+var homing_target: Node3D = null
 
 
 func _ready() -> void:
@@ -116,6 +119,8 @@ func _spawn_projectiles(aim_direction: Vector3) -> void:
 		world.add_child(projectile)
 		projectile.speed = float(data.get("muzzle_velocity"))
 		projectile.damage = float(data.get("damage"))
+		if homing_target and "homing_target" in projectile:
+			projectile.homing_target = homing_target
 		var spawn_transform: Transform3D = muzzle.global_transform
 		spawn_transform.origin += direction * muzzle_spawn_offset
 		projectile.launch(spawn_transform, direction, owner_character)

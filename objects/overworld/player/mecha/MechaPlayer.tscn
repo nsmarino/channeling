@@ -23,6 +23,8 @@ bottom_radius = 0.3
 height = 1.0
 
 [node name="MechaPlayer" type="CharacterBody3D" unique_id=343871187 groups=["player"]]
+collision_layer = 2
+collision_mask = 1
 script = ExtResource("3_mecha")
 default_weapon_scene = ExtResource("4_blaster")
 

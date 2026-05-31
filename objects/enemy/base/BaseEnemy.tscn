@@ -1,74 +1,48 @@
-[gd_scene format=3 uid="uid://t8fvwynvct2"]
+[gd_scene load_steps=10 format=3 uid="uid://t8fvwynvct2"]
 
-[ext_resource type="Script" uid="uid://c2tglspquq0c" path="res://objects/enemy/base/fse_enemy.gd" id="1_fse"]
-[ext_resource type="Script" uid="uid://bjo7v2p28m11i" path="res://objects/enemy/base/state_machine.gd" id="2_sm"]
-[ext_resource type="Script" uid="uid://bj3j287mfglbc" path="res://objects/enemy/base/states/idle.gd" id="3_idle"]
-[ext_resource type="Script" uid="uid://b8ajuyncbjeuw" path="res://objects/enemy/base/states/wander.gd" id="4_wander"]
-[ext_resource type="Script" uid="uid://dybuamxqqnxgx" path="res://objects/enemy/base/states/pursue.gd" id="5_pursue"]
-[ext_resource type="Script" uid="uid://bpde0e5tnoswn" path="res://objects/enemy/base/states/attack.gd" id="6_attack"]
-[ext_resource type="Script" uid="uid://segvw73ki1oa" path="res://objects/enemy/base/states/death.gd" id="7_death"]
-[ext_resource type="AudioStream" uid="uid://5cm2xw8assov" path="res://sounds/hard-splash.wav" id="8_damage_sfx"]
-[ext_resource type="AudioStream" uid="uid://ct1sv14b1hb2v" path="res://sounds/doom-sound-fx-secret.wav" id="9_death_sfx"]
+[ext_resource type="Script" path="res://objects/enemy/base/base_enemy.gd" id="1_base"]
+[ext_resource type="Script" path="res://objects/enemy/components/hit_box.gd" id="2_hitbox"]
+[ext_resource type="Script" path="res://objects/enemy/components/movement_component.gd" id="3_move"]
+[ext_resource type="Script" path="res://objects/enemy/components/weapon_component.gd" id="4_weapon"]
+[ext_resource type="Script" path="res://objects/enemy/components/vfx_emitter.gd" id="5_vfx"]
+[ext_resource type="Script" path="res://objects/enemy/components/sfx_emitter.gd" id="6_sfx"]
+[ext_resource type="AudioStream" path="res://sounds/hard-splash.wav" id="7_hit"]
+[ext_resource type="AudioStream" path="res://sounds/doom-sound-fx-secret.wav" id="8_death"]
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_collider"]
+[sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
+radius = 1.2
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_attack"]
-radius = 1.5
+[node name="FseEnemy" type="CharacterBody3D" groups=["enemy"]]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_base")
 
-[node name="FseEnemy" type="CharacterBody3D" unique_id=1721681537 groups=["enemy"]]
-script = ExtResource("1_fse")
+[node name="HitBox" type="Area3D" parent="."]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("2_hitbox")
 
-[node name="Collider" type="CollisionShape3D" parent="." unique_id=2050149243]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-shape = SubResource("CapsuleShape3D_collider")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
+shape = SubResource("SphereShape3D_hit")
 
-[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=2043099844]
-path_desired_distance = 0.5
-avoidance_enabled = true
-radius = 0.6
-neighbor_distance = 5.0
-max_neighbors = 5
-keep_y_velocity = false
+[node name="MovementComponent" type="Node" parent="."]
+script = ExtResource("3_move")
 
-[node name="AttackArea" type="Area3D" parent="." unique_id=1873463528]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.5)
-monitoring = false
-monitorable = false
+[node name="WeaponComponent" type="Node" parent="."]
+script = ExtResource("4_weapon")
+muzzle_path = NodePath("../Muzzle")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackArea" unique_id=1726134100]
-shape = SubResource("SphereShape3D_attack")
+[node name="Muzzle" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
 
-[node name="StateMachine" type="Node" parent="." unique_id=2137188928]
-script = ExtResource("2_sm")
+[node name="VfxEmitter" type="Node3D" parent="."]
+script = ExtResource("5_vfx")
 
-[node name="Idle" type="Node" parent="StateMachine" unique_id=149910653]
-script = ExtResource("3_idle")
-state_name = "idle"
+[node name="SfxEmitter" type="Node3D" parent="."]
+script = ExtResource("6_sfx")
 
-[node name="Wander" type="Node" parent="StateMachine" unique_id=939703663]
-script = ExtResource("4_wander")
-state_name = "wander"
+[node name="hit" type="AudioStreamPlayer3D" parent="SfxEmitter"]
+stream = ExtResource("7_hit")
 
-[node name="Pursue" type="Node" parent="StateMachine" unique_id=1128375458]
-script = ExtResource("5_pursue")
-state_name = "pursue"
-
-[node name="Attack" type="Node" parent="StateMachine" unique_id=1551463584]
-script = ExtResource("6_attack")
-state_name = "attack"
-
-[node name="Death" type="Node" parent="StateMachine" unique_id=1043266533]
-script = ExtResource("7_death")
-state_name = "death"
-
-[node name="Marker3D" type="Marker3D" parent="." unique_id=95766855]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-gizmo_extents = 3.0
-
-[node name="SFX" type="Node3D" parent="." unique_id=971357877]
-
-[node name="Damage" type="AudioStreamPlayer3D" parent="SFX" unique_id=1842925870]
-stream = ExtResource("8_damage_sfx")
-
-[node name="Death" type="AudioStreamPlayer3D" parent="SFX" unique_id=1225058900]
-stream = ExtResource("9_death_sfx")
+[node name="death" type="AudioStreamPlayer3D" parent="SfxEmitter"]
+stream = ExtResource("8_death")

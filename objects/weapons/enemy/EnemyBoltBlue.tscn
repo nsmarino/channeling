@@ -1,0 +1,48 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://objects/weapons/base/BaseProjectile.gd" id="1_proj"]
+
+[sub_resource type="StandardMaterial3D" id="mat"]
+albedo_color = Color(0.6, 0.3, 1, 1)
+emission_enabled = true
+emission = Color(0.7, 0.4, 1, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="SphereMesh" id="mesh"]
+material = SubResource("mat")
+radius = 0.16
+height = 0.32
+
+[sub_resource type="SphereShape3D" id="shape"]
+radius = 0.2
+
+[sub_resource type="ParticleProcessMaterial" id="trail"]
+emission_shape = 1
+emission_sphere_radius = 0.1
+gravity = Vector3(0, 0, 0)
+scale_min = 0.4
+scale_max = 1.0
+color = Color(0.7, 0.4, 1, 1)
+
+[node name="EnemyBoltBlue" type="Node3D"]
+script = ExtResource("1_proj")
+speed = 24.0
+damage = 8.0
+life_time = 4.0
+group_to_damage = &"player"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("mesh")
+
+[node name="Area3D" type="Area3D" parent="."]
+collision_layer = 16
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("shape")
+
+[node name="Trail" type="GPUParticles3D" parent="."]
+amount = 16
+lifetime = 0.5
+process_material = SubResource("trail")
+draw_pass_1 = SubResource("mesh")

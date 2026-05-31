@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WeaveMovement" format=3]
+
+[ext_resource type="Script" path="res://objects/enemy/movement/weave_movement.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+weave_amplitude = 6.0
+weave_frequency = 0.55
+approach_fraction = 0.35
+bob_amplitude = 1.5
+bob_frequency = 0.9

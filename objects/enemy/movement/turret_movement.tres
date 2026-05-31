@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="StrafeMovement" format=3]
+
+[ext_resource type="Script" path="res://objects/enemy/movement/strafe_movement.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+standoff_distance = 20.0
+strafe_speed = 7.0
+reverse_interval = 2.2
+range_correction = 2.0

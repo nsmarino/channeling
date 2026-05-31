@@ -1,0 +1,62 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="PackedScene" path="res://objects/enemy/base/BaseEnemy.tscn" id="1_base"]
+[ext_resource type="Resource" path="res://objects/enemy/enemies/turret.tres" id="2_data"]
+[ext_resource type="Resource" path="res://objects/enemy/movement/turret_movement.tres" id="3_move"]
+[ext_resource type="PackedScene" path="res://objects/weapons/enemy/EnemyBoltGreen.tscn" id="4_bolt"]
+
+[sub_resource type="StandardMaterial3D" id="mat_body"]
+albedo_color = Color(0.35, 0.7, 0.35, 1)
+metallic = 0.6
+roughness = 0.35
+emission_enabled = true
+emission = Color(0.2, 0.8, 0.3, 1)
+emission_energy_multiplier = 0.5
+
+[sub_resource type="BoxMesh" id="mesh_body"]
+material = SubResource("mat_body")
+size = Vector3(1.5, 1.5, 1.5)
+
+[sub_resource type="ParticleProcessMaterial" id="death_mat"]
+emission_shape = 1
+emission_sphere_radius = 0.6
+direction = Vector3(0, 1, 0)
+spread = 120.0
+initial_velocity_min = 5.0
+initial_velocity_max = 11.0
+gravity = Vector3(0, -3, 0)
+scale_min = 0.5
+scale_max = 1.5
+color = Color(0.4, 1, 0.5, 1)
+
+[sub_resource type="BoxMesh" id="death_draw"]
+size = Vector3(0.22, 0.22, 0.22)
+
+[node name="Turret" instance=ExtResource("1_base")]
+enemy_data = ExtResource("2_data")
+activation_distance = 55.0
+
+[node name="MovementComponent" parent="." index="1"]
+pattern = ExtResource("3_move")
+
+[node name="WeaponComponent" parent="." index="2"]
+projectile_scene = ExtResource("4_bolt")
+fire_interval = 1.8
+burst_count = 5
+burst_spacing = 0.08
+projectile_speed = 40.0
+damage = 5
+aim_at_player = true
+initial_delay = 0.4
+
+[node name="Body" type="MeshInstance3D" parent="." index="6"]
+mesh = SubResource("mesh_body")
+
+[node name="death" type="GPUParticles3D" parent="VfxEmitter" index="0"]
+emitting = false
+amount = 56
+lifetime = 1.1
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("death_mat")
+draw_pass_1 = SubResource("death_draw")

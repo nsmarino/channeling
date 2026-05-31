@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="SwoopMovement" format=3]
+
+[ext_resource type="Script" path="res://objects/enemy/movement/swoop_movement.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+swoop_time = 1.8
+swoop_speed_multiplier = 2.2
+curve_amount = 7.0
+hover_amplitude = 1.2
+hover_frequency = 0.7
