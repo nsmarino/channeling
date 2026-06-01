@@ -30,6 +30,10 @@ extends CharacterBody3D
 @export var aim_plane_distance: float = 30.0
 ## Fraction of the visible view the reticle may roam (1.0 = full screen edges).
 @export var aim_bounds_scale: float = 1.0
+## Mouse aim sensitivity (world units of cursor movement per pixel of mouse motion).
+@export var mouse_aim_sensitivity: float = 0.06
+## Capture the mouse on ready; Escape toggles release.
+@export var capture_mouse_on_ready: bool = true
 
 @export_category("Combat")
 ## Weapon instantiated and mounted to the WeaponSocket on ready.
@@ -37,7 +41,7 @@ extends CharacterBody3D
 ## Player hit points (no UI yet — logged to console).
 @export var max_hp: int = 100
 ## Half-angle (degrees) of the aim cone around the reticle for homing lock-on.
-@export var homing_cone_deg: float = 18.0
+@export var homing_cone_deg: float = 32.0
 ## Max world distance an enemy can be to be eligible for homing lock-on.
 @export var homing_max_range: float = 120.0
 
@@ -61,12 +65,30 @@ var _aim_cursor: Vector2 = Vector2.ZERO
 
 var hp: int = 0
 
+# Accumulated mouse motion since the last aim integration (cleared per frame).
+var _pending_mouse_delta: Vector2 = Vector2.ZERO
+
 
 func _ready() -> void:
 	hp = max_hp
 	_resolve_camera()
 	_resolve_aim_target()
 	_equip_default_weapon()
+	if capture_mouse_on_ready:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+		# Y is inverted: pushing the mouse up moves the reticle up (which is +Y locally).
+		_pending_mouse_delta.x += event.relative.x * mouse_aim_sensitivity
+		_pending_mouse_delta.y -= event.relative.y * mouse_aim_sensitivity
+
+	if event.is_action_pressed("ui_cancel"):
+		if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		else:
+			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 
 func _physics_process(delta: float) -> void:
@@ -134,7 +156,14 @@ func _process_aim(delta: float) -> void:
 		Input.get_axis("LookLeft", "LookRight"),
 		Input.get_axis("LookDown", "LookUp")
 	)
+	# Stick + mouse share the same cursor; mouse delta is already in world units so
+	# it's applied directly instead of being integrated by aim_speed * delta.
 	_aim_cursor = _move_cursor(_aim_cursor, look, aim_speed, delta, aim_plane_distance, aim_bounds_scale)
+	_aim_cursor += _pending_mouse_delta
+	_pending_mouse_delta = Vector2.ZERO
+	var aim_extents := _frustum_extents(aim_plane_distance, aim_bounds_scale)
+	_aim_cursor.x = clampf(_aim_cursor.x, -aim_extents.x, aim_extents.x)
+	_aim_cursor.y = clampf(_aim_cursor.y, -aim_extents.y, aim_extents.y)
 
 	# AimTarget is a child of the camera, so its local position is the cursor.
 	_aim_target.position = Vector3(_aim_cursor.x, _aim_cursor.y, -aim_plane_distance)

@@ -10,11 +10,11 @@ emission_energy_multiplier = 4.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_proj"]
 material = SubResource("StandardMaterial3D_proj")
-radius = 0.12
-height = 0.24
+radius = 0.48
+height = 0.96
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_proj"]
-radius = 0.18
+radius = 0.72
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_trail"]
 emission_shape = 1

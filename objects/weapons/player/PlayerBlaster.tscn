@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b4qv5qaq2ucr1" path="res://objects/weapons/base/BaseWeapon.gd" id="1_base_weapon_script"]
 [ext_resource type="Script" uid="uid://ba4jr0o2yp36j" path="res://resources/WeaponData.gd" id="2_weapon_data_script"]
-[ext_resource type="PackedScene" path="res://objects/weapons/player/PlayerProjectile.tscn" id="3_player_projectile_scene"]
+[ext_resource type="PackedScene" path="res://objects/weapons/player/HomingProjectile.tscn" id="3_player_projectile_scene"]
 
 [sub_resource type="Resource" id="Resource_player_blaster_data"]
 script = ExtResource("2_weapon_data_script")

@@ -1,11 +1,11 @@
-[gd_resource type="Resource" script_class="FseEnemyData" format=3]
+[gd_resource type="Resource" script_class="FseEnemyData" format=3 uid="uid://b5tjofn1ajgey"]
 
-[ext_resource type="Script" path="res://objects/enemy/EnemyData.gd" id="1"]
+[ext_resource type="Script" uid="uid://dh7jnverpqck7" path="res://objects/enemy/EnemyData.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 display_name = &"Turret"
 max_hp = 110
-move_speed = 5.0
+move_speed = 10.0
 contact_damage = 12
 score = 200

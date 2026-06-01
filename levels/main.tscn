@@ -33,7 +33,7 @@ adjustment_saturation = 1.26
 
 [sub_resource type="Animation" id="Animation_ifaiv"]
 resource_name = "MoveF"
-length = 18.0
+length = 20.0
 loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -42,7 +42,7 @@ tracks/0/path = NodePath("PlayerRoot:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 18),
+"times": PackedFloat32Array(0, 20),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Vector3(0, 0, 0), Vector3(0, 0, -90)]
@@ -75,14 +75,16 @@ script = ExtResource("1_0xm2m")
 [node name="PlayerRoot" type="Node3D" parent="." unique_id=454168420]
 
 [node name="Navigator" parent="PlayerRoot" unique_id=343871187 instance=ExtResource("2_m1504")]
+move_speed = 24.0
 player_plane_distance = 3.0
+aim_speed = 120.0
 camera_path = NodePath("../Camera3D")
 aim_target_path = NodePath("../Camera3D/AimTarget")
 
 [node name="Camera3D" type="Camera3D" parent="PlayerRoot" unique_id=613983109]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
 current = true
-fov = 70.0
+fov = 90.0
 
 [node name="AimTarget" type="Node3D" parent="PlayerRoot/Camera3D" unique_id=613983110]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -30)

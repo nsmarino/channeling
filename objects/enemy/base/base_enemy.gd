@@ -8,10 +8,12 @@ class_name FseEnemy
 ##
 ## Lifecycle: INACTIVE (waiting) -> ACTIVE (moving/attacking once the advancing
 ## player gets within activation_distance) -> DYING (death VFX/SFX, then freed).
+## ACTIVE enemies that get passed by the camera flip to PASSED — they stay in
+## the scene but stop moving and attacking (no rear-firing harassment).
 
 signal died
 
-enum State { INACTIVE, ACTIVE, DYING }
+enum State { INACTIVE, ACTIVE, DYING, PASSED }
 
 @export var enemy_data: FseEnemyData
 ## Player must get this close (world units) before the enemy activates.
@@ -48,13 +50,19 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if state != State.INACTIVE:
-		return
-	if not _player:
-		_player = _resolve_player()
-		return
-	if global_position.distance_to(_player.global_position) <= activation_distance:
-		_activate()
+	match state:
+		State.INACTIVE:
+			if not _player:
+				_player = _resolve_player()
+				return
+			if global_position.distance_to(_player.global_position) <= activation_distance:
+				_activate()
+		State.ACTIVE:
+			# Freeze once the rail has flown past us; the camera handles arbitrary
+			# orientations so this still works when PlayerRoot banks on a curve.
+			var cam: Camera3D = get_viewport().get_camera_3d()
+			if cam and cam.is_position_behind(global_position):
+				_freeze_passed()
 
 
 func _activate() -> void:
@@ -65,6 +73,17 @@ func _activate() -> void:
 		_weapon.set_active(true)
 	var label: String = String(enemy_data.display_name) if enemy_data else String(name)
 	print("[Enemy:%s] Activated." % label)
+
+
+func _freeze_passed() -> void:
+	state = State.PASSED
+	if _movement:
+		_movement.set_active(false)
+	if _weapon:
+		_weapon.set_active(false)
+	velocity = Vector3.ZERO
+	var label: String = String(enemy_data.display_name) if enemy_data else String(name)
+	print("[Enemy:%s] Passed by rail; frozen." % label)
 
 
 func take_damage(amount: int) -> void:
