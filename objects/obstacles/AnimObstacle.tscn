@@ -1,0 +1,55 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://objects/obstacles/base/BaseObstacle.tscn" id="1_base"]
+[ext_resource type="Script" path="res://objects/enemy/components/animation_driver.gd" id="2_anim"]
+
+[sub_resource type="StandardMaterial3D" id="mat_body"]
+albedo_color = Color(0.3, 0.55, 0.75, 1)
+metallic = 0.7
+roughness = 0.35
+emission_enabled = true
+emission = Color(0.2, 0.45, 0.7, 1)
+emission_energy_multiplier = 0.4
+
+[sub_resource type="BoxMesh" id="mesh_body"]
+material = SubResource("mat_body")
+size = Vector3(2, 2, 2)
+
+[sub_resource type="ParticleProcessMaterial" id="death_mat"]
+emission_shape = 1
+emission_sphere_radius = 0.8
+direction = Vector3(0, 0, 0)
+spread = 180.0
+initial_velocity_min = 4.0
+initial_velocity_max = 10.0
+gravity = Vector3(0, -6, 0)
+scale_min = 0.6
+scale_max = 1.6
+color = Color(0.4, 0.6, 0.85, 1)
+
+[sub_resource type="BoxMesh" id="death_draw"]
+size = Vector3(0.3, 0.3, 0.3)
+
+[node name="AnimObstacle" instance=ExtResource("1_base")]
+activation_distance = 40.0
+max_hp = 80
+
+[node name="Body" type="MeshInstance3D" parent="." index="3"]
+mesh = SubResource("mesh_body")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." index="4"]
+
+[node name="AnimationDriver" type="Node" parent="." index="5"]
+script = ExtResource("2_anim")
+animation_player_path = NodePath("../AnimationPlayer")
+play_on_active = &"move"
+pause_on_inactive = true
+
+[node name="death" type="GPUParticles3D" parent="VfxEmitter" index="0"]
+emitting = false
+amount = 48
+lifetime = 1.0
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("death_mat")
+draw_pass_1 = SubResource("death_draw")

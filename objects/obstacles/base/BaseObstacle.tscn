@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://b06o1dimev10x"]
+
+[ext_resource type="Script" path="res://objects/obstacles/base/fse_obstacle.gd" id="1_base"]
+[ext_resource type="Script" path="res://objects/enemy/components/hit_box.gd" id="2_hitbox"]
+[ext_resource type="Script" path="res://objects/enemy/components/movement_component.gd" id="3_move"]
+[ext_resource type="Script" path="res://objects/enemy/components/vfx_emitter.gd" id="4_vfx"]
+[ext_resource type="Script" path="res://objects/enemy/components/sfx_emitter.gd" id="5_sfx"]
+[ext_resource type="AudioStream" path="res://sounds/hard-splash.wav" id="6_hit"]
+[ext_resource type="AudioStream" path="res://sounds/doom-sound-fx-secret.wav" id="7_death"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hit"]
+size = Vector3(2, 2, 2)
+
+[node name="FseObstacle" type="CharacterBody3D" groups=["obstacle"]]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_base")
+
+[node name="HitBox" type="Area3D" parent="."]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("2_hitbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
+shape = SubResource("BoxShape3D_hit")
+
+[node name="MovementComponent" type="Node" parent="."]
+script = ExtResource("3_move")
+
+[node name="VfxEmitter" type="Node3D" parent="."]
+script = ExtResource("4_vfx")
+
+[node name="SfxEmitter" type="Node3D" parent="."]
+script = ExtResource("5_sfx")
+
+[node name="hit" type="AudioStreamPlayer3D" parent="SfxEmitter"]
+stream = ExtResource("6_hit")
+
+[node name="death" type="AudioStreamPlayer3D" parent="SfxEmitter"]
+stream = ExtResource("7_death")

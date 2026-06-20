@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://sobb6kxvthei"]
 
 [ext_resource type="PackedScene" uid="uid://xfjfxk0ojb5c" path="res://levels/overworld/base_overworld.tscn" id="1_3jslp"]
+[ext_resource type="PackedScene" uid="uid://citbuvgpbkkbw" path="res://models/rails/kelp-walls.glb" id="2_ni1te"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_5jk75"]
 size = Vector2(60, 60)
@@ -393,3 +394,18 @@ mesh = SubResource("BoxMesh_ni1te")
 [node name="MeshInstance3D96" type="MeshInstance3D" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="95" unique_id=1178476389]
 transform = Transform3D(0.5, 0.86602545, 0, -0.86602545, 0.5, 0, 0, 0, 1, -40.625, -27.663948, 116.5)
 mesh = SubResource("BoxMesh_ni1te")
+
+[node name="kelp-walls" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="96" unique_id=750956103 instance=ExtResource("2_ni1te")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -9.5, 0)
+
+[node name="kelp-walls2" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="97" unique_id=1983566178 instance=ExtResource("2_ni1te")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -9.5, -19)
+
+[node name="kelp-walls3" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="98" unique_id=905788064 instance=ExtResource("2_ni1te")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -9.5, -38)
+
+[node name="kelp-walls4" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="99" unique_id=1623598887 instance=ExtResource("2_ni1te")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -9.5, -57)
+
+[node name="kelp-walls5" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="100" unique_id=2141931419 instance=ExtResource("2_ni1te")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -9.5, -76)
