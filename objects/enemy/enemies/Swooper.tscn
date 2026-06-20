@@ -1,9 +1,10 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="PackedScene" path="res://objects/enemy/base/BaseEnemy.tscn" id="1_base"]
 [ext_resource type="Resource" path="res://objects/enemy/enemies/swooper.tres" id="2_data"]
 [ext_resource type="Resource" path="res://objects/enemy/movement/swooper_movement.tres" id="3_move"]
 [ext_resource type="PackedScene" path="res://objects/weapons/enemy/EnemyBoltOrange.tscn" id="4_bolt"]
+[ext_resource type="Script" path="res://objects/enemy/components/contact_damage.gd" id="5_contact"]
 
 [sub_resource type="StandardMaterial3D" id="mat_body"]
 albedo_color = Color(0.95, 0.45, 0.15, 1)
@@ -35,6 +36,9 @@ color = Color(1, 0.5, 0.1, 1)
 radius = 0.18
 height = 0.36
 
+[sub_resource type="SphereShape3D" id="contact_shape"]
+radius = 1.0
+
 [node name="Swooper" instance=ExtResource("1_base")]
 enemy_data = ExtResource("2_data")
 activation_distance = 50.0
@@ -54,6 +58,18 @@ initial_delay = 0.5
 [node name="Body" type="MeshInstance3D" parent="." index="6"]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0)
 mesh = SubResource("mesh_body")
+
+[node name="ContactDamage" type="Area3D" parent="." index="7"]
+collision_layer = 16
+collision_mask = 2
+script = ExtResource("5_contact")
+damage = 15
+hit_cooldown = 0.6
+damage_group = &"player"
+destroy_self_on_hit = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ContactDamage"]
+shape = SubResource("contact_shape")
 
 [node name="death" type="GPUParticles3D" parent="VfxEmitter" index="0"]
 emitting = false
