@@ -47,47 +47,44 @@ gravity = Vector3(0, 0, 0)
 scale_curve = SubResource("CurveTexture_7phfj")
 color_ramp = SubResource("GradientTexture1D_ueml4")
 
-[sub_resource type="Gradient" id="Gradient_q7k1h"]
-colors = PackedColorArray(0.5132329, 0.5132329, 0.5132329, 1, 1, 1, 1, 1)
+[sub_resource type="Gradient" id="Gradient_2n318"]
+offsets = PackedFloat32Array(0.36480686, 0.8583691)
+colors = PackedColorArray(0.9999997, 0.21537742, 0.66978866, 1, 0.802243, 0.8914013, 0.6396547, 1)
 
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_poptj"]
-gradient = SubResource("Gradient_q7k1h")
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_iwjla"]
+gradient = SubResource("Gradient_2n318")
 
 [sub_resource type="Curve" id="Curve_7phfj"]
-_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.67428154), 0.0, 0.0, 0, 0]
-point_count = 2
+_data = [Vector2(0, 0.2516209), 0.0, 0.0, 0, 0, Vector2(0.3067729, 0.946233), 0.0, 0.0, 0, 0, Vector2(1, 0.12374252), 0.0, 0.0, 0, 0]
+point_count = 3
 
 [sub_resource type="CurveTexture" id="CurveTexture_tovrt"]
 curve = SubResource("Curve_7phfj")
 
-[sub_resource type="Curve" id="Curve_2n318"]
-_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.9985423, 0.27831), 0.0, 0.0, 0, 0]
-point_count = 2
-
-[sub_resource type="CurveTexture" id="CurveTexture_iwjla"]
-curve = SubResource("Curve_2n318")
-
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_b3w0i"]
 emission_shape = 1
-emission_sphere_radius = 1.0
+emission_sphere_radius = 0.66
 spread = 180.0
-initial_velocity_min = 1.0
-initial_velocity_max = 3.0
-gravity = Vector3(0, 2, 0)
-scale_min = 0.19999999
-scale_max = 0.39999998
-scale_curve = SubResource("CurveTexture_iwjla")
-color = Color(0.9999998, 0.029165983, 0.60832876, 1)
-color_initial_ramp = SubResource("GradientTexture1D_poptj")
-emission_curve = SubResource("CurveTexture_tovrt")
+initial_velocity_min = 0.19999999
+initial_velocity_max = 1.0
+gravity = Vector3(0, 1, 0)
+scale_max = 2.0
+scale_curve = SubResource("CurveTexture_tovrt")
+color_ramp = SubResource("GradientTexture1D_iwjla")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lsedd"]
-vertex_color_use_as_albedo = true
-emission = Color(1, 0.37901098, 0.7130365, 1)
-emission_energy_multiplier = 2.17
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q7k1h"]
+transparency = 1
+blend_mode = 1
+cull_mode = 2
+albedo_color = Color(1, 0.4421421, 0.7079001, 1)
+emission_enabled = true
+emission = Color(0, 0.76, 0.722, 1)
+use_particle_trails = true
 
-[sub_resource type="SphereMesh" id="SphereMesh_6xjve"]
-material = SubResource("StandardMaterial3D_lsedd")
+[sub_resource type="RibbonTrailMesh" id="RibbonTrailMesh_poptj"]
+material = SubResource("StandardMaterial3D_q7k1h")
+shape = 0
+size = 0.1
 
 [sub_resource type="Animation" id="Animation_q7k1h"]
 length = 0.001
@@ -143,10 +140,12 @@ process_material = SubResource("ParticleProcessMaterial_tovrt")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 3)
 emitting = false
 amount = 20
-one_shot = true
-explosiveness = 1.0
+lifetime = 5.0
+speed_scale = 0.4
+trail_enabled = true
+trail_lifetime = 1.41
 process_material = SubResource("ParticleProcessMaterial_b3w0i")
-draw_pass_1 = SubResource("SphereMesh_6xjve")
+draw_pass_1 = SubResource("RibbonTrailMesh_poptj")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Node3D" unique_id=106525859]
 libraries/ = SubResource("AnimationLibrary_ueml4")

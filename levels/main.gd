@@ -2,7 +2,7 @@ extends Node3D
 
 ## Main scene controller — registers navigator and overworld with GameManager.
 
-@onready var navigator: CharacterBody3D = $PlayerRoot/Navigator
+@onready var navigator: CharacterBody3D = $Level/Path3D/PathFollow3D/PlayerRoot/Navigator
 @onready var level: Node3D = $Level
 
 

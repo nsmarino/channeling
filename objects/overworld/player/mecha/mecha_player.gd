@@ -45,6 +45,16 @@ extends CharacterBody3D
 ## Max world distance an enemy can be to be eligible for homing lock-on.
 @export var homing_max_range: float = 120.0
 
+@export_category("Evade")
+## Initial impulse applied to the ship cursor in world units/second. The push
+## decays linearly to zero over evade_duration. The standard frustum clamp
+## still applies, so an evade can never carry the player past the play box.
+@export var evade_strength: float = 40.0
+## Seconds the impulse persists (linear decay).
+@export var evade_duration: float = 0.22
+## Minimum seconds between evades.
+@export var evade_cooldown: float = 0.4
+
 @export_category("References")
 ## Active camera used for aiming/reticle projection. Falls back to the
 ## viewport's current camera when left empty.
@@ -67,6 +77,12 @@ var hp: int = 0
 
 # Accumulated mouse motion since the last aim integration (cleared per frame).
 var _pending_mouse_delta: Vector2 = Vector2.ZERO
+
+# Evade impulse state. While _evade_timer > 0, _evade_velocity (world units/sec
+# in the player plane) is added to the cursor each frame with linear decay.
+var _evade_velocity: Vector2 = Vector2.ZERO
+var _evade_timer: float = 0.0
+var _evade_cooldown_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -135,13 +151,47 @@ func _process_movement(delta: float) -> void:
 		Input.get_axis("MoveLeft", "MoveRight"),
 		Input.get_axis("MoveDown", "MoveUp")
 	)
+	_handle_evade_input(input)
+
 	_player_cursor = _move_cursor(_player_cursor, input, move_speed, delta, player_plane_distance, move_bounds_scale)
+	_apply_evade(delta)
 
 	# Place the ship on its plane relative to the camera. Inheriting the camera's
 	# basis makes the ship bank and advance with the rig.
 	var cam_xform := _camera.global_transform
 	var offset := Vector3(_player_cursor.x, _player_cursor.y, -player_plane_distance)
 	global_transform = Transform3D(cam_xform.basis, cam_xform * offset)
+
+
+## Trigger an evade on CombatEvade press if cooldown is ready. The impulse
+## direction matches the player's current steering; if stationary, it punches
+## straight upward as a fallback.
+func _handle_evade_input(input_dir: Vector2) -> void:
+	if not Input.is_action_just_pressed("CombatEvade"):
+		return
+	if _evade_cooldown_timer > 0.0:
+		return
+
+	var dir: Vector2 = input_dir.normalized() if input_dir.length_squared() >= 0.04 else Vector2.UP
+	_evade_velocity = dir * evade_strength
+	_evade_timer = evade_duration
+	_evade_cooldown_timer = evade_cooldown
+
+
+## Integrate the decaying impulse into the cursor and re-clamp it to the play
+## box (since this displacement bypasses _move_cursor's clamp).
+func _apply_evade(delta: float) -> void:
+	_evade_cooldown_timer = maxf(_evade_cooldown_timer - delta, 0.0)
+	if _evade_timer <= 0.0:
+		return
+
+	var decay: float = clampf(_evade_timer / evade_duration, 0.0, 1.0)
+	_player_cursor += _evade_velocity * decay * delta
+	_evade_timer = maxf(_evade_timer - delta, 0.0)
+
+	var extents := _frustum_extents(player_plane_distance, move_bounds_scale)
+	_player_cursor.x = clampf(_player_cursor.x, -extents.x, extents.x)
+	_player_cursor.y = clampf(_player_cursor.y, -extents.y, extents.y)
 
 #endregion
 

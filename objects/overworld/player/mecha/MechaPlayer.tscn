@@ -12,6 +12,7 @@ albedo_color = Color(2.4546682e-06, 0.7974069, 0.2043907, 1)
 
 [sub_resource type="SphereMesh" id="SphereMesh_obejj"]
 material = SubResource("StandardMaterial3D_ppeqf")
+radius = 0.25
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6po1x"]
 albedo_color = Color(0, 0.8533039, 0.9807295, 1)
@@ -24,7 +25,6 @@ height = 1.0
 
 [node name="MechaPlayer" type="CharacterBody3D" unique_id=343871187 groups=["player"]]
 collision_layer = 2
-collision_mask = 1
 script = ExtResource("3_mecha")
 default_weapon_scene = ExtResource("4_blaster")
 

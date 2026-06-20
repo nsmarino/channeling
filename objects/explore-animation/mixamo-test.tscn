@@ -459,7 +459,7 @@ filter_enabled = true
 filters = ["../LookAt:position:x", "../LookAt:position:y", "../LookAt:position:z"]
 
 [sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_mr6f5"]
-graph_offset = Vector2(-177.79187, 164.49039)
+graph_offset = Vector2(-20.15987, 585.5999)
 nodes/output/position = Vector2(810, 540)
 nodes/Animation/node = SubResource("AnimationNodeAnimation_6qhbm")
 nodes/Animation/position = Vector2(330, 530)
@@ -515,7 +515,7 @@ settings/0/use_virtual_end = false
 settings/0/extend_end_bone = false
 
 [node name="BoneAttachment3D" type="BoneAttachment3D" parent="Y Bot/Skeleton3D" index="3" unique_id=836951206]
-transform = Transform3D(-0.9999751, -0.00086806715, 0.0070315823, 0.005624734, -0.7007333, 0.7134013, 0.0043079853, 0.7134229, 0.70072055, 0.2205208, 0.55013365, 0.21821193)
+transform = Transform3D(-0.9999726, -0.0014566183, 0.007299632, 0.005435385, -0.81288934, 0.582393, 0.0050854534, 0.58241665, 0.81287456, 0.22052084, 0.5532607, 0.18501714)
 bone_name = "mixamorig_LeftFoot"
 bone_idx = 57
 
@@ -543,7 +543,7 @@ bone = 5
 libraries/ = SubResource("AnimationLibrary_o38d1")
 
 [node name="Target" type="Node3D" parent="." unique_id=1269648866]
-transform = Transform3D(-0.9999749, -0.0008680261, 0.007031579, 0.0056247325, -0.70073324, 0.71340126, 0.00430801, 0.7134228, 0.7007206, 0.2205208, 0.55013365, 0.21821183)
+transform = Transform3D(-0.99997234, -0.0014565125, 0.0072995727, 0.0054353527, -0.8128892, 0.58239293, 0.0050854804, 0.58241636, 0.8128748, 0.2205208, 0.5532607, 0.18501711)
 
 [node name="Pole" type="Node3D" parent="." unique_id=971463102]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.003289342, 1.1691284, 0.9401611)
