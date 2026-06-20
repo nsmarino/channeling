@@ -1,0 +1,87 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://objects/weapons/enemy/fse_turret_projectile.gd" id="1_proj"]
+[ext_resource type="Script" path="res://objects/enemy/components/hit_box.gd" id="2_hitbox"]
+[ext_resource type="Script" path="res://objects/enemy/components/movement_component.gd" id="3_move"]
+[ext_resource type="Script" path="res://objects/enemy/components/contact_damage.gd" id="4_contact"]
+[ext_resource type="Resource" path="res://objects/enemy/movement/turret_curve.tres" id="5_curve"]
+[ext_resource type="Script" path="res://objects/enemy/components/vfx_emitter.gd" id="6_vfx"]
+
+[sub_resource type="StandardMaterial3D" id="mat"]
+albedo_color = Color(1, 0.25, 0.6, 1)
+emission_enabled = true
+emission = Color(1, 0.3, 0.65, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="SphereMesh" id="mesh"]
+material = SubResource("mat")
+radius = 0.28
+height = 0.56
+
+[sub_resource type="SphereShape3D" id="hit_shape"]
+radius = 0.45
+
+[sub_resource type="SphereShape3D" id="contact_shape"]
+radius = 0.45
+
+[sub_resource type="ParticleProcessMaterial" id="death_mat"]
+emission_shape = 1
+emission_sphere_radius = 0.2
+spread = 180.0
+initial_velocity_min = 4.0
+initial_velocity_max = 9.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.4
+scale_max = 1.0
+color = Color(1, 0.35, 0.7, 1)
+
+[sub_resource type="SphereMesh" id="death_draw"]
+radius = 0.1
+height = 0.2
+
+[node name="TurretBolt" type="CharacterBody3D" groups=["enemy"]]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_proj")
+max_hp = 1
+life_time = 5.0
+
+[node name="Body" type="MeshInstance3D" parent="."]
+mesh = SubResource("mesh")
+
+[node name="HitBox" type="Area3D" parent="."]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("2_hitbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
+shape = SubResource("hit_shape")
+
+[node name="MovementComponent" type="Node" parent="."]
+script = ExtResource("3_move")
+pattern = ExtResource("5_curve")
+face_travel_direction = false
+
+[node name="ContactDamage" type="Area3D" parent="."]
+collision_layer = 16
+collision_mask = 2
+script = ExtResource("4_contact")
+damage = 8
+hit_cooldown = 0.6
+damage_group = &"player"
+consume_on_hit = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ContactDamage"]
+shape = SubResource("contact_shape")
+
+[node name="VfxEmitter" type="Node3D" parent="."]
+script = ExtResource("6_vfx")
+
+[node name="death" type="GPUParticles3D" parent="VfxEmitter"]
+emitting = false
+amount = 20
+lifetime = 0.6
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("death_mat")
+draw_pass_1 = SubResource("death_draw")

@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://objects/obstacles/AnimObstacle.tscn" id="9_xdh4e"]
 [ext_resource type="PackedScene" path="res://objects/obstacles/BobBlock.tscn" id="10_c7dyn"]
 [ext_resource type="PackedScene" path="res://objects/enemy/enemies/Turret.tscn" id="10_turret"]
+[ext_resource type="PackedScene" path="res://objects/obstacles/StationaryTurret.tscn" id="13_sturret"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_21ko3"]
 panorama = ExtResource("4_m1504")
@@ -203,6 +204,10 @@ libraries/ = SubResource("AnimationLibrary_1fput")
 
 [node name="BobBlock" parent="Level" unique_id=2092369376 instance=ExtResource("10_c7dyn")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0, -125)
+
+[node name="StationaryTurret" parent="Level" unique_id=28306102 instance=ExtResource("13_sturret")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6407242, -5.8265724, -60)
+activation_distance = 40.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1472522793]
 libraries/ = SubResource("AnimationLibrary_qy63d")

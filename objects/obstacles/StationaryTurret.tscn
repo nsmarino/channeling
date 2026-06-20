@@ -1,0 +1,76 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://objects/obstacles/base/fse_obstacle.gd" id="1_obst"]
+[ext_resource type="Script" path="res://objects/enemy/components/hit_box.gd" id="2_hitbox"]
+[ext_resource type="Script" path="res://objects/enemy/components/turret_emitter.gd" id="3_emit"]
+[ext_resource type="PackedScene" path="res://objects/weapons/enemy/TurretBolt.tscn" id="4_bolt"]
+[ext_resource type="Script" path="res://objects/enemy/components/vfx_emitter.gd" id="5_vfx"]
+[ext_resource type="Script" path="res://objects/enemy/components/sfx_emitter.gd" id="6_sfx"]
+[ext_resource type="AudioStream" path="res://sounds/hard-splash.wav" id="7_hit"]
+[ext_resource type="AudioStream" path="res://sounds/doom-sound-fx-secret.wav" id="8_death"]
+
+[sub_resource type="StandardMaterial3D" id="mat_body"]
+albedo_color = Color(0.5, 0.2, 0.5, 1)
+metallic = 0.7
+roughness = 0.35
+emission_enabled = true
+emission = Color(0.6, 0.2, 0.55, 1)
+emission_energy_multiplier = 0.5
+
+[sub_resource type="CylinderMesh" id="mesh_body"]
+material = SubResource("mat_body")
+top_radius = 0.6
+bottom_radius = 1.0
+height = 1.6
+
+[sub_resource type="CylinderShape3D" id="hit_shape"]
+radius = 1.0
+height = 1.6
+
+[sub_resource type="Curve2D" id="sweep_curve"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, -10, 0, 0, 0, 0, 0, -5, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, -4, 0, 0, 0, 0, 10, 0)
+}
+point_count = 5
+
+[node name="StationaryTurret" type="CharacterBody3D" groups=["obstacle"]]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_obst")
+activation_distance = 45.0
+max_hp = 90
+
+[node name="Body" type="MeshInstance3D" parent="."]
+mesh = SubResource("mesh_body")
+
+[node name="Muzzle" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+
+[node name="HitBox" type="Area3D" parent="."]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("2_hitbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
+shape = SubResource("hit_shape")
+
+[node name="TurretEmitter" type="Node" parent="."]
+script = ExtResource("3_emit")
+projectile_scenes = Array[PackedScene]([ExtResource("4_bolt")])
+curve = SubResource("sweep_curve")
+fire_interval = 1.0
+advance_speed = 22.0
+initial_delay = 0.4
+muzzle_path = NodePath("../Muzzle")
+
+[node name="VfxEmitter" type="Node3D" parent="."]
+script = ExtResource("5_vfx")
+
+[node name="SfxEmitter" type="Node3D" parent="."]
+script = ExtResource("6_sfx")
+
+[node name="hit" type="AudioStreamPlayer3D" parent="SfxEmitter"]
+stream = ExtResource("7_hit")
+
+[node name="death" type="AudioStreamPlayer3D" parent="SfxEmitter"]
+stream = ExtResource("8_death")
