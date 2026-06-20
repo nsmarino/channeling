@@ -1,60 +1,125 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
 ## Project Overview
 
-**FSE** is a Godot 4.6 (Forward Plus) third-person action/exploration game. The main scene is `levels/main.tscn`. The project uses the Godot MCP server for AI-assisted development — prefer MCP tools (`mcp__godot__*`) over direct file edits for scene manipulation.
+**time-rails** is a Godot 4.6 (Forward+) arcade rail shooter in the style of *Sin & Punishment: Star Successor*, *Kid Icarus: Uprising*, *Panzer Dragoon*, and *Space Harrier*. The player pilots a mecha along a forward-moving rail through a sci-fi anime world of twisted pines and shattered ruins. The finished prototype targets three levels with strong replay value; goals lean heavily on **visual effects (particle systems, shaders)** and **a variety of fun weapons and enemy types** to experiment with.
+
+Main scene: `levels/main.tscn`. The project ships a Godot MCP server (`mcp__godot__*`) for AI-assisted iteration — prefer MCP tools (`run_project`, `game_eval`, `game_screenshot`) for verification over raw shell work.
 
 ## Running & Tooling
 
-- **Open the project**: Launch Godot 4.6 and open the project at this directory, or use `mcp__godot__run_project` / `mcp__godot__launch_editor`.
-- **Open Blender source files**: `make blend` (or `./open-blends`) — opens `blender/level/level.blend` and `blender/models/props.blend`. Requires Blender to be installed; override the app name with `BLENDER_APP=...`.
-- **Godot version**: 4.6.stable.official — no GDScript 1.x syntax; use typed declarations throughout (untyped declarations are treated as warnings).
+- **Open in editor**: launch Godot 4.6, or `mcp__godot__launch_editor`. Run with `mcp__godot__run_project`.
+- **Open Blender source**: `make blend` (or `./open-blends`) — opens `blender/level/level.blend` and `blender/models/props.blend` once those files exist. Phase 3 will populate `blender/` with the mecha source.
+- **Godot version**: 4.6.stable.official — GDScript with **typed declarations throughout**; untyped is treated as a warning.
 
 ## Architecture
 
-### Autoloads (always available as singletons)
-- **`Events`** (`autoloads/events.gd`) — central signal bus. All cross-system communication goes through here. Manages dialogue state (`is_dialogue_active`, `active_dialogue_trigger`) and emits signals for combat, enemy HP, phase changes, and dialogue lifecycle. Systems check `Events.is_dialogue_active` to lock input.
-- **`GameManager`** (`autoloads/game_manager.gd`) — holds runtime references to the navigator (`CharacterBody3D`) and overworld root. Systems that need the player reference use `GameManager.navigator`.
-- **`McpInteractionServer`** (`autoloads/mcp_interaction_server.gd`) — TCP server on `127.0.0.1:9090` that accepts JSON commands from the Godot MCP tool. Runs with `PROCESS_MODE_ALWAYS` so it stays active while paused.
+### Autoloads
+- **`Events`** (`autoloads/events.gd`) — central signal bus. Combat hits, enemy HP/damage, phase changes, dialogue lifecycle. Cross-system communication should go through here.
+- **`GameManager`** (`autoloads/game_manager.gd`) — holds runtime references to the navigator (player `CharacterBody3D`) and overworld root.
+- **`McpInteractionServer`** (`autoloads/mcp_interaction_server.gd`) — TCP server on `127.0.0.1:9090` for the Godot MCP tool. Many style warnings emanate from this file; **treat its warnings as noise** when triaging.
 
-### Player (`objects/fse/overworld/player/navigator.gd`)
-`CharacterBody3D` with a `SpringArm3D` third-person camera rig. Key behaviors:
-- Two movement modes toggled by `use_gravity`: fly mode (default, no physics) and gravity mode with jump.
-- ADS (Aim Down Sights) triggered by `AimDownSights` action — shifts camera to shoulder offset, constrains pitch/yaw, enables firing.
-- Sprint input fires a dodge (impulse + cooldown), not a continuous sprint.
-- Weapon is instantiated from `default_weapon_scene` and parented to `elena/WeaponSocket`. The model node is named `elena`.
-- Firing requires ADS to be active. Aim direction is resolved via a raycast from the camera; falls back to `projectile_zero_distance` when nothing is hit.
-- All input is gated by `_is_dialogue_locked()` which checks `Events.is_dialogue_active`.
+### Player rig (`objects/overworld/player/mecha/`)
 
-**Input map** (keyboard defaults shown): Move = IJKL, Jump = Space, Sprint/Dodge = `;`, ADS = Shift, Attack = LMB. Controller fully supported.
+The signature interaction is a **dual screen-space cursor system**:
 
-### Enemy System (`objects/fse/enemy/`)
-- **`FseEnemy`** (`base/fse_enemy.gd`, `class_name FseEnemy`) — `CharacterBody3D`. Reads stats from an `FseEnemyData` resource; instantiates a visual mesh from `enemy_data.character_scene`. Uses `NavigationAgent3D` with RVO avoidance (Y-axis locked).
-- **`FseAIState`** (`base/AIState.gd`) — extends `BaseAIState`. States receive references to `character`, `player`, `nav_agent`, `attack_area`, `animator`, and `enemy_data` injected by `FseEnemy._setup_state_machine()`. States: `idle`, `pursue`, `wander`, `attack`, `death`.
-- **`BaseStateMachine`** (`objects/fse/base/state/state_machine.gd`) — collects `BaseAIState` children by node type, calls `check_transition()` then `update()` each physics frame.
-- Static helpers on `FseEnemy`: `spawn_from_markers()` (spawns N enemies at shuffled `Marker3D` children), `get_closest_to()`, `command_all()`.
+```
+Main
+└─ PlayerRoot (Node3D, animated forward by AnimationPlayer/MoveF)
+   ├─ Navigator (MechaPlayer.tscn — the ship, group "player")
+   └─ Camera3D
+      └─ AimTarget (Node3D — the reticle's world position)
+```
 
-### Weapons (`objects/fse/weapons/`)
-- **`FseBaseWeapon`** (`base/BaseWeapon.gd`, `class_name FseBaseWeapon`) — data-driven via `FseWeaponData` resource. Exposes `try_fire(aim_direction)` and `should_fire_for_input(pressed, just_pressed)`. Projectiles are spawned at scene root, not as children of the weapon.
-- **`FseWeaponData`** — `fire_rate`, `muzzle_velocity`, `burst_count`, `damage`, `ammo_count` (`-1` = infinite), `is_automatic`, `projectile_scene`.
-- Projectile scenes must expose `launch(transform, direction, owner)` and `speed`/`damage` properties.
+`mecha_player.gd` script highlights:
+- The **ship** and the **reticle** are both points on planes a fixed distance in front of the camera (`player_plane_distance`, `aim_plane_distance`), steered in camera-local X/Y and clamped to the camera frustum at that depth (`_move_cursor` / `_frustum_extents`). Because the camera rides `PlayerRoot`, banking/translation on a curved rail will be inherited automatically (Phase 3 work).
+- Ship cursor → `MoveLeft/Right/Up/Down` (left stick + IJKL).
+- Aim cursor → `LookLeft/Right/Up/Down` (right stick) **plus** mouse motion via `_input`; mouse is captured on `_ready`, **Escape** toggles release.
+- **CombatAttack** fires the equipped weapon toward the aim point.
+- **CombatEvade** seeds a decaying linear impulse on the ship cursor in the current direction of travel (fallback: straight up). The standard frustum clamp re-applies after integration, so an evade cannot cross the play box.
+- **Homing acquisition** (`_acquire_homing_target`) finds the enemy nearest the reticle in screen space within an aim cone, and sets it on the equipped weapon each frame — so non-locked shots fly straight.
 
-### Dialogue System
-- **`DialogueTrigger`** (`objects/fse/overworld/triggers/dialogue/dialogue_trigger.gd`) — `CharacterBody3D` with an `Area3D`. Player proximity shows a prompt via `Events.request_dialogue_prompt()`; confirm input calls `Events.begin_dialogue()`. One-shot by default.
-- Dialogue config is a `DialogueConfig` resource (not defined in this repo — likely a custom Resource).
-- UI: `ui/overworld/DialogueBox.tscn` / `dialogue_box.gd` and `PromptBox.tscn` / `prompt_box.gd` listen to `Events` signals.
+Inspector-tunable knobs are deliberately dense and live under `@export_category` blocks: Movement, Aiming, Combat, Evade, References. The user iterates heavily in the Inspector.
 
-### Shader / Post-Processing (`objects/explore-shaders/`)
-- **`outline-posterize-color-dither.gdshader`** — fullscreen post-processing effect using a `spatial` + `unshaded` quad placed in front of the camera (`POSITION = vec4(VERTEX.xy, 1.0, 1.0)`). Combines Sobel-Feldman edge detection (depth + normal buffers), color posterization, 8-color palette matching, and Bayer dithering.
-- **Known limitation**: this technique conflicts with Volumetric Fog (fog is applied to the quad at max depth). Fix: add `fog_disabled` to `render_mode`. Long-term: migrate to a `CompositorEffect` (Godot 4.3+).
+### Weapons (`objects/weapons/`)
 
-### Global Groups
-Nodes self-register into `"player"`, `"enemy"`, and `"level"` groups. Enemy AI resolves the player via `get_tree().get_first_node_in_group("player")`.
+- **`FseBaseWeapon`** (`base/BaseWeapon.gd`) — data-driven via a `WeaponData` (`resources/WeaponData.gd`) resource. Exposes `try_fire(aim_direction)`, `should_fire_for_input(pressed, just_pressed)`, and an optional per-frame `homing_target` that's passed through to spawned projectiles that support it.
+- **`FseBaseProjectile`** (`base/BaseProjectile.gd`) — straight-flying. Damage dispatches **both** ways so one base works for both sides:
+  - `area_entered` → enemy `HitBox.receive_hit(amount)`
+  - `body_entered` → bodies in `group_to_damage` exposing `take_damage` / `receive_attack` / `on_damage`
+- **`HomingProjectile`** (`player/homing_projectile.gd`) — extends `FseBaseProjectile`, curves toward `homing_target` at a capped `turn_rate_deg`. The cap is the design feature: close/slow targets get caught; far/fast targets out-run the correction. That's the Space-Harrier "closer = more likely to hit" feel — emergent from the cap, not from explicit probability.
+- Enemy projectile variants in `objects/weapons/enemy/` (`EnemyBoltBlue/Orange/Green.tscn`) — coloured straight projectiles with particle trails.
+
+### Enemies (`objects/enemy/`)
+
+Rebuilt for the rails shooter as a **component-assembled** system; the old navmesh/melee `fse_enemy.gd` stack was archived. Each enemy is an **inherited scene** of `base/BaseEnemy.tscn`, so the visible body is a real editor-visible child node — no runtime `PackedScene.instantiate()` for the mesh.
+
+`base/base_enemy.gd` (`class_name FseEnemy`):
+- Lifecycle: `INACTIVE → ACTIVE → DYING` plus `PASSED` (when the camera flies past — components stop, body stays in scene).
+- Distance-based self-activation via `activation_distance`.
+- HP / `take_damage` with console-logged transitions; death detaches VFX/SFX into the scene root so they survive the freed enemy.
+- Components are optional children resolved by name (HitBox, MovementComponent, WeaponComponent, VfxEmitter, SfxEmitter).
+
+Components (`objects/enemy/components/`):
+- **`HitBox`** — `Area3D` on the `enemy` collision layer; calls `take_damage` on the parent on `receive_hit`.
+- **`MovementComponent`** — drives the body each frame using a pluggable `MovementPattern` resource.
+- **`WeaponComponent`** — fires a projectile scene on a cadence; aim_at_player or muzzle-forward.
+- **`VfxEmitter` / `SfxEmitter`** — keyed one-shot players (`emit("death", detach=true)` etc.).
+
+Movement patterns (`objects/enemy/movement/`) — `MovementPattern` Resource base + subclasses `WeaveMovement`, `SwoopMovement`, `StrafeMovement`. Swap one on a `MovementComponent` in the Inspector to change behavior without touching code.
+
+Concrete enemies (`objects/enemy/enemies/`): **Weaver** (blue sphere, weave, single shot), **Swooper** (orange cone, dive, burst), **Turret** (green box, strafe, volley). Each has an `*.tres` `FseEnemyData` (`objects/enemy/EnemyData.gd`) for `max_hp`, `move_speed`, `contact_damage`, `score`.
+
+### Combat collision layers (defined in `project.godot`)
+
+| # | Name | Used by |
+|---|---|---|
+| 1 | `environment` | static world (currently unused) |
+| 2 | `player` | `MechaPlayer` body |
+| 3 | `enemy` | enemy `HitBox` areas |
+| 4 | `player_projectile` | player projectile areas (mask scans `enemy`) |
+| 5 | `enemy_projectile` | enemy projectile areas (mask scans `player`) |
+
+### Exploration prototypes (`objects/explore-*/`)
+
+Standalone sandboxes for in-progress R&D — not loaded by `main.tscn`:
+- `explore-animation/` — IK / procedural animation tests (Phase 3 reference).
+- `explore-vfx/` — particle/effect studies.
+- `explore-shaders/` — `outline-posterize-color-dither.gdshader` (Sobel + posterize + Bayer dither — fullscreen quad in front of the camera; **conflicts with Volumetric Fog** unless `fog_disabled` is added to `render_mode`; long-term move to a `CompositorEffect`), plus `simple-water.gdshader` and `grass.gdshader`.
+
+### Legacy code still present (not active in `main.tscn`)
+
+- **Dialogue system** (`objects/overworld/triggers/dialogue/`, `ui/overworld/DialogueBox.tscn`, `resources/dialogue/`) — `DialogueTrigger` + `Events` lifecycle exists from the source project; not used by the current scene. Keep around in case dialogue between rail segments becomes a feature.
+
+## Global groups
+
+`"player"`, `"enemy"`, `"level"` — registered automatically (player in scene definition, enemy in `FseEnemy._ready`). Lookups use `get_tree().get_first_node_in_group(...)` / `get_nodes_in_group(...)`.
 
 ## Conventions
-- GDScript with static typing throughout. The linter warns on untyped declarations.
-- Signals are emitted through `Events` — avoid direct node-to-node signal connections across systems.
-- Scene files for exploration/prototyping live under `objects/explore-*/`; production game objects live under `objects/fse/`.
-- Blender source files live in `blender/`; exported assets (`.glb`, `.obj`) are imported into the project root or `models/`.
+
+- GDScript with **static typing** throughout. Untyped declarations warn.
+- `class_name` prefixes use `Fse*` (legacy from the source project) — keep the convention for consistency.
+- Cross-system signals go through `Events` rather than direct node-to-node connections.
+- Scene files for exploration live under `objects/explore-*/`; production game objects under `objects/{overworld,enemy,weapons,base,components}/`.
+- Component scripts attach by `script` on a child node and resolve siblings/parents in `_ready`; the parent (`FseEnemy`) coordinates them.
+- Blender source under `blender/`; exported `.glb`/`.obj` land in the project root or `models/`.
+
+## Working style notes
+
+- Tuning happens in the **Inspector**, not in code — keep `@export` knobs front-and-center for new behavior. The user iterates by playing, tweaking, re-playing.
+- The user prefers **small, reviewable changes** over big batches. Show a diff before committing when in doubt.
+- **Never commit without explicit permission.** The user reviews changes manually.
+- Verify with MCP: `run_project` then `game_eval` in **separate turns** (the MCP server takes a moment to connect after launch — eval calls in the same batch as `run_project` will fail with "Not connected").
+- Avoid concurrent edits to the same file in one batch — they race and the second one's "file has been modified since read" error can leave half-applied changes.
+- The Godot debugger break-on-error is enabled; a single parse error in eval-injected GDScript can pause the running game. Keep eval snippets short and avoid mixing tabs/spaces.
+
+## Phase roadmap (where we are)
+
+1. ✅ **Rail player** — bounded ship cursor, frustum-clamped aim reticle, projectile fire (commit `68a70b3`).
+2. ✅ **Rigged camera + unified clamp** — camera rides `PlayerRoot`; ship & reticle share one clamp helper (`3ff5f3f`).
+3. ✅ **Component enemies** — 3 enemies, homing projectiles, VFX/SFX on death (`617e8b6`, `bfa29b9`).
+4. ✅ **Evade + mouse aim + tuning** — `CombatEvade` impulse, mouse-driven reticle, widened homing cone, slower rail (`f58e4c5`).
+5. ⏳ **Mecha in Blender + procedural animation** — rig in Blender, import to Godot, drive with `TwoBoneIK3D` / `LookAtModifier3D` / `BoneAttachment3D` instead of canned clips. Companion VFX for the evade.
+6. Future: more weapons, object-grabbing, time-manipulation tools, two more levels.
