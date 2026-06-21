@@ -1,35 +1,32 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://ckiqlg7b5x2io"]
 
 [ext_resource type="Script" uid="uid://b4qv5qaq2ucr1" path="res://objects/weapons/base/BaseWeapon.gd" id="1_base_weapon_script"]
 [ext_resource type="Script" uid="uid://ba4jr0o2yp36j" path="res://resources/WeaponData.gd" id="2_weapon_data_script"]
-[ext_resource type="PackedScene" path="res://objects/weapons/player/HomingProjectile.tscn" id="3_player_projectile_scene"]
+[ext_resource type="PackedScene" uid="uid://diharkr001m7l" path="res://objects/weapons/player/HomingProjectile.tscn" id="3_player_projectile_scene"]
 
 [sub_resource type="Resource" id="Resource_player_blaster_data"]
 script = ExtResource("2_weapon_data_script")
 display_name = &"Player Blaster"
-fire_rate = 0.2
 projectile_scene = ExtResource("3_player_projectile_scene")
-muzzle_velocity = 55.0
+muzzle_velocity = 50.0
 damage = 35.0
-is_automatic = true
-metadata/_custom_type_script = "res://resources/WeaponData.gd"
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_player_blaster"]
 top_radius = 0.05
 bottom_radius = 0.07
 height = 0.65
 
-[node name="PlayerBlaster" type="Node3D"]
+[node name="PlayerBlaster" type="Node3D" unique_id=1669890559]
 script = ExtResource("1_base_weapon_script")
 data = SubResource("Resource_player_blaster_data")
 
-[node name="Muzzle" type="Marker3D" parent="."]
+[node name="Muzzle" type="Marker3D" parent="." unique_id=2112505276]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.8)
 
-[node name="CooldownTimer" type="Timer" parent="."]
+[node name="CooldownTimer" type="Timer" parent="." unique_id=1607385001]
 one_shot = true
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.00000004371139, 1, 0, -1, 0.00000004371139, 0, 0, -0.35)
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=931346739]
+transform = Transform3D(1, 0, 0, 0, 4.371139e-08, 1, 0, -1, 4.371139e-08, 0, 0, -0.35)
 visible = false
 mesh = SubResource("CylinderMesh_player_blaster")

@@ -2,36 +2,37 @@
 
 [ext_resource type="Script" uid="uid://b1esvavhc0ixb" path="res://levels/main.gd" id="1_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://duek3aqswvgk2" path="res://objects/overworld/player/mecha/MechaPlayer.tscn" id="2_m1504"]
-[ext_resource type="Texture2D" uid="uid://wvk4w6lot138" path="res://hdr/kloppenheim_07_puresky_1k.hdr" id="4_m1504"]
 [ext_resource type="PackedScene" uid="uid://sobb6kxvthei" path="res://levels/overworld/proto-overworld.tscn" id="5_ifaiv"]
 [ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/overworld/CombatUI.tscn" id="7_combat_ui"]
 [ext_resource type="PackedScene" path="res://objects/enemy/enemies/Weaver.tscn" id="8_weaver"]
 [ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://sounds/music/selection menu.mp3" id="9_etqu2"]
 [ext_resource type="PackedScene" path="res://objects/enemy/enemies/Swooper.tscn" id="9_swooper"]
 [ext_resource type="PackedScene" path="res://objects/obstacles/AnimObstacle.tscn" id="9_xdh4e"]
-[ext_resource type="PackedScene" path="res://objects/obstacles/BobBlock.tscn" id="10_c7dyn"]
+[ext_resource type="PackedScene" uid="uid://kvhc88il1rft" path="res://objects/obstacles/BobBlock.tscn" id="10_c7dyn"]
 [ext_resource type="PackedScene" path="res://objects/enemy/enemies/Turret.tscn" id="10_turret"]
-[ext_resource type="PackedScene" path="res://objects/obstacles/StationaryTurret.tscn" id="13_sturret"]
-
-[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_21ko3"]
-panorama = ExtResource("4_m1504")
+[ext_resource type="PackedScene" uid="uid://cvab04uro7hlv" path="res://objects/obstacles/StationaryTurret.tscn" id="13_sturret"]
 
 [sub_resource type="Sky" id="Sky_s07ge"]
-sky_material = SubResource("PanoramaSkyMaterial_21ko3")
 
 [sub_resource type="Environment" id="Environment_qy63d"]
-background_mode = 2
+background_mode = 1
+background_color = Color(0.2218146, 0.3306933, 0, 1)
 background_energy_multiplier = 0.5
 sky = SubResource("Sky_s07ge")
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_sky_contribution = 0.0
-ambient_light_energy = 0.55
+glow_enabled = true
+fog_enabled = true
 fog_mode = 1
-fog_light_color = Color(0.6813262, 0.7325297, 0.7220138, 1)
+fog_light_color = Color(0.08762071, 0.13059539, 0.04574921, 1)
 fog_density = 1.0
-fog_depth_curve = 0.49999937
-fog_depth_begin = 30.0
-fog_depth_end = 562.1
+fog_height = -5.0
+fog_height_density = 0.2
+fog_depth_curve = 0.7071065
+fog_depth_begin = 0.0
+volumetric_fog_density = 0.01
+volumetric_fog_albedo = Color(0.35308334, 0.82349783, 0.5012416, 1)
+volumetric_fog_emission = Color(0.0352255, 0.24853325, 0.39479303, 1)
 adjustment_enabled = true
 adjustment_saturation = 1.26
 
@@ -82,7 +83,7 @@ _data = {
 
 [sub_resource type="Animation" id="Animation_ifaiv"]
 resource_name = "MoveF"
-length = 20.0
+length = 30.0
 loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -91,7 +92,7 @@ tracks/0/path = NodePath("Level/Path3D/PathFollow3D:progress_ratio")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 20),
+"times": PackedFloat32Array(0, 30),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [0.0, 1.0]
@@ -134,7 +135,6 @@ environment = SubResource("Environment_qy63d")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="Level" unique_id=1905902579]
 transform = Transform3D(1, 0, 0, 0, 0.6755903, 0.73727727, 0, -0.73727727, 0.6755903, 0, 0, 0)
-shadow_enabled = true
 
 [node name="Weaver" parent="Level" unique_id=517365822 instance=ExtResource("8_weaver")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1, -117.5)
@@ -203,11 +203,53 @@ transform = Transform3D(1, 0, 0, 0, 1, 1.7484555e-07, 0, -1.7484555e-07, 1, 0, 0
 libraries/ = SubResource("AnimationLibrary_1fput")
 
 [node name="BobBlock" parent="Level" unique_id=2092369376 instance=ExtResource("10_c7dyn")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0, -125)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, -8, -125)
+
+[node name="BobBlock2" parent="Level" unique_id=1674389870 instance=ExtResource("10_c7dyn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 4, -147)
+
+[node name="BobBlock3" parent="Level" unique_id=852259719 instance=ExtResource("10_c7dyn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, -6.5, -196)
 
 [node name="StationaryTurret" parent="Level" unique_id=28306102 instance=ExtResource("13_sturret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6407242, -5.8265724, -60)
-activation_distance = 40.0
+transform = Transform3D(0.5014136, 0.86212105, 0.073018655, -0.8607098, 0.50562173, -0.05937448, -0.08810781, -0.033076707, 0.99556166, -18.640724, -15.826572, -55)
+activation_distance = 80.0
+is_destructible = false
+
+[node name="StationaryTurret2" parent="Level" unique_id=110326674 instance=ExtResource("13_sturret")]
+transform = Transform3D(0.8642663, -0.5010978, 0.04410065, 0.50156415, 0.8651203, 0.0005638376, -0.0384349, 0.021631999, 0.99902695, 4.359276, -15.826572, -45)
+activation_distance = 80.0
+is_destructible = false
+
+[node name="StationaryTurret3" parent="Level" unique_id=619014691 instance=ExtResource("13_sturret")]
+transform = Transform3D(0.8665004, 0.49866733, 0.022538615, -0.49769452, 0.8665235, -0.037910365, -0.0384349, 0.021631999, 0.99902695, -18.640724, -15.826572, -74.5)
+activation_distance = 80.0
+is_destructible = false
+
+[node name="StationaryTurret4" parent="Level" unique_id=1182438072 instance=ExtResource("13_sturret")]
+transform = Transform3D(0.8642663, -0.5010978, 0.04410065, 0.50156415, 0.8651203, 0.0005638376, -0.0384349, 0.021631999, 0.99902695, 4.359276, -15.826572, -64.5)
+activation_distance = 80.0
+is_destructible = false
+
+[node name="StationaryTurret5" parent="Level" unique_id=773284766 instance=ExtResource("13_sturret")]
+transform = Transform3D(0.0038820205, 0.99942946, 0.033548765, -0.9961033, 0.0068207383, -0.08792913, -0.08810781, -0.03307671, 0.99556166, -20.100018, -4.5765724, -98.5)
+activation_distance = 80.0
+is_destructible = false
+
+[node name="StationaryTurret6" parent="Level" unique_id=834254033 instance=ExtResource("13_sturret")]
+transform = Transform3D(0.99925864, -0.0014032722, 0.038474202, 0.0022341013, 0.9997652, -0.02156203, -0.0384349, 0.021631999, 0.9990271, -0.18143177, -16.076572, -88.5)
+activation_distance = 80.0
+is_destructible = false
+
+[node name="StationaryTurret7" parent="Level" unique_id=1304186361 instance=ExtResource("13_sturret")]
+transform = Transform3D(0.5015641, 0.8651203, 0.0005638283, -0.8642663, 0.5010977, -0.044100642, -0.0384349, 0.021631999, 0.99902695, -20.100018, -4.5765724, -118)
+activation_distance = 80.0
+is_destructible = false
+
+[node name="StationaryTurret8" parent="Level" unique_id=1269634088 instance=ExtResource("13_sturret")]
+transform = Transform3D(0.99925864, -0.0014032722, 0.038474202, 0.0022341013, 0.9997652, -0.02156203, -0.0384349, 0.021631999, 0.9990271, -0.18143177, -16.076572, -108)
+activation_distance = 80.0
+is_destructible = false
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1472522793]
 libraries/ = SubResource("AnimationLibrary_qy63d")
