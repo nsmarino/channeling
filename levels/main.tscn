@@ -182,16 +182,24 @@ transform = Transform3D(0.9999905, 0, 0, 0, 1, 0, 0, 0, 0.9999905, 0, 0, 0)
 transform = Transform3D(0.9950372, 0, 0.09950371, 0, 1, 0, -0.09950371, 0, 0.9950372, 0, 0, 0)
 
 [node name="Navigator" parent="Level/Path3D/PathFollow3D/PlayerRoot" unique_id=343871187 instance=ExtResource("2_m1504")]
-move_speed = 10.0
-player_plane_distance = 3.0
+player_plane_distance = 8.0
 move_bounds_scale = 0.8
-aim_speed = 120.0
+aim_speed = 20.0
+capture_mouse_on_ready = false
+recenter_rate = 0.2
+ship_bank_max_deg = 8.0
+ship_pitch_max_deg = 8.0
+ship_yaw_max_deg = 8.0
+camera_roll_max_deg = 4.0
+camera_yaw_max_deg = 10.0
+evade_duration = 0.6
 camera_path = NodePath("../Camera3D")
 aim_target_path = NodePath("../Camera3D/AimTarget")
 
 [node name="Camera3D" type="Camera3D" parent="Level/Path3D/PathFollow3D/PlayerRoot" unique_id=613983109]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
 current = true
+fov = 30.0
 
 [node name="AimTarget" type="Node3D" parent="Level/Path3D/PathFollow3D/PlayerRoot/Camera3D" unique_id=613983110]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -30)
@@ -257,6 +265,7 @@ autoplay = &"MoveF"
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1852918013]
 stream = ExtResource("9_etqu2")
+volume_db = -67.564
 autoplay = true
 
 [editable path="Level/AnimObstacle"]
