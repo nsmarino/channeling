@@ -82,15 +82,43 @@ extends CharacterBody3D
 ## Max world distance a target can be to be eligible for homing lock-on.
 @export var homing_max_range: float = 120.0
 
-@export_category("Evade")
+@export_category("Evade (legacy impulse)")
 ## Initial impulse applied to the ship cursor in world units/second. The push
 ## decays linearly to zero over evade_duration. The standard frustum clamp
 ## still applies, so an evade can never carry the player past the play box.
+## Only used when use_grid_evade is OFF.
 @export var evade_strength: float = 40.0
 ## Seconds the impulse persists (linear decay).
 @export var evade_duration: float = 0.22
 ## Minimum seconds between evades.
 @export var evade_cooldown: float = 0.4
+
+@export_category("Grid Evade")
+## Master switch for the experimental grid-evade model. ON: the ship is confined
+## to the center cell of an imagined 3x3 viewport grid; the LEFT STICK snaps it to
+## an outer cell (held), freezing aim and pulling the camera back. OFF: the
+## controller reverts to the legacy CombatEvade impulse above.
+@export var use_grid_evade: bool = true
+## Half-size of the center cell the ship is confined to normally, as a fraction
+## of the ship's play-box half-extent (0.34 ≈ middle third of a 3x3 grid).
+@export var grid_center_fraction: float = 0.34
+## How far out the ship snaps when evading, as a fraction of the play-box
+## half-extent (0.66 ≈ the center of an outer cell).
+@export var grid_outer_fraction: float = 0.66
+## World units the evade grid is lifted relative to the camera plane. Every cell
+## (including center) rests at this height — independent of where the reticle was.
+## Raise to elevate all evade positions.
+@export var evade_lift: float = 0.0
+## Left-stick magnitude required to trigger / hold an evade.
+@export var evade_stick_deadzone: float = 0.4
+## Ease speed for the evade snap, the camera pull-back, and the return.
+@export var grid_evade_lerp: float = 12.0
+## Seconds the evade state lingers after the stick returns to neutral, before
+## targeting/camera restore. Just long enough that flicking through center on the
+## way to another cell doesn't flicker the aim back on. 0 = restore immediately.
+@export var evade_release_grace: float = 0.1
+## Degrees added to the camera FOV while evading (pull-back cue).
+@export var evade_fov_pullback: float = 8.0
 
 @export_category("References")
 ## Active camera used for aiming/reticle projection. Falls back to the
@@ -121,11 +149,24 @@ var hp: int = 0
 # Accumulated mouse motion since the last aim integration (cleared per frame).
 var _pending_mouse_delta: Vector2 = Vector2.ZERO
 
-# Evade impulse state. While _evade_timer > 0, _evade_velocity (world units/sec
-# in the ship plane) is added to the ship cursor each frame with linear decay.
+# Legacy evade impulse state (use_grid_evade OFF). While _evade_timer > 0,
+# _evade_velocity (world units/sec) is added to the ship cursor with linear decay.
 var _evade_velocity: Vector2 = Vector2.ZERO
 var _evade_timer: float = 0.0
 var _evade_cooldown_timer: float = 0.0
+
+# Grid evade state (use_grid_evade ON). _grid_offset eases toward the chosen
+# cell direction (normalized -1..1). _stick_held is the raw "stick past deadzone"
+# read; _evade_active stays true through the release grace window so a flick
+# between cells doesn't flicker aim/camera back. _evade_blend (0..1) eases the
+# ship between its reticle-follow position and the reticle-independent evade
+# anchor, so an evade always lands on the same cell regardless of prior aim.
+var _grid_offset: Vector2 = Vector2.ZERO
+var _stick_held: bool = false
+var _evade_active: bool = false
+var _evade_blend: float = 0.0
+var _evade_grace_timer: float = 0.0
+var _base_fov: float = 70.0
 
 
 func _ready() -> void:
@@ -133,6 +174,8 @@ func _ready() -> void:
 	_resolve_camera()
 	_resolve_aim_target()
 	_equip_default_weapon()
+	if _camera:
+		_base_fov = _camera.fov
 	if capture_mouse_on_ready:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
@@ -153,10 +196,43 @@ func _input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	# Order is load-bearing: the camera banks from the aim (step 2), then the
 	# ship positions itself relative to the banked camera (step 3).
+	if use_grid_evade:
+		_update_grid_intent(delta)
 	_process_aim(delta)
 	_process_camera(delta)
 	_process_ship(delta)
 	_process_combat()
+
+
+## Reads the left stick into a quantized 3x3 grid direction and eases _grid_offset
+## toward the chosen cell. Holds _evade_active true through a short release grace
+## window so flicking between cells (passing through center) doesn't restore the
+## aim/camera mid-flick. Runs first so the rest of the frame reacts this same tick.
+func _update_grid_intent(delta: float) -> void:
+	var move := Vector2(
+		Input.get_axis("MoveLeft", "MoveRight"),
+		Input.get_axis("MoveDown", "MoveUp")
+	)
+	var gx := signf(move.x) if absf(move.x) > evade_stick_deadzone else 0.0
+	var gy := signf(move.y) if absf(move.y) > evade_stick_deadzone else 0.0
+	_stick_held = gx != 0.0 or gy != 0.0
+
+	# Grace: stay "active" for evade_release_grace seconds after the stick centers.
+	if _stick_held:
+		_evade_grace_timer = evade_release_grace
+		_evade_active = true
+	elif _evade_active:
+		_evade_grace_timer = maxf(_evade_grace_timer - delta, 0.0)
+		if _evade_grace_timer <= 0.0:
+			_evade_active = false
+
+	# The cell target follows the stick directly (center = (0,0) when released but
+	# still in grace, so the ship eases home unless the stick re-grabs a cell).
+	var target := Vector2(gx, gy) * grid_outer_fraction
+	var ease_t := clampf(grid_evade_lerp * delta, 0.0, 1.0)
+	_grid_offset = _grid_offset.lerp(target, ease_t)
+	# Blend toward the evade anchor while active, back to reticle-follow when not.
+	_evade_blend = lerpf(_evade_blend, 1.0 if _evade_active else 0.0, ease_t)
 
 
 #region Frustum helper
@@ -178,6 +254,10 @@ func _frustum_extents(distance: float, bounds_scale: float) -> Vector2:
 
 func _process_aim(delta: float) -> void:
 	if not _aim_target or not _camera:
+		return
+
+	# While evading (incl. the release grace), the reticle is frozen and hidden.
+	if use_grid_evade and _evade_active:
 		return
 
 	var look := Vector2(
@@ -225,9 +305,17 @@ func _process_camera(delta: float) -> void:
 		-n.x * deg_to_rad(camera_yaw_max_deg),    # yaw (Y): look toward aim
 		-n.x * deg_to_rad(camera_roll_max_deg)    # roll (Z): bank into the turn
 	)
+	# During an evade, ease the camera react back to neutral and pull the FOV back
+	# slightly as a "whoa, dodging" cue; both lerp home when the evade ends.
+	if use_grid_evade and _evade_active:
+		target = Vector3.ZERO
 	var t := clampf(camera_react_lerp * delta, 0.0, 1.0)
 	_camera_react = _camera_react.lerp(target, t)
 	_camera.rotation = _camera_react
+
+	if use_grid_evade:
+		var fov_target := _base_fov + (evade_fov_pullback if _evade_active else 0.0)
+		_camera.fov = lerpf(_camera.fov, fov_target, clampf(grid_evade_lerp * delta, 0.0, 1.0))
 
 #endregion
 
@@ -243,6 +331,7 @@ func _process_ship(delta: float) -> void:
 	# player_plane_distance), so convert by the distance ratio — a cursor value
 	# divided by its plane distance is the on-screen angle. Without this the ship
 	# overshoots off-screen, since the same value spans a wider angle up close.
+	var box := _frustum_extents(player_plane_distance, move_bounds_scale)
 	var plane_ratio := player_plane_distance / maxf(aim_plane_distance, 0.001)
 	var ship_target := _aim_cursor * plane_ratio * ship_follow_fraction
 
@@ -253,12 +342,29 @@ func _process_ship(delta: float) -> void:
 	var aim_y := _normalized_aim().y  # +1 top, -1 bottom
 	ship_target.y -= ship_below_offset * clampf(remap(aim_y, -1.0, 0.0, 0.0, 1.0), 0.0, 1.0)
 
+	# Grid mode confines the follow target ("wiggle") to the center cell; the
+	# outer-cell snap is added afterward so it isn't smoothed by the follow spring.
+	if use_grid_evade:
+		ship_target.x = clampf(ship_target.x, -box.x * grid_center_fraction, box.x * grid_center_fraction)
+		ship_target.y = clampf(ship_target.y, -box.y * grid_center_fraction, box.y * grid_center_fraction)
+
 	var t := clampf(ship_follow_lerp * delta, 0.0, 1.0)
 	_ship_cursor = _ship_cursor.lerp(ship_target, t)
 
-	# Evade is a decaying impulse layered on top; it re-clamps to the ship box.
-	_handle_evade_input()
-	_apply_evade(delta)
+	var final_cursor := _ship_cursor
+	if use_grid_evade:
+		# The evade position is reticle-INDEPENDENT: a fixed anchor (viewport center,
+		# lifted by evade_lift) plus the cell offset. So every cell lands in the same
+		# spot regardless of where the reticle was — the precision the grid needs.
+		var evade_pos := Vector2(0.0, evade_lift) + Vector2(_grid_offset.x * box.x, _grid_offset.y * box.y)
+		final_cursor = _ship_cursor.lerp(evade_pos, _evade_blend)
+	else:
+		# Legacy: decaying impulse layered on top; _apply_evade re-clamps to the box.
+		_handle_evade_input()
+		_apply_evade(delta)
+		final_cursor = _ship_cursor
+	final_cursor.x = clampf(final_cursor.x, -box.x, box.x)
+	final_cursor.y = clampf(final_cursor.y, -box.y, box.y)
 
 	# Cosmetic lean: the nose points toward the reticle (pitch + yaw) and the body
 	# banks into a horizontal turn (roll). Euler (pitch=x, yaw=y, roll=z).
@@ -275,7 +381,7 @@ func _process_ship(delta: float) -> void:
 	# local rotation composed onto the camera basis.
 	var cam_xform := _camera.global_transform
 	var lean := Basis.from_euler(_ship_lean)
-	var offset := Vector3(_ship_cursor.x, _ship_cursor.y, -player_plane_distance)
+	var offset := Vector3(final_cursor.x, final_cursor.y, -player_plane_distance)
 	global_transform = Transform3D(cam_xform.basis * lean, cam_xform * offset)
 
 
@@ -333,6 +439,10 @@ func _apply_evade(delta: float) -> void:
 
 func _process_combat() -> void:
 	if not _equipped_weapon:
+		return
+
+	# No shooting while evading (incl. the release grace).
+	if use_grid_evade and _evade_active:
 		return
 
 	# Refresh the homing lock every frame so non-locked shots fly straight.
@@ -434,6 +544,12 @@ func take_damage(amount: int) -> void:
 
 func is_aiming() -> bool:
 	return _camera != null and _aim_target != null
+
+
+## True while a grid evade is active (held or within the release grace) —
+## CombatUI hides the reticle during this.
+func is_evading() -> bool:
+	return use_grid_evade and _evade_active
 
 
 func get_reticle_screen_position() -> Vector2:

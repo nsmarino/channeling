@@ -23,5 +23,11 @@ func _update_crosshair() -> void:
 	if _player.has_method("is_aiming") and not _player.is_aiming():
 		return
 
+	# Hide the reticle while evading (aim is frozen).
+	var evading: bool = _player.has_method("is_evading") and _player.is_evading()
+	crosshair.visible = not evading
+	if evading:
+		return
+
 	var screen_pos: Vector2 = _player.get_reticle_screen_position()
 	crosshair.global_position = screen_pos - crosshair.size * 0.5
