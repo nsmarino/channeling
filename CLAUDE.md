@@ -41,12 +41,18 @@ Main
 - **Camera** (`_process_camera`): eased, capped roll/pitch/yaw computed from the normalized aim (`camera_roll_max_deg` etc.). Written as **local** rotation so it composes additively on top of any rail bank the PathFollow3D/PlayerRoot applies.
 - **Ship** (`_process_ship`): targets `_aim_cursor * ship_follow_fraction` (a smaller sub-box) with a snappy spring (`ship_follow_lerp`), corrected by the plane-distance ratio so it stays on-screen. Sits `ship_below_offset` (~1u) *below* the reticle so it doesn't occlude the target — the offset fades out as the reticle drops to the lower screen half. The mesh leans toward the reticle (pitch + yaw + bank roll). Frustum-clamped to its box after the spring.
 - **CombatAttack** fires the equipped weapon toward the aim point.
-- **CombatEvade** (gamepad **L1** / button 9) seeds a decaying linear impulse on the ship cursor in the right-stick direction; if stationary it dodges **left or right at 50/50** (barrel-roll setup). The frustum clamp re-applies after integration, so an evade cannot cross the play box.
-- **Homing acquisition** (`_acquire_homing_target`) scans the **`destructible`** group, skips anything with `homing_eligible = false` or already defeated, and locks the candidate nearest the reticle **in screen space within a tight pixel radius** — so it never snaps to something far off to the side, and there's simply no lock (shots fly straight) when nothing is near the crosshair.
+- **Evade is now grid-based** (`use_grid_evade`, on by default; the legacy L1 impulse is still in the file behind the flag). The ship normally lives in the **center cell of an imagined 3×3 viewport grid** and only wiggles within it. Pushing the **left stick into a corner** (both axes past `evade_stick_deadzone` — pure up/down/left/right is intentionally ignored) snaps it to that outer cell and holds there until release. The four stops are Top-Left/Right, Bottom-Left/Right; **center is the rest/home position**. Targets are **reticle-independent fixed anchors** (`evade_anchor` + cell offset), so each cell lands on the same spot every time — intended to support grid puzzle/rhythm sections later. A short `evade_release_grace` lets you flick between corners through center without the aim/camera snapping back. While evading: shooting is disabled, the reticle is hidden, and the camera eases to neutral + pulls FOV back (`evade_fov_pullback`).
+- **Homing acquisition** (`_acquire_homing_target`) scans the **`destructible`** group, skips anything with `homing_eligible = false` or already defeated, and locks the candidate nearest the reticle **in screen space within a tight pixel radius** — so it never snaps to something far off to the side, and there's simply no lock (shots fly straight) when nothing is near the crosshair. The locked target is stored in `_homing_target` and exposed via `get_homing_target()` / `get_homing_target_screen_info()` for the HUD.
 
-**Input is gamepad-only.** IJKL / keyboard movement and the spacebar evade were removed; the left stick is currently unused.
+**Input is gamepad-only.** IJKL / keyboard movement and the spacebar evade were removed. The **left stick now drives grid evade** (it was unused before).
 
-Inspector-tunable knobs are deliberately dense and live under `@export_category` blocks: Aiming, Ship Follow, Camera React, Combat, Evade, References. The user iterates heavily in the Inspector.
+Inspector-tunable knobs are deliberately dense and live under `@export_category` blocks: Movement, Aiming, Ship Follow, Camera React, Combat, Evade (legacy impulse), Grid Evade, References. The user iterates heavily in the Inspector.
+
+### HUD (`ui/overworld/CombatUI.tscn`, `combat_ui.gd`)
+
+A `CanvasLayer` reading the player each frame:
+- **Crosshair** — the single `○` reticle at `get_reticle_screen_position()`; hidden while evading.
+- **Lock-on indicator** — a rotating, flashing yellow square pinned to the homing target's screen position. Built as a **zero-size `LockOn` Control** placed *on* the target with a centered `Square` child: rotating the parent spins the square in place (no pivot/size math → no orbit, the bug that bit us). The square pops in 1.6→1.0 with a **Back-ease overshoot** (child scale), and the parent scales by target distance (near = big, far = small, clamped). Vanishes instantly — no exit anim — when the lock is lost, destroyed, or switches.
 
 ### Weapons (`objects/weapons/`)
 
@@ -106,6 +112,11 @@ Standalone sandboxes for in-progress R&D — not loaded by `main.tscn`:
 - `explore-vfx/` — particle/effect studies.
 - `explore-shaders/` — `outline-posterize-color-dither.gdshader` (Sobel + posterize + Bayer dither — fullscreen quad in front of the camera; **conflicts with Volumetric Fog** unless `fog_disabled` is added to `render_mode`; long-term move to a `CompositorEffect`), plus `simple-water.gdshader` and `grass.gdshader`.
 
+### Third-party / in-progress
+
+- **`GPUTrail-main/`** — vendored [GPUTrail3D](https://github.com/) addon for GPU-driven ribbon trails (projectiles, evade streaks). `test-ribbons.tscn` (project root) is the scratch sandbox for it; not wired into `main.tscn` yet.
+- **`models/rails/mecha/mecha-frame.glb`** — the imported mecha frame (Phase 7). Rail level geometry also lives under `models/rails/` (e.g. `kelp-walls.glb`).
+
 ### Legacy code still present (not active in `main.tscn`)
 
 - **Dialogue system** (`objects/overworld/triggers/dialogue/`, `ui/overworld/DialogueBox.tscn`, `resources/dialogue/`) — `DialogueTrigger` + `Events` lifecycle exists from the source project; not used by the current scene. Keep around in case dialogue between rail segments becomes a feature.
@@ -142,5 +153,6 @@ Standalone sandboxes for in-progress R&D — not loaded by `main.tscn`:
 4. ✅ **Evade + mouse aim + tuning** — `CombatEvade` impulse, mouse-driven reticle, widened homing cone, slower rail (`f58e4c5`).
 5. ✅ **Destructible refactor + obstacles + turret** — extracted `FseDestructible`; `ContactDamage` / `AnimationDriver` components; `BobBlock` / `AnimObstacle` / `StationaryTurret` + curve-following bolts (`5e328de`, `1f4ce49`).
 6. ✅ **Aim-led control model** — reticle-driven, ship follows, camera reacts (banking); gamepad-only input; screen-space homing radius (`8e46cd7`).
-7. ⏳ **Mecha in Blender + procedural animation** — rig in Blender, import to Godot, drive with `TwoBoneIK3D` / `LookAtModifier3D` / `BoneAttachment3D` instead of canned clips. Companion VFX for the evade.
-8. Future: curved Bézier rails (Blender→JSON→`Curve3D`), independent `Progress Speed`, PursuitEnemy miniboss, more weapons, object-grabbing, time-manipulation tools, powerups, two more levels.
+7. ✅ **Grid evade + lock-on HUD** — left-stick 3×3 grid evade with reticle-independent corner anchors + release grace; rotating/popping/distance-scaled lock-on indicator (`360401b`, `dd1f4c9`).
+8. ⏳ **Mecha in Blender + procedural animation** — `mecha-frame.glb` imported; next is rigging + driving with `TwoBoneIK3D` / `LookAtModifier3D` / `BoneAttachment3D` instead of canned clips. GPUTrail addon vendored for evade/projectile VFX (sandbox: `test-ribbons.tscn`).
+9. Future: curved Bézier rails (Blender→JSON→`Curve3D`), independent `Progress Speed`, PursuitEnemy miniboss, grid puzzle/rhythm sections (the reticle-independent evade anchors are groundwork), more weapons, object-grabbing, time-manipulation tools, powerups, two more levels.
