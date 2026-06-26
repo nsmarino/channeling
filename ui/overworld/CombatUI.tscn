@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dkspe3go2x8xu"]
+[gd_scene load_steps=4 format=3 uid="uid://dkspe3go2x8xu"]
 
 [ext_resource type="Script" uid="uid://cv2fwr6qxrq13" path="res://ui/overworld/combat_ui.gd" id="1_combat_ui_script"]
 
@@ -7,6 +7,14 @@ font_size = 48
 font_color = Color(0.93979514, 0, 0.16222212, 0.9490196)
 outline_size = 8
 outline_color = Color(0.95, 0.5225, 0, 0.8156863)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lockon"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 0.85, 0.1, 1)
 
 [node name="CombatUI" type="CanvasLayer" unique_id=1419006388]
 script = ExtResource("1_combat_ui_script")
@@ -38,3 +46,15 @@ text = "○"
 label_settings = SubResource("LabelSettings_crosshair")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="LockOn" type="Control" parent="." unique_id=402530000]
+visible = false
+mouse_filter = 2
+
+[node name="Square" type="Panel" parent="LockOn" unique_id=402530001]
+offset_left = -28.0
+offset_top = -28.0
+offset_right = 28.0
+offset_bottom = 28.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lockon")

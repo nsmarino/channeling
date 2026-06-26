@@ -109,8 +109,14 @@ extends CharacterBody3D
 ## (including center) rests at this height — independent of where the reticle was.
 ## Raise to elevate all evade positions.
 @export var evade_lift: float = 0.0
-## Left-stick magnitude required to trigger / hold an evade.
+## Overall left-stick magnitude required to engage / hold an evade. Pushing the
+## stick any direction this far selects the nearest corner — pure up/down/left/
+## right counts, since the off-axis sign is latched (not required).
 @export var evade_stick_deadzone: float = 0.4
+## Per-axis magnitude at which that axis flips its latched corner sign. Lower =
+## easier to switch the diagonal you're holding. Kept small so a corner stays put
+## under stick wobble but a deliberate push to the opposite side re-latches.
+@export var evade_axis_flip_threshold: float = 0.3
 ## Ease speed for the evade snap, the camera pull-back, and the return.
 @export var grid_evade_lerp: float = 12.0
 ## Seconds the evade state lingers after the stick returns to neutral, before
@@ -133,6 +139,9 @@ extends CharacterBody3D
 var _camera: Camera3D = null
 var _aim_target: Node3D = null
 var _equipped_weapon: Node3D = null
+# The currently locked homing target (null = none). Read by CombatUI to place
+# the lock-on indicator.
+var _homing_target: Node3D = null
 
 # Cursor positions in camera-local X/Y (their plane depth is applied on use).
 # _aim_cursor is directly driven; _ship_cursor follows it.
@@ -167,6 +176,10 @@ var _evade_active: bool = false
 var _evade_blend: float = 0.0
 var _evade_grace_timer: float = 0.0
 var _base_fov: float = 70.0
+# Latched per-axis sign of the current evade corner (-1/+1 each). Each axis only
+# flips when the stick clearly crosses center, so rotating between corners never
+# dips through the middle cell. Seeded from whichever axis is dominant on engage.
+var _grid_sign: Vector2 = Vector2(1.0, 1.0)
 
 
 func _ready() -> void:
@@ -213,9 +226,18 @@ func _update_grid_intent(delta: float) -> void:
 		Input.get_axis("MoveLeft", "MoveRight"),
 		Input.get_axis("MoveDown", "MoveUp")
 	)
-	var gx := signf(move.x) if absf(move.x) > evade_stick_deadzone else 0.0
-	var gy := signf(move.y) if absf(move.y) > evade_stick_deadzone else 0.0
-	_stick_held = gx != 0.0 or gy != 0.0
+	# The four stops are corners, but you don't have to push diagonally to reach
+	# one: engage on overall magnitude, then latch each axis's sign independently.
+	# An axis only flips when the stick clearly crosses to the other side, so a
+	# pure cardinal keeps the off-axis sign it already had, and sweeping from one
+	# corner toward another never dips through the center cell.
+	_stick_held = move.length() > evade_stick_deadzone
+
+	if _stick_held:
+		if absf(move.x) > evade_axis_flip_threshold:
+			_grid_sign.x = signf(move.x)
+		if absf(move.y) > evade_axis_flip_threshold:
+			_grid_sign.y = signf(move.y)
 
 	# Grace: stay "active" for evade_release_grace seconds after the stick centers.
 	if _stick_held:
@@ -226,9 +248,9 @@ func _update_grid_intent(delta: float) -> void:
 		if _evade_grace_timer <= 0.0:
 			_evade_active = false
 
-	# The cell target follows the stick directly (center = (0,0) when released but
-	# still in grace, so the ship eases home unless the stick re-grabs a cell).
-	var target := Vector2(gx, gy) * grid_outer_fraction
+	# Target the latched corner while engaged; ease home (0,0) once released and
+	# out of grace. The latched sign persists so re-engaging resumes that corner.
+	var target := (_grid_sign * grid_outer_fraction) if _evade_active else Vector2.ZERO
 	var ease_t := clampf(grid_evade_lerp * delta, 0.0, 1.0)
 	_grid_offset = _grid_offset.lerp(target, ease_t)
 	# Blend toward the evade anchor while active, back to reticle-follow when not.
@@ -446,8 +468,9 @@ func _process_combat() -> void:
 		return
 
 	# Refresh the homing lock every frame so non-locked shots fly straight.
+	_homing_target = _acquire_homing_target()
 	if "homing_target" in _equipped_weapon:
-		_equipped_weapon.homing_target = _acquire_homing_target()
+		_equipped_weapon.homing_target = _homing_target
 
 	var pressed := Input.is_action_pressed("CombatAttack")
 	var just := Input.is_action_just_pressed("CombatAttack")
@@ -556,6 +579,29 @@ func get_reticle_screen_position() -> Vector2:
 	if not is_aiming():
 		return Vector2.ZERO
 	return _camera.unproject_position(_aim_target.global_position)
+
+
+## The currently locked homing target, or null. CombatUI reads this to show the
+## lock-on indicator at the target's screen position.
+func get_homing_target() -> Node3D:
+	if _homing_target and is_instance_valid(_homing_target):
+		return _homing_target
+	return null
+
+
+## Screen position + camera distance of the locked target, for the lock-on
+## indicator. Returns {"pos": Vector2, "dist": float} or an empty dict when there
+## is no lock / it's behind the camera.
+func get_homing_target_screen_info() -> Dictionary:
+	var t := get_homing_target()
+	if not t or not _camera:
+		return {}
+	if _camera.is_position_behind(t.global_position):
+		return {}
+	return {
+		"pos": _camera.unproject_position(t.global_position),
+		"dist": _camera.global_position.distance_to(t.global_position),
+	}
 
 #endregion
 
