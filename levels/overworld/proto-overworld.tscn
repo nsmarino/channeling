@@ -3,6 +3,11 @@
 [ext_resource type="PackedScene" uid="uid://xfjfxk0ojb5c" path="res://levels/overworld/base_overworld.tscn" id="1_3jslp"]
 [ext_resource type="PackedScene" uid="uid://citbuvgpbkkbw" path="res://models/rails/kelp-walls.glb" id="2_ni1te"]
 
+[sub_resource type="CylinderMesh" id="CylinderMesh_ni1te"]
+top_radius = 2.0
+bottom_radius = 6.0
+height = 100.0
+
 [node name="Overworld" unique_id=1089087201 instance=ExtResource("1_3jslp")]
 
 [node name="kelp-walls" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="0" unique_id=750956103 instance=ExtResource("2_ni1te")]
@@ -124,3 +129,19 @@ transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642
 
 [node name="kelp-walls40" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="39" unique_id=1873181555 instance=ExtResource("2_ni1te")]
 transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.499996, -4.000001, -272.5)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." index="5" unique_id=144721807]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 0)
+mesh = SubResource("CylinderMesh_ni1te")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="." index="6" unique_id=435737743]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 0)
+mesh = SubResource("CylinderMesh_ni1te")
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="." index="7" unique_id=385594385]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, -200)
+mesh = SubResource("CylinderMesh_ni1te")
+
+[node name="MeshInstance3D4" type="MeshInstance3D" parent="." index="8" unique_id=476994337]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -200)
+mesh = SubResource("CylinderMesh_ni1te")
