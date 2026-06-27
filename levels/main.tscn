@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://pgy3osotiwjd" path="res://objects/enemy/prototyping/example-enemy-group-3.tscn" id="7_etqu2"]
 [ext_resource type="PackedScene" uid="uid://ddwsrlljv6sl4" path="res://objects/enemy/prototyping/example-enemy-group-4.tscn" id="8_etqu2"]
 [ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://sounds/music/selection menu.mp3" id="9_etqu2"]
+[ext_resource type="PackedScene" path="res://objects/enemy/enemies/Turret.tscn" id="9_jw1n3"]
 
 [sub_resource type="Sky" id="Sky_s07ge"]
 
@@ -163,6 +164,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -147.5)
 [node name="Root2" parent="Level/Enemies/Node3D7" unique_id=414487117 instance=ExtResource("8_etqu2")]
 
 [node name="Obstacles" type="Node3D" parent="Level" unique_id=1811212233]
+
+[node name="Turret" parent="Level" unique_id=3965930 instance=ExtResource("9_jw1n3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -69)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1472522793]
 libraries/ = SubResource("AnimationLibrary_qy63d")

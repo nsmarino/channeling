@@ -13,6 +13,7 @@ extends CanvasLayer
 @onready var crosshair: Control = $Crosshair
 @onready var lock_on: Control = $LockOn
 @onready var lock_square: Control = $LockOn/Square
+@onready var health_label: Label = $Health
 
 ## Spin speed of the lock-on square (radians/sec).
 @export var lockon_spin_speed: float = 3.0
@@ -49,6 +50,16 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_update_crosshair()
 	_update_lock_on(delta)
+	_update_health()
+
+
+## Mirror the player's current HP into the top-left readout. Polled (like the
+## crosshair) rather than signal-driven — it's a one-line string and the HUD
+## already reads the player every frame.
+func _update_health() -> void:
+	if not is_instance_valid(_player) or not ("hp" in _player):
+		return
+	health_label.text = "HEALTH: %d" % int(_player.hp)
 
 
 func _update_crosshair() -> void:

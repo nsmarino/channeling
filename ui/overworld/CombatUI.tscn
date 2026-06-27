@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://dkspe3go2x8xu"]
+[gd_scene load_steps=5 format=3 uid="uid://dkspe3go2x8xu"]
 
 [ext_resource type="Script" uid="uid://cv2fwr6qxrq13" path="res://ui/overworld/combat_ui.gd" id="1_combat_ui_script"]
 
@@ -15,6 +15,12 @@ border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
 border_color = Color(1, 0.85, 0.1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_health"]
+font_size = 28
+font_color = Color(1, 1, 1, 0.95)
+outline_size = 6
+outline_color = Color(0, 0, 0, 0.7)
 
 [node name="CombatUI" type="CanvasLayer" unique_id=1419006388]
 script = ExtResource("1_combat_ui_script")
@@ -58,3 +64,12 @@ offset_right = 28.0
 offset_bottom = 28.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_lockon")
+
+[node name="Health" type="Label" parent="." unique_id=402530100]
+offset_left = 24.0
+offset_top = 16.0
+offset_right = 320.0
+offset_bottom = 56.0
+mouse_filter = 2
+text = "HEALTH: 100"
+label_settings = SubResource("LabelSettings_health")
