@@ -2,5 +2,8 @@
 .godot/
 /android/
 
+# Blender auto-backups
+*.blend1
+
 # Claude Code internals
 .claude/worktrees/
