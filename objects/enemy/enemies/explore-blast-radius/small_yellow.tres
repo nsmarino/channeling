@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FseEnemyData" format=3]
+
+[ext_resource type="Script" uid="uid://dh7jnverpqck7" path="res://objects/enemy/EnemyData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = &"SmallYellow"
+max_hp = 10
+move_speed = 0.0
+contact_damage = 0
+score = 10
