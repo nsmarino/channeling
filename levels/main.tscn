@@ -3,26 +3,26 @@
 [ext_resource type="Script" uid="uid://b1esvavhc0ixb" path="res://levels/main.gd" id="1_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://duek3aqswvgk2" path="res://objects/overworld/player/mecha/MechaPlayer.tscn" id="2_m1504"]
 [ext_resource type="PackedScene" uid="uid://sobb6kxvthei" path="res://levels/overworld/proto-overworld.tscn" id="5_ifaiv"]
+[ext_resource type="PackedScene" uid="uid://bvuhj8578ydog" path="res://objects/enemy/prototyping/example-enemy-group.tscn" id="5_qy63d"]
+[ext_resource type="PackedScene" uid="uid://cfgcf7n6wi77h" path="res://objects/enemy/prototyping/example-enemy-group-2.tscn" id="6_6et1j"]
 [ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/overworld/CombatUI.tscn" id="7_combat_ui"]
-[ext_resource type="PackedScene" path="res://objects/enemy/enemies/Weaver.tscn" id="8_weaver"]
+[ext_resource type="PackedScene" uid="uid://pgy3osotiwjd" path="res://objects/enemy/prototyping/example-enemy-group-3.tscn" id="7_etqu2"]
+[ext_resource type="PackedScene" uid="uid://ddwsrlljv6sl4" path="res://objects/enemy/prototyping/example-enemy-group-4.tscn" id="8_etqu2"]
 [ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://sounds/music/selection menu.mp3" id="9_etqu2"]
-[ext_resource type="PackedScene" path="res://objects/obstacles/AnimObstacle.tscn" id="9_xdh4e"]
-[ext_resource type="PackedScene" uid="uid://kvhc88il1rft" path="res://objects/obstacles/BobBlock.tscn" id="10_c7dyn"]
-[ext_resource type="PackedScene" path="res://objects/enemy/enemies/Turret.tscn" id="10_turret"]
-[ext_resource type="PackedScene" uid="uid://cvab04uro7hlv" path="res://objects/obstacles/StationaryTurret.tscn" id="13_sturret"]
 
 [sub_resource type="Sky" id="Sky_s07ge"]
 
 [sub_resource type="Environment" id="Environment_qy63d"]
 background_mode = 1
-background_color = Color(0.2218146, 0.3306933, 0, 1)
-background_energy_multiplier = 0.5
 sky = SubResource("Sky_s07ge")
-ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_color = Color(0.8776157, 0.8776158, 0.8776157, 1)
 ambient_light_sky_contribution = 0.0
+ambient_light_energy = 2.0
 glow_enabled = true
-fog_enabled = true
+fog_mode = 1
 fog_light_color = Color(0.08762071, 0.13059539, 0.04574921, 1)
+fog_density = 1.0
+fog_sky_affect = 0.0
 fog_height = -5.0
 fog_height_density = 0.2
 fog_depth_curve = 0.7071065
@@ -39,44 +39,6 @@ _data = {
 "tilts": PackedFloat32Array(0, 0)
 }
 point_count = 2
-
-[sub_resource type="Animation" id="Animation_xdh4e"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(0, 0, -97.5)]
-}
-
-[sub_resource type="Animation" id="Animation_c7dyn"]
-resource_name = "move"
-length = 8.0
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(1, 4.4666667, 8),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Vector3(0, 0, -97.5), Vector3(6.98, 10.95, -97.5), Vector3(0, 0, -97.5)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_1fput"]
-_data = {
-&"RESET": SubResource("Animation_xdh4e"),
-&"move": SubResource("Animation_c7dyn")
-}
 
 [sub_resource type="Animation" id="Animation_ifaiv"]
 resource_name = "MoveF"
@@ -116,9 +78,6 @@ _data = {
 &"RESET": SubResource("Animation_5k4jt")
 }
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_xdh4e"]
-size = Vector2(6, 4.5)
-
 [node name="Main" type="Node3D" unique_id=1370251571]
 script = ExtResource("1_0xm2m")
 
@@ -150,10 +109,13 @@ move_bounds_scale = 0.8
 aim_speed = 20.0
 capture_mouse_on_ready = false
 recenter_rate = 0.2
+ship_follow_fraction = 0.3
+ship_follow_lerp = 10.0
 ship_bank_max_deg = 2.0
 ship_yaw_max_deg = 20.0
 camera_roll_max_deg = 1.0
-camera_yaw_max_deg = 10.0
+camera_pitch_max_deg = 4.0
+camera_yaw_max_deg = 8.0
 evade_duration = 0.6
 camera_path = NodePath("../Camera3D")
 aim_target_path = NodePath("../Camera3D/AimTarget")
@@ -168,60 +130,39 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -30)
 
 [node name="Enemies" type="Node3D" parent="Level" unique_id=2111095337]
 
-[node name="StationaryTurret" parent="Level/Enemies" unique_id=28306102 instance=ExtResource("13_sturret")]
-transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 1, -3.9385452, -15.826572, -55)
-activation_distance = 80.0
-is_destructible = false
+[node name="ExampleEnemyGroup2" parent="Level/Enemies" unique_id=828314956 instance=ExtResource("5_qy63d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -128.5)
 
-[node name="StationaryTurret2" parent="Level/Enemies" unique_id=110326674 instance=ExtResource("13_sturret")]
-transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 1, 5.561455, -15.826572, -55)
-activation_distance = 80.0
-is_destructible = false
+[node name="Node3D4" parent="Level/Enemies" unique_id=795972590 instance=ExtResource("6_6et1j")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -128.5)
 
-[node name="Weaver" parent="Level/Enemies" unique_id=517365822 instance=ExtResource("8_weaver")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1, -117.5)
-activation_distance = 28.0
+[node name="Node3D2" parent="Level/Enemies" unique_id=1729326808 instance=ExtResource("7_etqu2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -57)
 
-[node name="Weaver3" parent="Level/Enemies" unique_id=752617000 instance=ExtResource("8_weaver")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 1, -131.5)
-activation_distance = 28.0
+[node name="Node3D3" parent="Level/Enemies" unique_id=1330080897 instance=ExtResource("7_etqu2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -57)
 
-[node name="Weaver2" parent="Level/Enemies" unique_id=188806400 instance=ExtResource("8_weaver")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 1, -107)
-activation_distance = 28.0
+[node name="Node3D" type="Node3D" parent="Level/Enemies" unique_id=216790594]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.5, 0, -90)
 
-[node name="Turret" parent="Level/Enemies" unique_id=1933404418 instance=ExtResource("10_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, -80)
-activation_distance = 32.0
+[node name="Root2" parent="Level/Enemies/Node3D" unique_id=788627673 instance=ExtResource("8_etqu2")]
 
-[node name="Turret2" parent="Level/Enemies" unique_id=636014131 instance=ExtResource("10_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, -1, -155.5)
-activation_distance = 32.0
+[node name="Node3D5" type="Node3D" parent="Level/Enemies" unique_id=1943858576]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -90)
 
-[node name="Turret4" parent="Level/Enemies" unique_id=1360271423 instance=ExtResource("10_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -1, -147)
-activation_distance = 32.0
+[node name="Root2" parent="Level/Enemies/Node3D5" unique_id=1389674116 instance=ExtResource("8_etqu2")]
 
-[node name="Turret3" parent="Level/Enemies" unique_id=1211961393 instance=ExtResource("10_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, -1, -219.5)
-activation_distance = 32.0
+[node name="Node3D6" type="Node3D" parent="Level/Enemies" unique_id=1670156277]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.5, 0, -147.5)
+
+[node name="Root2" parent="Level/Enemies/Node3D6" unique_id=882868481 instance=ExtResource("8_etqu2")]
+
+[node name="Node3D7" type="Node3D" parent="Level/Enemies" unique_id=782603605]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -147.5)
+
+[node name="Root2" parent="Level/Enemies/Node3D7" unique_id=414487117 instance=ExtResource("8_etqu2")]
 
 [node name="Obstacles" type="Node3D" parent="Level" unique_id=1811212233]
-
-[node name="AnimObstacle" parent="Level/Obstacles" unique_id=1835977864 instance=ExtResource("9_xdh4e")]
-transform = Transform3D(1, 0, 0, 0, 1, 1.7484555e-07, 0, -1.7484555e-07, 1, 0, 0, -97.5)
-
-[node name="AnimationPlayer" parent="Level/Obstacles/AnimObstacle" index="4"]
-libraries/ = SubResource("AnimationLibrary_1fput")
-
-[node name="BobBlock" parent="Level/Obstacles" unique_id=2092369376 instance=ExtResource("10_c7dyn")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, -8, -125)
-
-[node name="BobBlock2" parent="Level/Obstacles" unique_id=1674389870 instance=ExtResource("10_c7dyn")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 4, -147)
-
-[node name="BobBlock3" parent="Level/Obstacles" unique_id=852259719 instance=ExtResource("10_c7dyn")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, -6.5, -196)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1472522793]
 libraries/ = SubResource("AnimationLibrary_qy63d")
@@ -231,10 +172,3 @@ autoplay = &"MoveF"
 stream = ExtResource("9_etqu2")
 volume_db = -67.564
 autoplay = true
-
-[node name="RefWallObstacle" type="MeshInstance3D" parent="." unique_id=1165751599]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0)
-visible = false
-mesh = SubResource("PlaneMesh_xdh4e")
-
-[editable path="Level/Obstacles/AnimObstacle"]

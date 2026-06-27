@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://sobb6kxvthei"]
 
 [ext_resource type="PackedScene" uid="uid://xfjfxk0ojb5c" path="res://levels/overworld/base_overworld.tscn" id="1_3jslp"]
-[ext_resource type="PackedScene" uid="uid://citbuvgpbkkbw" path="res://models/rails/kelp-walls.glb" id="2_ni1te"]
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_ni1te"]
 top_radius = 2.0
@@ -10,132 +9,12 @@ height = 100.0
 
 [node name="Overworld" unique_id=1089087201 instance=ExtResource("1_3jslp")]
 
-[node name="kelp-walls" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="0" unique_id=750956103 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, 0)
-
-[node name="kelp-walls2" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="1" unique_id=1983566178 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -19)
-
-[node name="kelp-walls3" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="2" unique_id=905788064 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -38)
-
-[node name="kelp-walls4" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="3" unique_id=1623598887 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -57)
-
-[node name="kelp-walls5" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="4" unique_id=2141931419 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -76)
-
-[node name="kelp-walls6" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="5" unique_id=176290398 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.500004, -4.000001, -76)
-
-[node name="kelp-walls7" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="6" unique_id=1751513103 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -57)
-
-[node name="kelp-walls8" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="7" unique_id=1536528526 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -38)
-
-[node name="kelp-walls9" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="8" unique_id=1606290386 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -19)
-
-[node name="kelp-walls10" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="9" unique_id=1550631357 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.499996, -4.000001, 0)
-
-[node name="kelp-walls11" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="10" unique_id=732019096 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -91.5)
-
-[node name="kelp-walls12" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="11" unique_id=759555806 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -110.5)
-
-[node name="kelp-walls13" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="12" unique_id=1847255972 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -129.5)
-
-[node name="kelp-walls14" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="13" unique_id=473185235 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -148.5)
-
-[node name="kelp-walls15" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="14" unique_id=153580119 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -167.5)
-
-[node name="kelp-walls16" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="15" unique_id=21677957 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.500004, -4.000001, -167.5)
-
-[node name="kelp-walls17" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="16" unique_id=1865882803 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -148.5)
-
-[node name="kelp-walls18" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="17" unique_id=1550494685 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -129.5)
-
-[node name="kelp-walls19" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="18" unique_id=810062037 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -110.5)
-
-[node name="kelp-walls20" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="19" unique_id=1138885360 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.499996, -4.000001, -91.5)
-
-[node name="kelp-walls21" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="20" unique_id=374491964 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -182.5)
-
-[node name="kelp-walls22" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="21" unique_id=710766297 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -201.5)
-
-[node name="kelp-walls23" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="22" unique_id=59753487 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -220.5)
-
-[node name="kelp-walls24" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="23" unique_id=1789939380 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -239.5)
-
-[node name="kelp-walls25" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="24" unique_id=789208999 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -258.5)
-
-[node name="kelp-walls26" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="25" unique_id=366478668 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.500004, -4.000001, -258.5)
-
-[node name="kelp-walls27" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="26" unique_id=60989503 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -239.5)
-
-[node name="kelp-walls28" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="27" unique_id=2042826041 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -220.5)
-
-[node name="kelp-walls29" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="28" unique_id=1118156293 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -201.5)
-
-[node name="kelp-walls30" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="29" unique_id=1515460116 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.499996, -4.000001, -182.5)
-
-[node name="kelp-walls31" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="30" unique_id=1418722523 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -272.5)
-
-[node name="kelp-walls32" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="31" unique_id=231174921 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -291.5)
-
-[node name="kelp-walls33" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="32" unique_id=1551779616 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -310.5)
-
-[node name="kelp-walls34" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="33" unique_id=4478781 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -329.5)
-
-[node name="kelp-walls35" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="34" unique_id=327410674 instance=ExtResource("2_ni1te")]
-transform = Transform3D(-1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 0, 0, 1, 1, -3.999999, -348.5)
-
-[node name="kelp-walls36" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="35" unique_id=856891395 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.500004, -4.000001, -348.5)
-
-[node name="kelp-walls37" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="36" unique_id=1577359601 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -329.5)
-
-[node name="kelp-walls38" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="37" unique_id=1593807987 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -310.5)
-
-[node name="kelp-walls39" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="38" unique_id=1631694070 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.5, -4.000001, -291.5)
-
-[node name="kelp-walls40" parent="Ground" parent_id_path=PackedInt32Array(865474664) index="39" unique_id=1873181555 instance=ExtResource("2_ni1te")]
-transform = Transform3D(1, 8.742278e-08, -8.742278e-08, 8.742278e-08, -1, -7.642742e-15, -8.742278e-08, 0, -1, -15.499996, -4.000001, -272.5)
-
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." index="5" unique_id=144721807]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, 0)
 mesh = SubResource("CylinderMesh_ni1te")
 
 [node name="MeshInstance3D2" type="MeshInstance3D" parent="." index="6" unique_id=435737743]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, 0)
 mesh = SubResource("CylinderMesh_ni1te")
 
 [node name="MeshInstance3D3" type="MeshInstance3D" parent="." index="7" unique_id=385594385]
