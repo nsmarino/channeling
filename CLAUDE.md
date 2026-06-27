@@ -29,12 +29,14 @@ Main scene: `levels/main.tscn`. The project ships a Godot MCP server (`mcp__godo
 Main
 └─ Level
    └─ Path3D (curve = the rail)
-      └─ PathFollow3D (progress_ratio animated 0→1 by Main/AnimationPlayer/MoveF)
+      └─ PathFollow3D (rail_follower.gd advances `progress` each frame; ToggleBrake stops/resumes)
          └─ PlayerRoot (Node3D)
             ├─ Navigator (MechaPlayer.tscn — the ship, group "player")
             └─ Camera3D
                └─ AimTarget (Node3D — the reticle's world position)
 ```
+
+The rig is driven forward by **`levels/rail_follower.gd`** on the `PathFollow3D`: each frame it advances `progress` by `speed` (world units/sec, default ~20), with `loop` on so it wraps at the curve's end. **`ToggleBrake`** flips a `braked` flag — press to stop, press again to resume. (This replaced the old `AnimationPlayer/MoveF` track that animated `progress_ratio` 0→1; the AnimationPlayer stays in `main.tscn` but no longer autoplays.) While braked, the ship mesh plays a subtle vertical idle bob for a floating-in-midair feel — `mecha_player.gd` reads the rail's `braked` flag (via `rail_follower_path` / nearest `PathFollow3D` ancestor) and eases a sine offset on the `mecha-frame` mesh ("Brake Bob" knobs).
 
 `mecha_player.gd` per-frame order is **aim → camera → ship → combat** (the ship reads the camera's banked transform, so the camera must rotate first):
 - **Aim** (`_process_aim`): right stick (`LookLeft/Right/Up/Down`) + mouse motion (`_input`, captured on `_ready`, **Escape** toggles) drive `_aim_cursor` across the aim plane, frustum-clamped to the full view. Persistent by default; `recenter_rate` eases it back to center when idle (0 = fully persistent).
@@ -43,14 +45,16 @@ Main
 - **CombatAttack** fires the equipped weapon toward the aim point.
 - **Evade is a left/right pirouette dodge** (`_update_evade` + the evade block in `_process_ship`). A **left-stick flick** past `evade_trigger_deadzone` fires a one-shot evade in that direction: the ship slides laterally to a peak and springs back (`evade_lateral_distance`, `sin(p·π)` out-and-back) while spinning a full pirouette **about its up axis** (`evade_spins`, composed as `Basis(Vector3.UP, spin)` — a "screw" turn, *not* a screen-plane cartwheel). It always runs to completion (no hold/cancel); the stick must relax below `evade_rearm_threshold` to fire again. **Orientation handoff:** the lean is frozen at trigger time; the way *out* (`p≤0.5`) preserves it, the way *back* lerps to the now-current aim lean, so the ship lands correctly oriented with no snap. Throughout the evade you keep aiming and the camera keeps reacting — **only firing is gated off**; the FOV pulls back (`evade_fov_pullback`) and eases home. (The old grid/corner-anchor evade and the legacy `CombatEvade` impulse were both removed; the `CombatEvade` button-9 input mapping is now dead.)
 - **Homing acquisition** (`_acquire_homing_target`) scans the **`destructible`** group, skips anything with `homing_eligible = false` or already defeated, and locks the candidate nearest the reticle **in screen space within a tight pixel radius** — so it never snaps to something far off to the side, and there's simply no lock (shots fly straight) when nothing is near the crosshair. The locked target is stored in `_homing_target` and exposed via `get_homing_target()` / `get_homing_target_screen_info()` for the HUD.
+- **Hit react** (`take_damage` → `_trigger_hit_react`, "Hit React" knobs): a decaying positional shake on the ship mesh (`mecha-frame` child, jittered around its rest position) plus a red flash. The flash is `vfx/shaders/blink.gdshader` reworked into a transparent **`material_overlay`** (unshaded, `cull_disabled`, alpha = `flash_modifier`) assigned to every `MeshInstance3D` under the ship, so the model's real materials show at rest and the whole mecha washes red on hit — `flash_modifier` pulses 1→0. Both effects decay off timers each frame in `_update_hit_react`.
 
-**Input is gamepad-only.** IJKL / keyboard movement and the spacebar evade were removed. The **left stick (L/R) drives the pirouette evade**; aim is the right stick + mouse.
+**Input is gamepad-only.** IJKL / keyboard movement and the spacebar evade were removed. The **left stick (L/R) drives the pirouette evade**; aim is the right stick + mouse; **`ToggleBrake`** halts/resumes the rail.
 
-Inspector-tunable knobs are deliberately dense and live under `@export_category` blocks: Movement, Aiming, Ship Follow, Camera React, Combat, Evade, References. The user iterates heavily in the Inspector.
+Inspector-tunable knobs are deliberately dense and live under `@export_category` blocks: Movement, Aiming, Ship Follow, Camera React, Combat, Hit React, Brake Bob, Evade, References. The user iterates heavily in the Inspector.
 
 ### HUD (`ui/overworld/CombatUI.tscn`, `combat_ui.gd`)
 
 A `CanvasLayer` reading the player each frame:
+- **Health** — a `HEALTH: ###` label top-left, polled from the player's `hp` every frame (`_update_health`, same polling pattern as the crosshair — not signal-driven).
 - **Crosshair** — the single `○` reticle at `get_reticle_screen_position()`; stays visible during an evade (aiming continues; `is_evading()` is only a fire-gate now).
 - **Lock-on indicator** — a rotating, flashing yellow square pinned to the homing target's screen position. Built as a **zero-size `LockOn` Control** placed *on* the target with a centered `Square` child: rotating the parent spins the square in place (no pivot/size math → no orbit, the bug that bit us). The square pops in 1.6→1.0 with a **Back-ease overshoot** (child scale), and the parent scales by target distance (near = big, far = small, clamped). Vanishes instantly — no exit anim — when the lock is lost, destroyed, or switches.
 
@@ -143,15 +147,15 @@ Standalone sandboxes for in-progress R&D — not loaded by `main.tscn`:
 - Avoid concurrent edits to the same file in one batch — they race and the second one's "file has been modified since read" error can leave half-applied changes.
 - The Godot debugger break-on-error is enabled; a single parse error in eval-injected GDScript can pause the running game. Keep eval snippets short and avoid mixing tabs/spaces.
 - **New-script `.uid` gotcha**: a freshly-written `.gd` with a `class_name` won't register until Godot generates its `.uid` — until then, scenes that subclass it fail with "Could not find base class". The MCP `get_uid` / `update_project_uids` tools sometimes generate it and sometimes report "Found 0 scripts". When they fail, write the `.uid` file directly (`uid://<unique-token>`, check for collisions). Scenes referencing scripts by **path** still load (only cosmetic "invalid UID" warnings), so the `.uid` mainly matters for `class_name` resolution.
-- During verification, enemies kill the player fast, which fires `Events.player_killed` → `get_tree().quit()` and ends the run mid-eval. For sustained inspection, set the player's `hp`/`max_hp` huge and `pause()` the rail AnimationPlayer in a `game_eval` first.
+- During verification, enemies kill the player fast, which fires `Events.player_killed` → `get_tree().quit()` and ends the run mid-eval. For sustained inspection, set the player's `hp`/`max_hp` huge and halt the rail in a `game_eval` first (set the `PathFollow3D`'s `braked = true`, or `speed = 0`).
 
 ## Current direction
 
 The earlier numbered "phase roadmap" is retired — the core systems it tracked (rail player, rigged camera, component enemies/destructibles, aim-led control, lock-on HUD) are all in and stable; see git history for how they landed.
 
 Active work:
-- **Encounter choreography** — hand-built graybox enemy-wave scenes under `objects/enemy/prototyping/` (`example-enemy-group*`, `scene-4`) instanced into `main.tscn`. These are rough primitive/`AnimationPlayer` blockouts for sketching wave timing and layout, *not* yet wired into the `FseEnemy`/`FseDestructible` component system.
+- **Encounter choreography** — hand-built graybox enemy-wave scenes under `objects/enemy/prototyping/` (`example-enemy-group*`) instanced into `main.tscn`. These are rough primitive/`AnimationPlayer` blockouts for sketching wave timing and layout, *not* yet wired into the `FseEnemy`/`FseDestructible` component system.
 - **Level blockout** — `blender/blockout.blend` (in progress).
-- **Player feel** — evade is now a combat-only left/right pirouette dodge (see Player rig above); puzzle gameplay is no longer tied to evade. Future evade work: VFX, possible i-frames, and tuning enemies like the Swooper so its dive-bombs can be cleanly dodged.
+- **Player feel** — landed this pass: a health readout, hit-react (mesh shake + red flash), a velocity-driven rail with a `ToggleBrake` brake, and the combat-only left/right pirouette evade (all in the Player rig section above). Puzzle gameplay is no longer tied to evade. Future evade work: VFX, possible i-frames, and tuning enemies like the Swooper so its dive-bombs can be cleanly dodged.
 
 Longer-horizon ideas (unordered): curved Bézier rails (Blender→JSON→`Curve3D`), independent `Progress Speed`, a PursuitEnemy miniboss, more weapons, object-grabbing, time-manipulation tools, powerups, mecha rigging/procedural animation (`mecha-frame.glb` imported; `TwoBoneIK3D` / `LookAtModifier3D` / `BoneAttachment3D`), and two more levels.

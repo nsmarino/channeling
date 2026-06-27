@@ -97,6 +97,15 @@ extends CharacterBody3D
 ## Mesh node that flashes + shakes on hit. Empty = the child named "mecha-frame".
 @export var hit_react_mesh_path: NodePath
 
+@export_category("Brake Bob")
+## While braked (rail stopped), the ship mesh gently floats up/down. Vertical
+## amplitude in world units.
+@export var brake_bob_amplitude: float = 0.15
+## Bob oscillation speed (radians/sec).
+@export var brake_bob_speed: float = 2.5
+## How fast the bob eases in when braking / out when resuming.
+@export var brake_bob_ease: float = 3.0
+
 @export_category("Evade")
 ## A left/right flick of the LEFT STICK triggers an evade: the ship slides
 ## laterally to a peak and springs back while spinning a full pirouette about its
@@ -125,6 +134,9 @@ extends CharacterBody3D
 ## World-space aim target node (parenting it to the camera works best). One is
 ## created under the camera automatically if this is left empty.
 @export var aim_target_path: NodePath
+## PathFollow3D running rail_follower.gd, read for its `braked` flag (drives the
+## idle bob). Empty = the nearest PathFollow3D ancestor.
+@export var rail_follower_path: NodePath
 
 @onready var weapon_socket: Node3D = $WeaponSocket
 
@@ -170,6 +182,12 @@ var _hit_mesh_rest: Vector3 = Vector3.ZERO
 var _hit_flash_timer: float = 0.0
 var _hit_shake_timer: float = 0.0
 
+# Idle-bob state. _bob_blend eases 0->1 as the rail brakes/resumes; _bob_phase is
+# the running sine phase. _rail_follower is read for its `braked` flag.
+var _rail_follower: Node = null
+var _bob_phase: float = 0.0
+var _bob_blend: float = 0.0
+
 
 func _ready() -> void:
 	hp = max_hp
@@ -177,6 +195,7 @@ func _ready() -> void:
 	_resolve_aim_target()
 	_equip_default_weapon()
 	_setup_hit_react()
+	_resolve_rail_follower()
 	if _camera:
 		_base_fov = _camera.fov
 	if capture_mouse_on_ready:
@@ -532,7 +551,8 @@ func _trigger_hit_react() -> void:
 	_hit_shake_timer = hit_shake_duration
 
 
-## Fade the flash (full -> 0) and decay the mesh shake back to rest each frame.
+## Fade the flash (full -> 0) and drive the mesh offset (idle bob + hit shake),
+## both composed into a single position write so they don't clobber each other.
 func _update_hit_react(delta: float) -> void:
 	if _flash_material and _hit_flash_timer > 0.0:
 		_hit_flash_timer = maxf(_hit_flash_timer - delta, 0.0)
@@ -541,13 +561,24 @@ func _update_hit_react(delta: float) -> void:
 
 	if not _hit_mesh:
 		return
+
+	# Idle bob: while braked the ship floats up/down (eased in/out). Vertical sine
+	# on the mesh only, so the camera/reticle don't bob with it.
+	var bob_target := 1.0 if _is_braked() else 0.0
+	_bob_blend = lerpf(_bob_blend, bob_target, clampf(brake_bob_ease * delta, 0.0, 1.0))
+	var bob := Vector3.ZERO
+	if _bob_blend > 0.001:
+		_bob_phase += brake_bob_speed * delta
+		bob.y = sin(_bob_phase) * brake_bob_amplitude * _bob_blend
+
+	# Hit shake: random jitter that decays back to rest.
+	var shake := Vector3.ZERO
 	if _hit_shake_timer > 0.0:
 		_hit_shake_timer = maxf(_hit_shake_timer - delta, 0.0)
 		var decay := _hit_shake_timer / maxf(hit_shake_duration, 0.001)
-		var jitter := Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * hit_shake_strength * decay
-		_hit_mesh.position = _hit_mesh_rest + jitter
-	elif _hit_mesh.position != _hit_mesh_rest:
-		_hit_mesh.position = _hit_mesh_rest
+		shake = Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * hit_shake_strength * decay
+
+	_hit_mesh.position = _hit_mesh_rest + bob + shake
 
 #endregion
 
@@ -620,6 +651,24 @@ func _resolve_aim_target() -> void:
 		_aim_target = t
 	if _aim_target:
 		_aim_target.position = Vector3(0.0, 0.0, -aim_plane_distance)
+
+
+## Cache the rail follower (PathFollow3D running rail_follower.gd) whose `braked`
+## flag drives the idle bob. Falls back to the nearest PathFollow3D ancestor.
+func _resolve_rail_follower() -> void:
+	if rail_follower_path != NodePath() and has_node(rail_follower_path):
+		_rail_follower = get_node(rail_follower_path)
+		return
+	var n: Node = get_parent()
+	while n:
+		if n is PathFollow3D:
+			_rail_follower = n
+			return
+		n = n.get_parent()
+
+
+func _is_braked() -> bool:
+	return _rail_follower != null and "braked" in _rail_follower and _rail_follower.braked
 
 
 func _equip_default_weapon() -> void:
