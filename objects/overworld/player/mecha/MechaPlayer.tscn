@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://b4dxmr0j3otkh" path="res://objects/overworld/player/mecha/mecha_player.gd" id="3_mecha"]
 [ext_resource type="PackedScene" uid="uid://ckiqlg7b5x2io" path="res://objects/weapons/player/PlayerBlaster.tscn" id="4_blaster"]
 [ext_resource type="PackedScene" uid="uid://cpywvoos8c8ow" path="res://models/rails/mecha/mecha-frame.glb" id="5_6po1x"]
+[ext_resource type="Script" path="res://objects/enemy/components/hit_react_component.gd" id="6_hitreact"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_0onms"]
 
@@ -36,3 +37,7 @@ metadata/_custom_type_script = "uid://btifnlteqta4p"
 
 [node name="mecha-frame" parent="." unique_id=1770094127 instance=ExtResource("5_6po1x")]
 transform = Transform3D(-0.6, 0, -9.059749e-08, 0, 0.6, 0, 9.059749e-08, 0, -0.6, 0, -0.75, 0)
+
+[node name="HitReactComponent" type="Node" parent="." unique_id=1770094128]
+script = ExtResource("6_hitreact")
+mesh_root_path = NodePath("../mecha-frame")

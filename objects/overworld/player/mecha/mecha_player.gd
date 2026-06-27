@@ -82,21 +82,6 @@ extends CharacterBody3D
 ## Max world distance a target can be to be eligible for homing lock-on.
 @export var homing_max_range: float = 120.0
 
-@export_category("Hit React")
-## Shader used for the red hit-flash, assigned as a material_overlay on the ship
-## mesh (so it washes over the real materials instead of replacing them).
-@export var hit_flash_shader: Shader = preload("res://vfx/shaders/blink.gdshader")
-## Colour of the hit flash.
-@export var hit_flash_color: Color = Color(1.0, 0.05, 0.1, 1.0)
-## Seconds the flash takes to fade from full to none.
-@export var hit_flash_duration: float = 0.18
-## Peak positional jitter of the ship mesh on hit, in world units (decays to 0).
-@export var hit_shake_strength: float = 0.12
-## Seconds the shake decays over.
-@export var hit_shake_duration: float = 0.25
-## Mesh node that flashes + shakes on hit. Empty = the child named "mecha-frame".
-@export var hit_react_mesh_path: NodePath
-
 @export_category("Brake Bob")
 ## While braked (rail stopped), the ship mesh gently floats up/down. Vertical
 ## amplitude in world units.
@@ -173,14 +158,10 @@ var _evade_armed: bool = true
 var _evade_frozen_lean: Vector3 = Vector3.ZERO
 var _base_fov: float = 70.0
 
-# Hit-react state. _flash_material is the shared overlay whose flash_modifier is
-# pulsed 1 -> 0; _hit_mesh is the ship mesh that flashes/shakes (jittered around
-# _hit_mesh_rest). Both timers count down to zero.
-var _flash_material: ShaderMaterial = null
-var _hit_mesh: Node3D = null
-var _hit_mesh_rest: Vector3 = Vector3.ZERO
-var _hit_flash_timer: float = 0.0
-var _hit_shake_timer: float = 0.0
+# Hit-react (flash + shake) is delegated to a HitReactComponent child; the player
+# feeds its brake bob in through that component's extra_offset. Duck-typed (Node)
+# so this script doesn't depend on the component's class_name being registered.
+var _hit_react: Node = null
 
 # Idle-bob state. _bob_blend eases 0->1 as the rail brakes/resumes; _bob_phase is
 # the running sine phase. _rail_follower is read for its `braked` flag.
@@ -194,7 +175,7 @@ func _ready() -> void:
 	_resolve_camera()
 	_resolve_aim_target()
 	_equip_default_weapon()
-	_setup_hit_react()
+	_hit_react = get_node_or_null("HitReactComponent")
 	_resolve_rail_follower()
 	if _camera:
 		_base_fov = _camera.fov
@@ -223,7 +204,7 @@ func _physics_process(delta: float) -> void:
 	_process_camera(delta)
 	_process_ship(delta)
 	_process_combat()
-	_update_hit_react(delta)
+	_update_bob(delta)
 
 
 ## Edge-triggers a barrel-roll evade on a left/right flick of the left stick and
@@ -511,74 +492,26 @@ func take_damage(amount: int) -> void:
 	var prev: int = hp
 	hp = maxi(0, hp - amount)
 	print("[Player] Took %d damage. HP: %d -> %d / %d" % [amount, prev, hp, max_hp])
-	_trigger_hit_react()
+	if _hit_react:
+		_hit_react.call("trigger")
 	if hp <= 0:
 		print("[Player] Destroyed!")
 		if Events:
 			Events.player_killed.emit()
 
 
-## Build the shared flash overlay material and assign it to every MeshInstance3D
-## under the ship mesh; cache the mesh + its rest position for the shake.
-func _setup_hit_react() -> void:
-	if hit_react_mesh_path != NodePath() and has_node(hit_react_mesh_path):
-		_hit_mesh = get_node(hit_react_mesh_path) as Node3D
-	if not _hit_mesh:
-		_hit_mesh = get_node_or_null("mecha-frame") as Node3D
-	if _hit_mesh:
-		_hit_mesh_rest = _hit_mesh.position
-
-	if hit_flash_shader:
-		_flash_material = ShaderMaterial.new()
-		_flash_material.shader = hit_flash_shader
-		_flash_material.set_shader_parameter("flash_color", hit_flash_color)
-		_flash_material.set_shader_parameter("flash_modifier", 0.0)
-		_assign_overlay_recursive(_hit_mesh if _hit_mesh else self)
-
-
-## Apply the shared overlay to every MeshInstance3D in the subtree, so the whole
-## ship flashes together off one material (tweak one uniform, all surfaces react).
-func _assign_overlay_recursive(node: Node) -> void:
-	if node is MeshInstance3D:
-		(node as MeshInstance3D).material_overlay = _flash_material
-	for child in node.get_children():
-		_assign_overlay_recursive(child)
-
-
-## Kick off the flash + shake. Called from take_damage.
-func _trigger_hit_react() -> void:
-	_hit_flash_timer = hit_flash_duration
-	_hit_shake_timer = hit_shake_duration
-
-
-## Fade the flash (full -> 0) and drive the mesh offset (idle bob + hit shake),
-## both composed into a single position write so they don't clobber each other.
-func _update_hit_react(delta: float) -> void:
-	if _flash_material and _hit_flash_timer > 0.0:
-		_hit_flash_timer = maxf(_hit_flash_timer - delta, 0.0)
-		var f := _hit_flash_timer / maxf(hit_flash_duration, 0.001)
-		_flash_material.set_shader_parameter("flash_modifier", f)
-
-	if not _hit_mesh:
-		return
-
-	# Idle bob: while braked the ship floats up/down (eased in/out). Vertical sine
-	# on the mesh only, so the camera/reticle don't bob with it.
+## Compute the idle bob (vertical float while braked) and feed it to the hit-react
+## component as extra_offset — the component composes it with the shake into one
+## mesh position write. Mesh-only, so the camera/reticle don't bob with it.
+func _update_bob(delta: float) -> void:
 	var bob_target := 1.0 if _is_braked() else 0.0
 	_bob_blend = lerpf(_bob_blend, bob_target, clampf(brake_bob_ease * delta, 0.0, 1.0))
-	var bob := Vector3.ZERO
+	var bob_y := 0.0
 	if _bob_blend > 0.001:
 		_bob_phase += brake_bob_speed * delta
-		bob.y = sin(_bob_phase) * brake_bob_amplitude * _bob_blend
-
-	# Hit shake: random jitter that decays back to rest.
-	var shake := Vector3.ZERO
-	if _hit_shake_timer > 0.0:
-		_hit_shake_timer = maxf(_hit_shake_timer - delta, 0.0)
-		var decay := _hit_shake_timer / maxf(hit_shake_duration, 0.001)
-		shake = Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), 0.0) * hit_shake_strength * decay
-
-	_hit_mesh.position = _hit_mesh_rest + bob + shake
+		bob_y = sin(_bob_phase) * brake_bob_amplitude * _bob_blend
+	if _hit_react:
+		_hit_react.set("extra_offset", Vector3(0.0, bob_y, 0.0))
 
 #endregion
 

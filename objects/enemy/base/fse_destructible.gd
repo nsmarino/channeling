@@ -15,6 +15,9 @@ class_name FseDestructible
 ## without the base needing to know about each one specifically.
 
 signal died
+## Emitted when damage actually lands (after the blast_only / dying guards), with
+## the amount. Drives per-instance reactions like HitReactComponent.
+signal hit(amount: int)
 
 enum State { INACTIVE, ACTIVE, DYING, PASSED }
 
@@ -83,6 +86,7 @@ func take_damage(amount: int, is_blast: bool = false) -> void:
 		_sfx.play("hit")
 	Events.enemy_damaged.emit(amount)
 	Events.enemy_hp_changed.emit(hp, max_hp)
+	hit.emit(amount)
 
 	if hp <= 0:
 		_die()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://t8fvwynvct2"]
+[gd_scene load_steps=11 format=3 uid="uid://t8fvwynvct2"]
 
 [ext_resource type="Script" path="res://objects/enemy/base/base_enemy.gd" id="1_base"]
 [ext_resource type="Script" path="res://objects/enemy/components/hit_box.gd" id="2_hitbox"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://objects/enemy/components/sfx_emitter.gd" id="6_sfx"]
 [ext_resource type="AudioStream" path="res://sounds/hard-splash.wav" id="7_hit"]
 [ext_resource type="AudioStream" path="res://sounds/doom-sound-fx-secret.wav" id="8_death"]
+[ext_resource type="Script" path="res://objects/enemy/components/hit_react_component.gd" id="9_hitreact"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
 radius = 1.2
@@ -46,3 +47,6 @@ stream = ExtResource("7_hit")
 
 [node name="death" type="AudioStreamPlayer3D" parent="SfxEmitter"]
 stream = ExtResource("8_death")
+
+[node name="HitReactComponent" type="Node" parent="."]
+script = ExtResource("9_hitreact")
