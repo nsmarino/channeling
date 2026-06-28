@@ -1,7 +1,5 @@
 [gd_scene format=3 uid="uid://bort3fcg6s0p1"]
 
-[ext_resource type="PackedScene" uid="uid://bl1krqw2msic1" path="res://models/level/serai-wall.glb" id="1_o5w1k"]
-[ext_resource type="PackedScene" uid="uid://b8dmw5js5lj1x" path="res://models/character/player/combat-player-pawn.glb" id="2_w6ctv"]
 [ext_resource type="PackedScene" uid="uid://qko1dcpogfxe" path="res://objects/explore-shaders/egglike-cam.tscn" id="3_w6ctv"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rou67"]
@@ -36,15 +34,10 @@ size = Vector2(20, 20)
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1743476409]
 environment = SubResource("Environment_8gjg5")
 
-[node name="serai-wall" parent="." unique_id=1764759131 instance=ExtResource("1_o5w1k")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -8.5, 0)
-
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1864744503]
 transform = Transform3D(0.90630776, -0.27165377, 0.3237444, 0, 0.76604444, 0.6427876, -0.42261827, -0.58256334, 0.69427204, 0, 0, 0)
 light_color = Color(0.9787144, 0.9329471, 0.679666, 1)
 shadow_enabled = true
-
-[node name="combat-player-pawn" parent="." unique_id=1355702472 instance=ExtResource("2_w6ctv")]
 
 [node name="Camera3D" parent="." unique_id=2082197745 instance=ExtResource("3_w6ctv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 5)

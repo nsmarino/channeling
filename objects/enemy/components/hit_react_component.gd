@@ -29,6 +29,11 @@ class_name HitReactComponent
 ## Visual node to flash + shake. Empty = the first MeshInstance3D under the
 ## parent (e.g. an enemy's "Body").
 @export var mesh_root_path: NodePath
+## One-shot particle burst spawned on hit (optional).
+@export var hit_burst: PackedScene
+## One-shot particle burst spawned on death (optional). Plays from the parent's
+## `died` signal for enemies, or a trigger_death() call for the player.
+@export var death_burst: PackedScene
 
 ## Extra local offset layered onto mesh_root every frame. Owners that need it
 ## (e.g. the player's bob) set it; others leave it at zero.
@@ -47,16 +52,29 @@ func _ready() -> void:
 	var parent: Node = get_parent()
 	if parent and parent.has_signal("hit"):
 		parent.hit.connect(_on_parent_hit)
+	if parent and parent.has_signal("died"):
+		parent.died.connect(_on_parent_died)
 
 
-## Kick off a flash + shake.
+## Kick off a flash + shake and spawn the hit burst.
 func trigger() -> void:
 	_flash_timer = flash_duration
 	_shake_timer = shake_duration
+	_spawn_burst(hit_burst)
+
+
+## Spawn the death burst. Auto-called from the parent's `died` signal (enemies);
+## the player (no such signal) calls this directly.
+func trigger_death() -> void:
+	_spawn_burst(death_burst)
 
 
 func _on_parent_hit(_amount: int) -> void:
 	trigger()
+
+
+func _on_parent_died() -> void:
+	trigger_death()
 
 
 func _physics_process(delta: float) -> void:
@@ -114,3 +132,40 @@ func _assign_overlay_recursive(node: Node) -> void:
 		(node as MeshInstance3D).material_overlay = _flash_material
 	for child in node.get_children():
 		_assign_overlay_recursive(child)
+
+
+## Spawn a one-shot particle burst at the visual's position, detached into the
+## scene root so it outlives the entity (enemies free shortly after death). The
+## burst frees itself once its longest emitter finishes.
+func _spawn_burst(scene: PackedScene) -> void:
+	if not scene:
+		return
+	var tree: SceneTree = get_tree()
+	if not tree or not tree.current_scene:
+		return
+	var inst: Node = scene.instantiate()
+	tree.current_scene.add_child(inst)
+	var anchor: Node3D = _mesh_root if _mesh_root else get_parent() as Node3D
+	if inst is Node3D and anchor:
+		(inst as Node3D).global_position = anchor.global_position
+	_play_burst_oneshot(inst)
+
+
+## Fire every GPUParticles3D in the burst one-shot, then free it after the longest
+## emitter's lifetime.
+func _play_burst_oneshot(root: Node) -> void:
+	var emitters: Array[GPUParticles3D] = []
+	_collect_particles(root, emitters)
+	var max_life: float = 0.0
+	for p in emitters:
+		p.one_shot = true
+		p.restart()
+		max_life = maxf(max_life, p.lifetime)
+	root.get_tree().create_timer(max_life + 0.3).timeout.connect(root.queue_free)
+
+
+func _collect_particles(node: Node, out: Array[GPUParticles3D]) -> void:
+	for child in node.get_children():
+		if child is GPUParticles3D:
+			out.append(child as GPUParticles3D)
+		_collect_particles(child, out)

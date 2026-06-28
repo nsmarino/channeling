@@ -22,13 +22,6 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-
-
-
-
-
-
-
 Events="*res://autoloads/events.gd"
 GameManager="*res://autoloads/game_manager.gd"
 

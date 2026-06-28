@@ -1,52 +1,51 @@
-[gd_scene load_steps=11 format=3 uid="uid://t8fvwynvct2"]
+[gd_scene format=3 uid="uid://t8fvwynvct2"]
 
-[ext_resource type="Script" path="res://objects/enemy/base/base_enemy.gd" id="1_base"]
-[ext_resource type="Script" path="res://objects/enemy/components/hit_box.gd" id="2_hitbox"]
-[ext_resource type="Script" path="res://objects/enemy/components/movement_component.gd" id="3_move"]
-[ext_resource type="Script" path="res://objects/enemy/components/weapon_component.gd" id="4_weapon"]
-[ext_resource type="Script" path="res://objects/enemy/components/vfx_emitter.gd" id="5_vfx"]
-[ext_resource type="Script" path="res://objects/enemy/components/sfx_emitter.gd" id="6_sfx"]
-[ext_resource type="AudioStream" path="res://sounds/hard-splash.wav" id="7_hit"]
-[ext_resource type="AudioStream" path="res://sounds/doom-sound-fx-secret.wav" id="8_death"]
-[ext_resource type="Script" path="res://objects/enemy/components/hit_react_component.gd" id="9_hitreact"]
+[ext_resource type="Script" uid="uid://dxibbwk73gtbb" path="res://objects/enemy/base/base_enemy.gd" id="1_base"]
+[ext_resource type="Script" uid="uid://bfi6wh5e0kftv" path="res://objects/enemy/components/hit_box.gd" id="2_hitbox"]
+[ext_resource type="Script" uid="uid://ecnju1f3kpx2" path="res://objects/enemy/components/movement_component.gd" id="3_move"]
+[ext_resource type="Script" uid="uid://ssw2i63le8tm" path="res://objects/enemy/components/weapon_component.gd" id="4_weapon"]
+[ext_resource type="Script" uid="uid://cml4apnpvgahd" path="res://objects/enemy/components/sfx_emitter.gd" id="6_sfx"]
+[ext_resource type="AudioStream" uid="uid://5cm2xw8assov" path="res://sounds/hard-splash.wav" id="7_hit"]
+[ext_resource type="AudioStream" uid="uid://ct1sv14b1hb2v" path="res://sounds/doom-sound-fx-secret.wav" id="8_death"]
+[ext_resource type="Script" uid="uid://bh7xn2react0c" path="res://objects/enemy/components/hit_react_component.gd" id="9_hitreact"]
+[ext_resource type="PackedScene" uid="uid://b4h1ep7qebmuu" path="res://vfx/particle-scenes/blast.tscn" id="10_burst"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
 radius = 1.2
 
-[node name="FseEnemy" type="CharacterBody3D" groups=["enemy"]]
+[node name="FseEnemy" type="CharacterBody3D" unique_id=1726509542 groups=["enemy"]]
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("1_base")
 
-[node name="HitBox" type="Area3D" parent="."]
+[node name="HitBox" type="Area3D" parent="." unique_id=220957451]
 collision_layer = 4
 collision_mask = 0
 script = ExtResource("2_hitbox")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox" unique_id=173155320]
 shape = SubResource("SphereShape3D_hit")
 
-[node name="MovementComponent" type="Node" parent="."]
+[node name="MovementComponent" type="Node" parent="." unique_id=1586329003]
 script = ExtResource("3_move")
 
-[node name="WeaponComponent" type="Node" parent="."]
+[node name="WeaponComponent" type="Node" parent="." unique_id=1720217182]
 script = ExtResource("4_weapon")
 muzzle_path = NodePath("../Muzzle")
 
-[node name="Muzzle" type="Marker3D" parent="."]
+[node name="Muzzle" type="Marker3D" parent="." unique_id=1983208736]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
 
-[node name="VfxEmitter" type="Node3D" parent="."]
-script = ExtResource("5_vfx")
-
-[node name="SfxEmitter" type="Node3D" parent="."]
+[node name="SfxEmitter" type="Node3D" parent="." unique_id=1998566737]
 script = ExtResource("6_sfx")
 
-[node name="hit" type="AudioStreamPlayer3D" parent="SfxEmitter"]
+[node name="hit" type="AudioStreamPlayer3D" parent="SfxEmitter" unique_id=1214020897]
 stream = ExtResource("7_hit")
 
-[node name="death" type="AudioStreamPlayer3D" parent="SfxEmitter"]
+[node name="death" type="AudioStreamPlayer3D" parent="SfxEmitter" unique_id=1220667059]
 stream = ExtResource("8_death")
 
-[node name="HitReactComponent" type="Node" parent="."]
+[node name="HitReactComponent" type="Node" parent="." unique_id=803928110]
 script = ExtResource("9_hitreact")
+hit_burst = ExtResource("10_burst")
+death_burst = ExtResource("10_burst")

@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://ckiqlg7b5x2io" path="res://objects/weapons/player/PlayerBlaster.tscn" id="4_blaster"]
 [ext_resource type="PackedScene" uid="uid://cpywvoos8c8ow" path="res://models/rails/mecha/mecha-frame.glb" id="5_6po1x"]
 [ext_resource type="Script" path="res://objects/enemy/components/hit_react_component.gd" id="6_hitreact"]
+[ext_resource type="PackedScene" uid="uid://b4h1ep7qebmuu" path="res://vfx/particle-scenes/blast.tscn" id="7_burst"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_0onms"]
 
@@ -41,3 +42,5 @@ transform = Transform3D(-0.6, 0, -9.059749e-08, 0, 0.6, 0, 9.059749e-08, 0, -0.6
 [node name="HitReactComponent" type="Node" parent="." unique_id=1770094128]
 script = ExtResource("6_hitreact")
 mesh_root_path = NodePath("../mecha-frame")
+hit_burst = ExtResource("7_burst")
+death_burst = ExtResource("7_burst")

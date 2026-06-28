@@ -496,6 +496,8 @@ func take_damage(amount: int) -> void:
 		_hit_react.call("trigger")
 	if hp <= 0:
 		print("[Player] Destroyed!")
+		if _hit_react:
+			_hit_react.call("trigger_death")
 		if Events:
 			Events.player_killed.emit()
 
