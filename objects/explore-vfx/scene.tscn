@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://co8mgmoqwmkr2"]
 
-[ext_resource type="Texture2D" uid="uid://culraik6s0y3b" path="res://brackeys-vfx/particles/alpha/spotlight_01_a.png" id="1_q7k1h"]
+[ext_resource type="Texture2D" uid="uid://culraik6s0y3b" path="res://assets/brackeys-vfx/particles/alpha/spotlight_01_a.png" id="1_q7k1h"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_vbijw"]
 size = Vector2(20, 20)

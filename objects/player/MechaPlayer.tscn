@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://duek3aqswvgk2"]
+
+[ext_resource type="Script" uid="uid://dtohil85pebn2" path="res://objects/base/state/state_machine.gd" id="1_obejj"]
+[ext_resource type="Script" uid="uid://btifnlteqta4p" path="res://objects/base/state/ai_state.gd" id="2_dq2bm"]
+[ext_resource type="Script" uid="uid://b4dxmr0j3otkh" path="res://objects/player/mecha_player.gd" id="3_mecha"]
+[ext_resource type="PackedScene" uid="uid://ckiqlg7b5x2io" path="res://objects/weapons/player/PlayerBlaster.tscn" id="4_blaster"]
+[ext_resource type="PackedScene" uid="uid://cpywvoos8c8ow" path="res://assets/models/rails/mecha/mecha-frame.glb" id="5_6po1x"]
+[ext_resource type="Script" uid="uid://bh7xn2react0c" path="res://objects/components/hit_react_component.gd" id="6_hitreact"]
+[ext_resource type="PackedScene" uid="uid://b4h1ep7qebmuu" path="res://vfx/particles/blast.tscn" id="7_burst"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_0onms"]
+
+[node name="MechaPlayer" type="CharacterBody3D" unique_id=343871187 groups=["player"]]
+collision_layer = 2
+script = ExtResource("3_mecha")
+default_weapon_scene = ExtResource("4_blaster")
+
+[node name="WeaponSocket" type="Node3D" parent="." unique_id=935345419]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.28369254, 0.07494089, -0.8445466)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=935345418]
+shape = SubResource("SphereShape3D_0onms")
+
+[node name="SoundFX" type="Node3D" parent="." unique_id=748492552]
+
+[node name="VisualFX" type="Node3D" parent="." unique_id=1810552721]
+
+[node name="StateMachine" type="Node" parent="." unique_id=2065693368 node_paths=PackedStringArray("owner_node")]
+script = ExtResource("1_obejj")
+owner_node = NodePath("..")
+default_state = "Root"
+metadata/_custom_type_script = "uid://dtohil85pebn2"
+
+[node name="RootState" type="Node" parent="StateMachine" unique_id=1193947240]
+script = ExtResource("2_dq2bm")
+state_name = "Root"
+metadata/_custom_type_script = "uid://btifnlteqta4p"
+
+[node name="mecha-frame" parent="." unique_id=1770094127 instance=ExtResource("5_6po1x")]
+transform = Transform3D(-0.6, 0, -9.059749e-08, 0, 0.6, 0, 9.059749e-08, 0, -0.6, 0, -0.75, 0)
+
+[node name="HitReactComponent" type="Node" parent="." unique_id=1770094128]
+script = ExtResource("6_hitreact")
+mesh_root_path = NodePath("../mecha-frame")
+hit_burst = ExtResource("7_burst")
+death_burst = ExtResource("7_burst")

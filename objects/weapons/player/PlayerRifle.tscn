@@ -3,9 +3,9 @@
 [ext_resource type="Script" uid="uid://bybndys30kcln" path="res://objects/weapons/base/HitscanWeapon.gd" id="1_hitscan_weapon_script"]
 [ext_resource type="Script" uid="uid://ba4jr0o2yp36j" path="res://resources/WeaponData.gd" id="2_weapon_data_script"]
 [ext_resource type="PackedScene" path="res://objects/weapons/vfx/BulletTrail.tscn" id="3_bullet_trail_scene"]
-[ext_resource type="AudioStream" uid="uid://x6brfsui8oi" path="res://sounds/gun-shot.wav" id="4_gunshot"]
-[ext_resource type="AudioStream" uid="uid://7eogyf12ju3t" path="res://sounds/round-click-fx.wav" id="5_0xqal"]
-[ext_resource type="AudioStream" uid="uid://c2q55xq4ewqsx" path="res://sounds/gun-ready.wav" id="6_co0cv"]
+[ext_resource type="AudioStream" uid="uid://x6brfsui8oi" path="res://assets/sounds/gun-shot.wav" id="4_gunshot"]
+[ext_resource type="AudioStream" uid="uid://7eogyf12ju3t" path="res://assets/sounds/round-click-fx.wav" id="5_0xqal"]
+[ext_resource type="AudioStream" uid="uid://c2q55xq4ewqsx" path="res://assets/sounds/gun-ready.wav" id="6_co0cv"]
 
 [sub_resource type="Resource" id="Resource_player_rifle_data"]
 script = ExtResource("2_weapon_data_script")

@@ -6,8 +6,8 @@
 [ext_resource type="PackedScene" path="res://objects/weapons/enemy/TurretBolt.tscn" id="4_bolt"]
 [ext_resource type="Script" uid="uid://hfpy5xkrj2ik" path="res://objects/components/vfx_emitter.gd" id="5_vfx"]
 [ext_resource type="Script" uid="uid://cml4apnpvgahd" path="res://objects/components/sfx_emitter.gd" id="6_sfx"]
-[ext_resource type="AudioStream" uid="uid://5cm2xw8assov" path="res://sounds/hard-splash.wav" id="7_hit"]
-[ext_resource type="AudioStream" uid="uid://ct1sv14b1hb2v" path="res://sounds/doom-sound-fx-secret.wav" id="8_death"]
+[ext_resource type="AudioStream" uid="uid://5cm2xw8assov" path="res://assets/sounds/hard-splash.wav" id="7_hit"]
+[ext_resource type="AudioStream" uid="uid://ct1sv14b1hb2v" path="res://assets/sounds/doom-sound-fx-secret.wav" id="8_death"]
 
 [sub_resource type="StandardMaterial3D" id="mat_body"]
 albedo_color = Color(0.5, 0.2, 0.5, 1)

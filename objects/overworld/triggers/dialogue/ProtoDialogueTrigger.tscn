@@ -1,8 +1,0 @@
-[gd_scene format=3 uid="uid://bg76dwtiwq5mu"]
-
-[ext_resource type="PackedScene" uid="uid://bwt8ntmt12ffh" path="res://objects/overworld/triggers/dialogue/DialogueTrigger.tscn" id="1_trigger"]
-[ext_resource type="Resource" uid="uid://c4mowhi01yrpa" path="res://resources/dialogue/example_overworld_dialogue.tres" id="2_config"]
-
-[node name="ProtoDialogueTrigger" unique_id=679604136 instance=ExtResource("1_trigger")]
-dialogue_config = ExtResource("2_config")
-one_shot = false

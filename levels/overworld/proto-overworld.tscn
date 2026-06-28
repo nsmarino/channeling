@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://sobb6kxvthei"]
 
 [ext_resource type="PackedScene" uid="uid://xfjfxk0ojb5c" path="res://levels/overworld/base_overworld.tscn" id="1_3jslp"]
-[ext_resource type="Texture2D" uid="uid://ckmpw3ui71wsj" path="res://kenney_prototype-textures/PNG/Dark/texture_09.png" id="2_ni1te"]
+[ext_resource type="Texture2D" uid="uid://ckmpw3ui71wsj" path="res://assets/kenney_prototype-textures/PNG/Dark/texture_09.png" id="2_ni1te"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ntw5q"]
 albedo_texture = ExtResource("2_ni1te")

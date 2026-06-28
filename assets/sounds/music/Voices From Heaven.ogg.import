@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cuip57nqj36pc"
+path="res://.godot/imported/Voices From Heaven.ogg-12e63418db6bccde5f204468a6e1730c.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/music/Voices From Heaven.ogg"
+dest_files=["res://.godot/imported/Voices From Heaven.ogg-12e63418db6bccde5f204468a6e1730c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

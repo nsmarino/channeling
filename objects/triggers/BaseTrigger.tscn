@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://dyj8ajh7qbh5c"]
+
+[ext_resource type="Script" uid="uid://cevb76i7iacnk" path="res://objects/triggers/base/trigger_state_machine.gd" id="1_state_machine"]
+[ext_resource type="Script" uid="uid://bc35gbn6g2k7m" path="res://objects/triggers/base/states/idle.gd" id="2_idle"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_gloh6"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gloh6"]
+size = Vector3(3, 2, 3)
+
+[node name="BaseTrigger" type="CharacterBody3D" unique_id=756638082]
+
+[node name="Collider" type="CollisionShape3D" parent="." unique_id=1726067692]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_gloh6")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=747075931]
+path_desired_distance = 0.5
+avoidance_enabled = true
+radius = 0.6
+neighbor_distance = 5.0
+max_neighbors = 5
+
+[node name="InteractionArea" type="Area3D" parent="." unique_id=1619657818]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea" unique_id=1822654231]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_gloh6")
+
+[node name="StateMachine" type="Node" parent="." unique_id=1847293650 node_paths=PackedStringArray("owner_node")]
+script = ExtResource("1_state_machine")
+owner_node = NodePath("..")
+default_state = "idle"
+
+[node name="Idle" type="Node" parent="StateMachine" unique_id=1293847561]
+script = ExtResource("2_idle")
+state_name = "idle"

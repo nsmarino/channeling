@@ -5,10 +5,10 @@
 [ext_resource type="Script" uid="uid://ecnju1f3kpx2" path="res://objects/components/movement_component.gd" id="3_move"]
 [ext_resource type="Script" uid="uid://ssw2i63le8tm" path="res://objects/components/weapon_component.gd" id="4_weapon"]
 [ext_resource type="Script" uid="uid://cml4apnpvgahd" path="res://objects/components/sfx_emitter.gd" id="6_sfx"]
-[ext_resource type="AudioStream" uid="uid://5cm2xw8assov" path="res://sounds/hard-splash.wav" id="7_hit"]
-[ext_resource type="AudioStream" uid="uid://ct1sv14b1hb2v" path="res://sounds/doom-sound-fx-secret.wav" id="8_death"]
+[ext_resource type="AudioStream" uid="uid://5cm2xw8assov" path="res://assets/sounds/hard-splash.wav" id="7_hit"]
+[ext_resource type="AudioStream" uid="uid://ct1sv14b1hb2v" path="res://assets/sounds/doom-sound-fx-secret.wav" id="8_death"]
 [ext_resource type="Script" uid="uid://bh7xn2react0c" path="res://objects/components/hit_react_component.gd" id="9_hitreact"]
-[ext_resource type="PackedScene" uid="uid://b4h1ep7qebmuu" path="res://vfx/particle-scenes/blast.tscn" id="10_burst"]
+[ext_resource type="PackedScene" uid="uid://b4h1ep7qebmuu" path="res://vfx/particles/blast.tscn" id="10_burst"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
 radius = 1.2

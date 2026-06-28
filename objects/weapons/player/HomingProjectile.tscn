@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://diharkr001m7l"]
 
 [ext_resource type="Script" uid="uid://yvlof4gncbb4" path="res://objects/weapons/player/homing_projectile.gd" id="1_homing"]
-[ext_resource type="Texture2D" uid="uid://be2y8p0rt8i2p" path="res://brackeys-vfx/particles/alpha/light_01_a.png" id="2_nmisk"]
-[ext_resource type="Shader" uid="uid://cud3aqjodm4xp" path="res://GPUTrail-main/shaders/trail.gdshader" id="3_jllpm"]
-[ext_resource type="Shader" uid="uid://rpxiev5pcmxg" path="res://GPUTrail-main/shaders/trail_draw_pass.gdshader" id="4_p33ug"]
-[ext_resource type="Texture2D" uid="uid://blq5mlb4uc6bf" path="res://brackeys-vfx/particles/alpha/spark_07_a.png" id="5_ynvxy"]
-[ext_resource type="Script" uid="uid://lnk5p1qqmsw4" path="res://GPUTrail-main/GPUTrail3D.gd" id="6_duvs1"]
-[ext_resource type="Texture2D" uid="uid://bame5ny83ed8a" path="res://brackeys-vfx/particles/alpha/flare_01_a.png" id="7_jllpm"]
+[ext_resource type="Texture2D" uid="uid://be2y8p0rt8i2p" path="res://assets/brackeys-vfx/particles/alpha/light_01_a.png" id="2_nmisk"]
+[ext_resource type="Shader" uid="uid://cud3aqjodm4xp" path="res://addons/GPUTrail/shaders/trail.gdshader" id="3_jllpm"]
+[ext_resource type="Shader" uid="uid://rpxiev5pcmxg" path="res://addons/GPUTrail/shaders/trail_draw_pass.gdshader" id="4_p33ug"]
+[ext_resource type="Texture2D" uid="uid://blq5mlb4uc6bf" path="res://assets/brackeys-vfx/particles/alpha/spark_07_a.png" id="5_ynvxy"]
+[ext_resource type="Script" uid="uid://lnk5p1qqmsw4" path="res://addons/GPUTrail/GPUTrail3D.gd" id="6_duvs1"]
+[ext_resource type="Texture2D" uid="uid://bame5ny83ed8a" path="res://assets/brackeys-vfx/particles/alpha/flare_01_a.png" id="7_jllpm"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_proj"]
 albedo_color = Color(0.77624625, 0.36988893, 0.31146342, 1)

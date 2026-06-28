@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://b06o1dimev10x"]
 
-[ext_resource type="Script" path="res://objects/obstacles/base/fse_obstacle.gd" id="1_base"]
-[ext_resource type="Script" path="res://objects/components/hit_box.gd" id="2_hitbox"]
-[ext_resource type="Script" path="res://objects/components/movement_component.gd" id="3_move"]
-[ext_resource type="Script" path="res://objects/components/vfx_emitter.gd" id="4_vfx"]
-[ext_resource type="Script" path="res://objects/components/sfx_emitter.gd" id="5_sfx"]
-[ext_resource type="AudioStream" path="res://sounds/hard-splash.wav" id="6_hit"]
-[ext_resource type="AudioStream" path="res://sounds/doom-sound-fx-secret.wav" id="7_death"]
+[ext_resource type="Script" uid="uid://g8uwqfw43wvo" path="res://objects/obstacles/base/fse_obstacle.gd" id="1_base"]
+[ext_resource type="Script" uid="uid://bfi6wh5e0kftv" path="res://objects/components/hit_box.gd" id="2_hitbox"]
+[ext_resource type="Script" uid="uid://ecnju1f3kpx2" path="res://objects/components/movement_component.gd" id="3_move"]
+[ext_resource type="Script" uid="uid://hfpy5xkrj2ik" path="res://objects/components/vfx_emitter.gd" id="4_vfx"]
+[ext_resource type="Script" uid="uid://cml4apnpvgahd" path="res://objects/components/sfx_emitter.gd" id="5_sfx"]
+[ext_resource type="AudioStream" uid="uid://5cm2xw8assov" path="res://assets/sounds/hard-splash.wav" id="6_hit"]
+[ext_resource type="AudioStream" uid="uid://ct1sv14b1hb2v" path="res://assets/sounds/doom-sound-fx-secret.wav" id="7_death"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hit"]
 size = Vector3(2, 2, 2)
