@@ -11,23 +11,35 @@
 [ext_resource type="PackedScene" path="res://objects/enemy/enemies/explore-blast-radius/SmallGreen.tscn" id="12_green"]
 [ext_resource type="PackedScene" path="res://objects/enemy/enemies/explore-blast-radius/SmallYellow.tscn" id="13_yellow"]
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_jw1n3"]
+sky_top_color = Color(3.465414e-06, 0.63147265, 0.77430177, 1)
+sky_horizon_color = Color(0.17580944, 0.38899374, 0.3791324, 1)
+sky_curve = 0.24367575
+ground_bottom_color = Color(0.025314609, 0.23918971, 0.28814527, 1)
+ground_horizon_color = Color(0.1764706, 0.3882353, 0.38039216, 1)
+ground_curve = 0.039999977
+
 [sub_resource type="Sky" id="Sky_s07ge"]
+sky_material = SubResource("ProceduralSkyMaterial_jw1n3")
 
 [sub_resource type="Environment" id="Environment_qy63d"]
-background_mode = 1
+background_mode = 2
 sky = SubResource("Sky_s07ge")
+ambient_light_source = 3
 ambient_light_color = Color(0.8776157, 0.8776158, 0.8776157, 1)
 ambient_light_sky_contribution = 0.0
 ambient_light_energy = 2.0
 glow_enabled = true
+fog_enabled = true
 fog_mode = 1
-fog_light_color = Color(0.08762071, 0.13059539, 0.04574921, 1)
+fog_light_color = Color(0.14564103, 0.42633775, 0.508289, 1)
 fog_density = 1.0
 fog_sky_affect = 0.0
-fog_height = -5.0
+fog_height = -7.5
 fog_height_density = 0.2
-fog_depth_curve = 0.7071065
-fog_depth_begin = 0.0
+fog_depth_curve = 0.4061261
+fog_depth_begin = 185.8
+fog_depth_end = 477.9
 volumetric_fog_density = 0.01
 volumetric_fog_albedo = Color(0.35308334, 0.82349783, 0.5012416, 1)
 volumetric_fog_emission = Color(0.0352255, 0.24853325, 0.39479303, 1)
@@ -95,6 +107,7 @@ environment = SubResource("Environment_qy63d")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="Level" unique_id=1905902579]
 transform = Transform3D(1, 0, 0, 0, 0.6755903, 0.73727727, 0, -0.73727727, 0.6755903, 0, 0, 0)
+shadow_enabled = true
 
 [node name="Path3D" type="Path3D" parent="Level" unique_id=300150136]
 curve = SubResource("Curve3D_6et1j")
@@ -110,7 +123,6 @@ player_plane_distance = 8.0
 move_bounds_scale = 0.8
 aim_speed = 20.0
 capture_mouse_on_ready = false
-recenter_rate = 0.2
 ship_follow_fraction = 0.3
 ship_follow_lerp = 10.0
 ship_bank_max_deg = 2.0
@@ -133,42 +145,45 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -30)
 [node name="Enemies" type="Node3D" parent="Level" unique_id=2111095337]
 
 [node name="A_Red" parent="Level/Enemies" unique_id=1460353248 instance=ExtResource("11_red")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -95)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, -95)
 
 [node name="A_Yellow1" parent="Level/Enemies" unique_id=484352308 instance=ExtResource("13_yellow")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, -95)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.8, 0, -95)
 
 [node name="A_Yellow2" parent="Level/Enemies" unique_id=1594447894 instance=ExtResource("13_yellow")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 0, -95)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.2, 0, -95)
 
 [node name="A_Yellow3" parent="Level/Enemies" unique_id=1215108922 instance=ExtResource("13_yellow")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -95)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 1.2, -95)
 
 [node name="A_Yellow4" parent="Level/Enemies" unique_id=1931219939 instance=ExtResource("13_yellow")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.2, -95)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, -1.2, -95)
 
 [node name="A_Green" parent="Level/Enemies" unique_id=186116384 instance=ExtResource("12_green")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 0.9, -95)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.1, 0.9, -95)
 
 [node name="B_Red1" parent="Level/Enemies" unique_id=427380810 instance=ExtResource("11_red")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6, 0, -125)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.4, 0, -125)
 
 [node name="B_Red2" parent="Level/Enemies" unique_id=119349038 instance=ExtResource("11_red")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 0, -125)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.7, 0, -125)
 
 [node name="B_Red3" parent="Level/Enemies" unique_id=1659621846 instance=ExtResource("11_red")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -125)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, -125)
 
 [node name="B_Red4" parent="Level/Enemies" unique_id=1619249636 instance=ExtResource("11_red")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 0, -125)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.3, 0, -125)
 
 [node name="B_Green" parent="Level/Enemies" unique_id=1049049318 instance=ExtResource("12_green")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0, -125)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.6, 0, -125)
 
 [node name="Obstacles" type="Node3D" parent="Level" unique_id=1811212233]
 
 [node name="Turret" parent="Level" unique_id=3965930 instance=ExtResource("9_jw1n3")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -69)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -83)
+
+[node name="Turret2" parent="Level" unique_id=865009759 instance=ExtResource("9_jw1n3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0, -103.5)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1472522793]
 libraries/ = SubResource("AnimationLibrary_qy63d")
