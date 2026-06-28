@@ -28,6 +28,7 @@ config/icon="res://icon.svg"
 
 
 
+
 Events="*res://autoloads/events.gd"
 GameManager="*res://autoloads/game_manager.gd"
 
