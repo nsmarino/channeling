@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://objects/obstacles/base/BaseObstacle.tscn" id="1_base"]
-[ext_resource type="Script" path="res://objects/enemy/components/animation_driver.gd" id="2_anim"]
+[ext_resource type="Script" path="res://objects/components/animation_driver.gd" id="2_anim"]
 
 [sub_resource type="StandardMaterial3D" id="mat_body"]
 albedo_color = Color(0.3, 0.55, 0.75, 1)

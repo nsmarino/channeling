@@ -48,14 +48,6 @@ projectile_speed = 40.0
 damage = 5
 initial_delay = 0.4
 
-[node name="death" type="GPUParticles3D" parent="VfxEmitter" index="0" unique_id=164800984]
-emitting = false
-amount = 56
-lifetime = 1.1
-one_shot = true
-explosiveness = 1.0
-process_material = SubResource("death_mat")
-draw_pass_1 = SubResource("death_draw")
 
 [node name="Body" type="MeshInstance3D" parent="." index="6" unique_id=542059290]
 mesh = SubResource("mesh_body")

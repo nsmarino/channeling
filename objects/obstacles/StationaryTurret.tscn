@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://cvab04uro7hlv"]
 
 [ext_resource type="Script" uid="uid://g8uwqfw43wvo" path="res://objects/obstacles/base/fse_obstacle.gd" id="1_obst"]
-[ext_resource type="Script" uid="uid://bfi6wh5e0kftv" path="res://objects/enemy/components/hit_box.gd" id="2_hitbox"]
-[ext_resource type="Script" path="res://objects/enemy/components/turret_emitter.gd" id="3_emit"]
+[ext_resource type="Script" uid="uid://bfi6wh5e0kftv" path="res://objects/components/hit_box.gd" id="2_hitbox"]
+[ext_resource type="Script" uid="uid://cqt8nsmbocq3k" path="res://objects/components/turret_emitter.gd" id="3_emit"]
 [ext_resource type="PackedScene" path="res://objects/weapons/enemy/TurretBolt.tscn" id="4_bolt"]
-[ext_resource type="Script" uid="uid://hfpy5xkrj2ik" path="res://objects/enemy/components/vfx_emitter.gd" id="5_vfx"]
-[ext_resource type="Script" uid="uid://cml4apnpvgahd" path="res://objects/enemy/components/sfx_emitter.gd" id="6_sfx"]
+[ext_resource type="Script" uid="uid://hfpy5xkrj2ik" path="res://objects/components/vfx_emitter.gd" id="5_vfx"]
+[ext_resource type="Script" uid="uid://cml4apnpvgahd" path="res://objects/components/sfx_emitter.gd" id="6_sfx"]
 [ext_resource type="AudioStream" uid="uid://5cm2xw8assov" path="res://sounds/hard-splash.wav" id="7_hit"]
 [ext_resource type="AudioStream" uid="uid://ct1sv14b1hb2v" path="res://sounds/doom-sound-fx-secret.wav" id="8_death"]
 

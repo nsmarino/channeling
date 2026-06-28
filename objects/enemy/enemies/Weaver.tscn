@@ -51,11 +51,3 @@ initial_delay = 0.8
 [node name="Body" type="MeshInstance3D" parent="." index="6"]
 mesh = SubResource("mesh_body")
 
-[node name="death" type="GPUParticles3D" parent="VfxEmitter" index="0"]
-emitting = false
-amount = 48
-lifetime = 0.9
-one_shot = true
-explosiveness = 1.0
-process_material = SubResource("death_mat")
-draw_pass_1 = SubResource("death_draw")

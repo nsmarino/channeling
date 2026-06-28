@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://b06o1dimev10x"]
 
 [ext_resource type="Script" path="res://objects/obstacles/base/fse_obstacle.gd" id="1_base"]
-[ext_resource type="Script" path="res://objects/enemy/components/hit_box.gd" id="2_hitbox"]
-[ext_resource type="Script" path="res://objects/enemy/components/movement_component.gd" id="3_move"]
-[ext_resource type="Script" path="res://objects/enemy/components/vfx_emitter.gd" id="4_vfx"]
-[ext_resource type="Script" path="res://objects/enemy/components/sfx_emitter.gd" id="5_sfx"]
+[ext_resource type="Script" path="res://objects/components/hit_box.gd" id="2_hitbox"]
+[ext_resource type="Script" path="res://objects/components/movement_component.gd" id="3_move"]
+[ext_resource type="Script" path="res://objects/components/vfx_emitter.gd" id="4_vfx"]
+[ext_resource type="Script" path="res://objects/components/sfx_emitter.gd" id="5_sfx"]
 [ext_resource type="AudioStream" path="res://sounds/hard-splash.wav" id="6_hit"]
 [ext_resource type="AudioStream" path="res://sounds/doom-sound-fx-secret.wav" id="7_death"]
 

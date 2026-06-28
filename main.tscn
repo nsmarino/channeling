@@ -60,7 +60,7 @@ loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Level/Path3D/PathFollow3D:progress_ratio")
+tracks/0/path = NodePath("Level/Rail/RailFollow:progress_ratio")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -75,7 +75,7 @@ length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Level/Path3D/PathFollow3D:progress_ratio")
+tracks/0/path = NodePath("Level/Rail/RailFollow:progress_ratio")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -109,16 +109,16 @@ environment = SubResource("Environment_qy63d")
 transform = Transform3D(1, 0, 0, 0, 0.6755903, 0.73727727, 0, -0.73727727, 0.6755903, 0, 0, 0)
 shadow_enabled = true
 
-[node name="Path3D" type="Path3D" parent="Level" unique_id=300150136]
+[node name="Rail" type="Path3D" parent="Level" unique_id=300150136]
 curve = SubResource("Curve3D_6et1j")
 
-[node name="PathFollow3D" type="PathFollow3D" parent="Level/Path3D" unique_id=602357976]
+[node name="RailFollow" type="PathFollow3D" parent="Level/Rail" unique_id=602357976]
 transform = Transform3D(0.9999862, 3.4721563e-07, -0.0004166585, 1.4210661e-14, 0.9999813, 0.0008333169, 0.0004166609, -0.0008333175, 0.9999804, 0, 0, 0)
 script = ExtResource("10_rail")
 
-[node name="PlayerRoot" type="Node3D" parent="Level/Path3D/PathFollow3D" unique_id=454168420]
+[node name="PlayerRoot" type="Node3D" parent="Level/Rail/RailFollow" unique_id=454168420]
 
-[node name="Navigator" parent="Level/Path3D/PathFollow3D/PlayerRoot" unique_id=343871187 instance=ExtResource("2_m1504")]
+[node name="Navigator" parent="Level/Rail/RailFollow/PlayerRoot" unique_id=343871187 instance=ExtResource("2_m1504")]
 player_plane_distance = 8.0
 move_bounds_scale = 0.8
 aim_speed = 20.0
@@ -134,12 +134,12 @@ evade_duration = 0.6
 camera_path = NodePath("../Camera3D")
 aim_target_path = NodePath("../Camera3D/AimTarget")
 
-[node name="Camera3D" type="Camera3D" parent="Level/Path3D/PathFollow3D/PlayerRoot" unique_id=613983109]
+[node name="Camera3D" type="Camera3D" parent="Level/Rail/RailFollow/PlayerRoot" unique_id=613983109]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
 current = true
 fov = 30.0
 
-[node name="AimTarget" type="Node3D" parent="Level/Path3D/PathFollow3D/PlayerRoot/Camera3D" unique_id=613983110]
+[node name="AimTarget" type="Node3D" parent="Level/Rail/RailFollow/PlayerRoot/Camera3D" unique_id=613983110]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -30)
 
 [node name="Enemies" type="Node3D" parent="Level" unique_id=2111095337]

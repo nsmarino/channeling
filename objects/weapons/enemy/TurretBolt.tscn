@@ -1,11 +1,11 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://objects/weapons/enemy/fse_turret_projectile.gd" id="1_proj"]
-[ext_resource type="Script" path="res://objects/enemy/components/hit_box.gd" id="2_hitbox"]
-[ext_resource type="Script" path="res://objects/enemy/components/movement_component.gd" id="3_move"]
-[ext_resource type="Script" path="res://objects/enemy/components/contact_damage.gd" id="4_contact"]
+[ext_resource type="Script" uid="uid://bfi6wh5e0kftv" path="res://objects/components/hit_box.gd" id="2_hitbox"]
+[ext_resource type="Script" uid="uid://ecnju1f3kpx2" path="res://objects/components/movement_component.gd" id="3_move"]
+[ext_resource type="Script" uid="uid://cqcoptt54qiwf" path="res://objects/components/contact_damage.gd" id="4_contact"]
 [ext_resource type="Resource" path="res://objects/enemy/movement/turret_curve.tres" id="5_curve"]
-[ext_resource type="Script" path="res://objects/enemy/components/vfx_emitter.gd" id="6_vfx"]
+[ext_resource type="Script" uid="uid://hfpy5xkrj2ik" path="res://objects/components/vfx_emitter.gd" id="6_vfx"]
 
 [sub_resource type="StandardMaterial3D" id="mat"]
 albedo_color = Color(1, 0.25, 0.6, 1)
