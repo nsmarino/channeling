@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://objects/enemy/base/BaseEnemy.tscn" id="1_base"]
 [ext_resource type="Resource" path="res://objects/enemy/enemies/weaver.tres" id="2_data"]
@@ -17,22 +17,6 @@ emission_energy_multiplier = 0.6
 material = SubResource("mat_body")
 radius = 0.8
 height = 1.6
-
-[sub_resource type="ParticleProcessMaterial" id="death_mat"]
-emission_shape = 1
-emission_sphere_radius = 0.5
-direction = Vector3(0, 0, 0)
-spread = 180.0
-initial_velocity_min = 6.0
-initial_velocity_max = 12.0
-gravity = Vector3(0, -2, 0)
-scale_min = 0.5
-scale_max = 1.4
-color = Color(0.5, 0.5, 1, 1)
-
-[sub_resource type="SphereMesh" id="death_draw"]
-radius = 0.15
-height = 0.3
 
 [node name="Weaver" instance=ExtResource("1_base")]
 enemy_data = ExtResource("2_data")

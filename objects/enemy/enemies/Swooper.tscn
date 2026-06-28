@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://objects/enemy/base/BaseEnemy.tscn" id="1_base"]
 [ext_resource type="Resource" path="res://objects/enemy/enemies/swooper.tres" id="2_data"]
@@ -19,22 +19,6 @@ material = SubResource("mat_body")
 top_radius = 0.0
 bottom_radius = 0.7
 height = 1.8
-
-[sub_resource type="ParticleProcessMaterial" id="death_mat"]
-emission_shape = 1
-emission_sphere_radius = 0.5
-direction = Vector3(0, 0, 0)
-spread = 180.0
-initial_velocity_min = 8.0
-initial_velocity_max = 16.0
-gravity = Vector3(0, 1, 0)
-scale_min = 0.6
-scale_max = 1.8
-color = Color(1, 0.5, 0.1, 1)
-
-[sub_resource type="SphereMesh" id="death_draw"]
-radius = 0.18
-height = 0.36
 
 [sub_resource type="SphereShape3D" id="contact_shape"]
 radius = 1.0

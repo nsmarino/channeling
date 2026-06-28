@@ -6,7 +6,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 **time-rails** is a Godot 4.6 (Forward+) arcade rail shooter in the style of *Sin & Punishment: Star Successor*, *Kid Icarus: Uprising*, *Panzer Dragoon*, and *Space Harrier*. The player pilots a mecha along a forward-moving rail through a sci-fi anime world of twisted pines and shattered ruins. The finished prototype targets three levels with strong replay value; goals lean heavily on **visual effects (particle systems, shaders)** and **a variety of fun weapons and enemy types** to experiment with.
 
-Main scene: `levels/main.tscn`. The project ships a Godot MCP server (`mcp__godot__*`) for AI-assisted iteration — prefer MCP tools (`run_project`, `game_eval`, `game_screenshot`) for verification over raw shell work.
+Main scene: `main.tscn` (project root). The project ships a Godot MCP server (`mcp__godot__*`) for AI-assisted iteration — prefer MCP tools (`run_project`, `game_eval`, `game_screenshot`) for verification over raw shell work.
 
 ## Running & Tooling
 
@@ -45,11 +45,11 @@ The rig is driven forward by **`levels/rail_follower.gd`** on the `PathFollow3D`
 - **CombatAttack** fires the equipped weapon toward the aim point.
 - **Evade is a left/right pirouette dodge** (`_update_evade` + the evade block in `_process_ship`). A **left-stick flick** past `evade_trigger_deadzone` fires a one-shot evade in that direction: the ship slides laterally to a peak and springs back (`evade_lateral_distance`, `sin(p·π)` out-and-back) while spinning a full pirouette **about its up axis** (`evade_spins`, composed as `Basis(Vector3.UP, spin)` — a "screw" turn, *not* a screen-plane cartwheel). It always runs to completion (no hold/cancel); the stick must relax below `evade_rearm_threshold` to fire again. **Orientation handoff:** the lean is frozen at trigger time; the way *out* (`p≤0.5`) preserves it, the way *back* lerps to the now-current aim lean, so the ship lands correctly oriented with no snap. Throughout the evade you keep aiming and the camera keeps reacting — **only firing is gated off**; the FOV pulls back (`evade_fov_pullback`) and eases home. (The old grid/corner-anchor evade and the legacy `CombatEvade` impulse were both removed; the `CombatEvade` button-9 input mapping is now dead.)
 - **Homing acquisition** (`_acquire_homing_target`) scans the **`destructible`** group, skips anything with `homing_eligible = false` or already defeated, and locks the candidate nearest the reticle **in screen space within a tight pixel radius** — so it never snaps to something far off to the side, and there's simply no lock (shots fly straight) when nothing is near the crosshair. The locked target is stored in `_homing_target` and exposed via `get_homing_target()` / `get_homing_target_screen_info()` for the HUD.
-- **Hit react** (`take_damage` → `_trigger_hit_react`, "Hit React" knobs): a decaying positional shake on the ship mesh (`mecha-frame` child, jittered around its rest position) plus a red flash. The flash is `vfx/shaders/blink.gdshader` reworked into a transparent **`material_overlay`** (unshaded, `cull_disabled`, alpha = `flash_modifier`) assigned to every `MeshInstance3D` under the ship, so the model's real materials show at rest and the whole mecha washes red on hit — `flash_modifier` pulses 1→0. Both effects decay off timers each frame in `_update_hit_react`.
+- **Hit react** is delegated to a shared **`HitReactComponent`** child (see Destructibles → Components) — the player calls `trigger()` on `take_damage` and `trigger_death()` on death, and feeds its **brake bob** in through the component's `extra_offset`. The component owns the red flash + mesh shake (+ optional particle bursts); the player keeps only the bob math. (The component is referenced **duck-typed** — `var _hit_react: Node` + `.call()/.set()` — to dodge the `class_name`-registration lag noted in Working style.)
 
 **Input is gamepad-only.** IJKL / keyboard movement and the spacebar evade were removed. The **left stick (L/R) drives the pirouette evade**; aim is the right stick + mouse; **`ToggleBrake`** halts/resumes the rail.
 
-Inspector-tunable knobs are deliberately dense and live under `@export_category` blocks: Movement, Aiming, Ship Follow, Camera React, Combat, Hit React, Brake Bob, Evade, References. The user iterates heavily in the Inspector.
+Inspector-tunable knobs are deliberately dense and live under `@export_category` blocks: Movement, Aiming, Ship Follow, Camera React, Combat, Brake Bob, Evade, References (the hit flash/shake knobs now live on the `HitReactComponent`). The user iterates heavily in the Inspector.
 
 ### HUD (`ui/overworld/CombatUI.tscn`, `combat_ui.gd`)
 
@@ -73,8 +73,8 @@ A **component-assembled** system. Everything the player can shoot shares one bas
 
 **`base/fse_destructible.gd` (`class_name FseDestructible`, extends `CharacterBody3D`)** — the shared spine:
 - Lifecycle states `{ INACTIVE, ACTIVE, DYING, PASSED }` (PASSED = camera flew past; components stop, body stays in scene).
-- HP / `take_damage` with console-logged transitions, and a public `destroy()` that runs the full death sequence without going through HP (for kamikaze-on-contact).
-- Death detaches VFX/SFX into the scene root so they survive the freed body.
+- HP / `take_damage(amount, is_blast := false)` with console-logged transitions, plus a public `destroy()` that runs the full death sequence without going through HP (kamikaze-on-contact). A **`blast_only`** flag (the "green" blast category) makes it ignore all non-blast damage (still plays a hit cue).
+- Emits **`hit(amount)`** when damage lands and **`died`** on death — the per-instance hooks `HitReactComponent` (flash/shake/bursts) and `BlastComponent` (explosion) connect to. The death sequence detaches SFX (and any `VfxEmitter`) into the scene root so they outlive the freed body.
 - `homing_eligible` flag (default true) — the player's homing filters on it.
 - Registers into the **`destructible`** group.
 - **Duck-typed lifecycle broadcast**: `_dispatch_active(bool)` calls `set_active(bool)` on any component child. New drivers plug in just by implementing that method — the base needs no per-component knowledge.
@@ -84,20 +84,31 @@ Subclasses:
 - **`FseObstacle`** (`objects/obstacles/base/fse_obstacle.gd`) — adds `is_destructible` (indestructible blocks ignore damage but still play a hit cue) and optional proximity activation. Group `obstacle`.
 - **`FseTurretProjectile`** (`objects/weapons/enemy/fse_turret_projectile.gd`) — a *destructible* projectile (shootable + harmful) that follows a curve from its emitter; `launch_on_curve(curve, base, speed)` stamps the path and starts a lifetime timer.
 
-Components (`objects/enemy/components/`) — all driven by the same `set_active(bool)` lifecycle:
+Components (`objects/components/`) — shared building blocks (top-level, **not** enemy-only: the player uses `HitReactComponent` too). Most are driven by the `set_active(bool)` lifecycle; `HitReactComponent` / `BlastComponent` are instead **event-driven** off the base's `hit` / `died` signals (no `set_active`):
 - **`HitBox`** — `Area3D` on the `enemy` layer; routes `receive_hit` → parent `take_damage`.
 - **`MovementComponent`** — drives the body each frame via a pluggable `MovementPattern` resource.
 - **`WeaponComponent`** — fires a projectile on a cadence; aim_at_player or muzzle-forward.
 - **`ContactDamage`** — `Area3D` that damages overlapping bodies on a per-body cooldown. `consume_on_hit` frees the parent; `destroy_self_on_hit` triggers the parent's explosion (e.g. Swooper dive-bomb).
 - **`AnimationDriver`** — plays a keyframed `AnimationPlayer` on activate / pauses on PASSED. Alternative to MovementComponent for hand-keyframed motion. **Don't pair both on one body** — they fight over the transform.
 - **`TurretEmitter`** — spawns `FseTurretProjectile`s on a cadence, handing each the emitter's `Curve2D`; cycles an `Array[PackedScene]` so one turret can alternate bolt types. Does **not** aim at the player — the curve is the behavior.
-- **`VfxEmitter` / `SfxEmitter`** — keyed one-shot players (`emit("death", detach=true)` etc.).
+- **`HitReactComponent`** — on the parent's `hit` (or a direct `trigger()`): a red flash (the `vfx/shaders/blink.gdshader` overlay — unshaded/`cull_disabled`, `flash_modifier` pulsed 1→0 — assigned to every `MeshInstance3D` under `mesh_root`) + a decaying mesh shake, plus optional one-shot `hit_burst` / `death_burst` particle scenes. `extra_offset` lets the owner layer extra motion (the player's bob). On `BaseEnemy` and the player.
+- **`BlastComponent`** — on the parent's `died`: spawns a `Blast` actor (see Blast radius below) for the explosion + chain.
+- **`VfxEmitter` / `SfxEmitter`** — keyed one-shot particle/audio players (`emit("death", detach=true)` etc.). `SfxEmitter` is on every enemy; `VfxEmitter` is **no longer on `BaseEnemy`** (enemy death visuals moved to `HitReactComponent.death_burst`) but is still used by obstacles / turret-bolts.
 
 Movement patterns (`objects/enemy/movement/`) — `MovementPattern` Resource base + `WeaveMovement`, `SwoopMovement`, `StrafeMovement`, `BobMovement` (player-independent sine oscillation, for obstacles), `CurveFollowMovement` (samples a `Curve2D` by arc length, for turret bolts). Swap one on a `MovementComponent` in the Inspector.
 
 Concrete enemies (`objects/enemy/enemies/`): **Weaver** (weave, single shot), **Swooper** (dive + `ContactDamage` with `destroy_self_on_hit`), **Turret** (strafe, volley). Each has an `*.tres` `FseEnemyData` (`objects/enemy/EnemyData.gd`) for `max_hp`, `move_speed`, `contact_damage`, `score`.
 
 Obstacles (`objects/obstacles/`): **BobBlock** (MovementComponent + BobMovement), **AnimObstacle** (AnimationDriver + keyframed clip), **StationaryTurret** (a stationary `FseObstacle` with a `TurretEmitter` firing curve-following `TurretBolt`s). `TurretBolt` (`objects/weapons/enemy/TurretBolt.tscn`) is destructible but sets `homing_eligible = false` so the player can't lock onto incoming fire.
+
+### Blast radius & chain reactions (`objects/enemy/blast/`, `objects/components/blast_component.gd`)
+
+A chain-reaction explosion mechanic. Enemies fall into three blast categories:
+- **Yellow** — destructible, no blast (a `HitReactComponent`, no `BlastComponent`).
+- **Red** — destructible *and* spawns a blast on death (`BlastComponent`).
+- **Green** — `blast_only = true`: immune to normal fire, dies *only* to a blast.
+
+`BlastComponent` connects to the parent's `died` signal and spawns a transient **`Blast`** (`objects/enemy/blast/Blast.tscn` + `blast.gd`, `class_name FseBlast`) at the corpse, detached into the scene root so it outlives the body. After a small `detonation_delay` (gives chains a visible ripple) the Blast damages every `destructible` whose center is within `radius` via `take_damage(dmg, is_blast = true)` — which reaches greens and re-detonates other reds, cascading. Already-`DYING`/defeated targets are skipped, so chains terminate. The Blast parents a `BurstVfx` (`vfx/particle-scenes/blast.tscn`) it fires one-shot. Sizes scale together (small Ø3 / 10 dmg / 10 hp … large Ø12 / 90 dmg / 90 hp). Prototype `SmallYellow/Red/Green` enemies live in `objects/enemy/enemies/explore-blast-radius/`.
 
 ### Combat collision layers (defined in `project.godot`)
 
@@ -118,7 +129,7 @@ Standalone sandboxes for in-progress R&D — not loaded by `main.tscn`:
 
 ### Third-party / in-progress
 
-- **`GPUTrail-main/`** — vendored [GPUTrail3D](https://github.com/) addon for GPU-driven ribbon trails (projectiles, evade streaks). `test-ribbons.tscn` (project root) is the scratch sandbox for it; not wired into `main.tscn` yet.
+- **`GPUTrail-main/`** — vendored [GPUTrail3D](https://github.com/) addon for GPU-driven ribbon trails (projectiles, evade streaks); not wired into `main.tscn` yet. (The old `test-ribbons.tscn` sandbox was pruned.)
 - **`models/rails/mecha/mecha-frame.glb`** — the imported mecha frame. Rail level geometry also lives under `models/rails/` (e.g. `kelp-walls.glb`).
 
 ### Legacy code still present (not active in `main.tscn`)
@@ -146,7 +157,7 @@ Standalone sandboxes for in-progress R&D — not loaded by `main.tscn`:
 - Verify with MCP: `run_project` then `game_eval` in **separate turns** (the MCP server takes a moment to connect after launch — eval calls in the same batch as `run_project` will fail with "Not connected").
 - Avoid concurrent edits to the same file in one batch — they race and the second one's "file has been modified since read" error can leave half-applied changes.
 - The Godot debugger break-on-error is enabled; a single parse error in eval-injected GDScript can pause the running game. Keep eval snippets short and avoid mixing tabs/spaces.
-- **New-script `.uid` gotcha**: a freshly-written `.gd` with a `class_name` won't register until Godot generates its `.uid` — until then, scenes that subclass it fail with "Could not find base class". The MCP `get_uid` / `update_project_uids` tools sometimes generate it and sometimes report "Found 0 scripts". When they fail, write the `.uid` file directly (`uid://<unique-token>`, check for collisions). Scenes referencing scripts by **path** still load (only cosmetic "invalid UID" warnings), so the `.uid` mainly matters for `class_name` resolution.
+- **New-script `.uid` gotcha**: a freshly-written `.gd` with a `class_name` won't register until Godot generates its `.uid` — until then, scenes that subclass it fail with "Could not find base class". The MCP `get_uid` / `update_project_uids` tools sometimes generate it and sometimes report "Found 0 scripts". When they fail, write the `.uid` file directly (`uid://<unique-token>`, check for collisions). Scenes referencing scripts by **path** still load (only cosmetic "invalid UID" warnings), so the `.uid` mainly matters for `class_name` resolution. The same lag bites a **`class_name` used as a *type* in another script** (`var x: HitReactComponent`) — it errors "Could not find type …" until the global class cache catches up (a bare `run_project` doesn't refresh it). **Duck-typing the reference** (`var x: Node` + `.call()/.set()`) sidesteps it.
 - During verification, enemies kill the player fast, which fires `Events.player_killed` → `get_tree().quit()` and ends the run mid-eval. For sustained inspection, set the player's `hp`/`max_hp` huge and halt the rail in a `game_eval` first (set the `PathFollow3D`'s `braked = true`, or `speed = 0`).
 
 ## Current direction
@@ -154,8 +165,9 @@ Standalone sandboxes for in-progress R&D — not loaded by `main.tscn`:
 The earlier numbered "phase roadmap" is retired — the core systems it tracked (rail player, rigged camera, component enemies/destructibles, aim-led control, lock-on HUD) are all in and stable; see git history for how they landed.
 
 Active work:
-- **Encounter choreography** — hand-built graybox enemy-wave scenes under `objects/enemy/prototyping/` (`example-enemy-group*`) instanced into `main.tscn`. These are rough primitive/`AnimationPlayer` blockouts for sketching wave timing and layout, *not* yet wired into the `FseEnemy`/`FseDestructible` component system.
+- **Blast radius / chain reactions** — the yellow/red/green blast-category enemies + `BlastComponent` / `Blast` are in; prototyped in `objects/enemy/enemies/explore-blast-radius/` with a test cluster in `main.tscn`. Building out the `blast.tscn` burst VFX, and (next) the Medium/Large size variants.
+- **Shared component layer** — the behavior components moved to `objects/components/` so the player can share them (`HitReactComponent`). Enemy death VFX consolidated onto `HitReactComponent.death_burst` (the old per-enemy `VfxEmitter` death particles were removed).
 - **Level blockout** — `blender/blockout.blend` (in progress).
-- **Player feel** — landed this pass: a health readout, hit-react (mesh shake + red flash), a velocity-driven rail with a `ToggleBrake` brake, and the combat-only left/right pirouette evade (all in the Player rig section above). Puzzle gameplay is no longer tied to evade. Future evade work: VFX, possible i-frames, and tuning enemies like the Swooper so its dive-bombs can be cleanly dodged.
+- **Player feel** — health readout, hit-react (now the shared `HitReactComponent`: flash + shake + hit/death particle bursts), a velocity-driven rail with a `ToggleBrake` brake, and the combat-only left/right pirouette evade (all in the Player rig section above). Puzzle gameplay is no longer tied to evade. Future evade work: VFX, possible i-frames, and tuning enemies like the Swooper so its dive-bombs can be cleanly dodged.
 
 Longer-horizon ideas (unordered): curved Bézier rails (Blender→JSON→`Curve3D`), independent `Progress Speed`, a PursuitEnemy miniboss, more weapons, object-grabbing, time-manipulation tools, powerups, mecha rigging/procedural animation (`mecha-frame.glb` imported; `TwoBoneIK3D` / `LookAtModifier3D` / `BoneAttachment3D`), and two more levels.
