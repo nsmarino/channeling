@@ -1,13 +1,13 @@
-extends Node
+extends Component
 class_name TurretEmitter
 
-## Spawns FseTurretProjectiles on a cadence, handing each the emitter's Curve2D so
+## Spawns TurretProjectiles on a cadence, handing each the emitter's Curve2D so
 ## every shot traces the same tweakable pattern (line / arc / sine sweep across
 ## the lane). Unlike WeaponComponent it does NOT aim at the player — the curve is
 ## the whole behavior. Supports an alternating list of projectile scenes so one
 ## turret can fire, e.g., a destructible bolt then a tougher one.
 ##
-## Driven by the same set_active(bool) lifecycle the FseDestructible base
+## Driven by the same set_active(bool) lifecycle the Destructible base
 ## broadcasts, so a passed/dead turret stops emitting automatically.
 
 ## Projectile scenes cycled through in order (each must expose launch_on_curve).
@@ -27,13 +27,12 @@ class_name TurretEmitter
 
 var _body: Node3D = null
 var _muzzle: Node3D = null
-var _active: bool = false
 var _cooldown: float = 0.0
 var _next_index: int = 0
 
 
-func _ready() -> void:
-	_body = get_parent() as Node3D
+func _setup() -> void:
+	_body = host as Node3D
 	if muzzle_path != NodePath() and has_node(muzzle_path):
 		_muzzle = get_node(muzzle_path) as Node3D
 	elif _body and _body.has_node("Muzzle"):
@@ -48,15 +47,17 @@ func setup(_player: Node3D) -> void:
 	pass
 
 
-func set_active(active: bool) -> void:
-	_active = active
-	set_physics_process(active)
-	if active:
-		_cooldown = initial_delay
+func on_activate() -> void:
+	set_physics_process(true)
+	_cooldown = initial_delay
+
+
+func on_deactivate() -> void:
+	set_physics_process(false)
 
 
 func _physics_process(delta: float) -> void:
-	if not _active or projectile_scenes.is_empty() or not curve:
+	if not is_active or projectile_scenes.is_empty() or not curve:
 		return
 	_cooldown -= delta
 	if _cooldown <= 0.0:

@@ -1,12 +1,12 @@
-extends FseDestructible
-class_name FseObstacle
+extends Destructible
+class_name Obstacle
 
-## Obstacle specialization of FseDestructible — a level hazard the player avoids.
+## Obstacle specialization of Destructible — a level hazard the player avoids.
 ## May be destructible or not, may move (MovementComponent / AnimationDriver) or
 ## be static. Contact damage is added via a ContactDamage child where desired.
 ##
 ## All HP / death-VFX / camera-passed-freeze / lifecycle-dispatch behavior comes
-## from FseDestructible; this class only adds the destructible toggle and an
+## from Destructible; this class only adds the destructible toggle and an
 ## optional proximity activation gate.
 
 ## If > 0, the obstacle waits in INACTIVE until the player gets this close, then
@@ -45,13 +45,13 @@ func _activate() -> void:
 	print("[%s] Activated." % _label())
 
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, is_blast: bool = false) -> void:
 	if not is_destructible:
 		# Hit bounced off — give feedback but take no damage.
 		if _sfx:
 			_sfx.play("hit")
 		return
-	super.take_damage(amount)
+	super.take_damage(amount, is_blast)
 
 
 func _label() -> String:

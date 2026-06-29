@@ -1,8 +1,8 @@
-extends Node
+extends Component
 class_name AnimationDriver
 
 ## Drives a keyframed AnimationPlayer through the same set_active(bool) lifecycle
-## that FseDestructible broadcasts. Use this instead of a MovementComponent when
+## that Destructible broadcasts. Use this instead of a MovementComponent when
 ## an obstacle/enemy's motion is hand-keyframed (e.g. a one-off zig-zag) rather
 ## than procedural.
 ##
@@ -24,38 +24,39 @@ class_name AnimationDriver
 @export var pause_on_inactive: bool = true
 
 var _ap: AnimationPlayer = null
-var _active: bool = false
 
 
-func _ready() -> void:
+func _setup() -> void:
 	if animation_player_path != NodePath() and has_node(animation_player_path):
 		_ap = get_node(animation_player_path) as AnimationPlayer
 	else:
-		_ap = _find_animation_player(get_parent())
+		_ap = _find_animation_player(host)
 	if not _ap:
 		push_warning("[AnimationDriver] No AnimationPlayer found.")
 
 
-func set_active(active: bool) -> void:
-	_active = active
+func on_activate() -> void:
 	if not _ap:
 		return
-	if active:
-		_ap.speed_scale = speed_scale
-		if play_on_active != &"":
-			# A specific clip was requested; only play if it actually exists.
-			if _ap.has_animation(play_on_active):
-				_ap.play(play_on_active)
-			else:
-				push_warning("[AnimationDriver] Animation '%s' not found on %s." % [play_on_active, _ap.name])
-		elif _ap.current_animation != "":
-			# No clip named — resume whatever is current (autoplay/assigned).
-			_ap.play()
-	else:
-		if pause_on_inactive:
-			_ap.pause()
+	_ap.speed_scale = speed_scale
+	if play_on_active != &"":
+		# A specific clip was requested; only play if it actually exists.
+		if _ap.has_animation(play_on_active):
+			_ap.play(play_on_active)
 		else:
-			_ap.stop()
+			push_warning("[AnimationDriver] Animation '%s' not found on %s." % [play_on_active, _ap.name])
+	elif _ap.current_animation != "":
+		# No clip named — resume whatever is current (autoplay/assigned).
+		_ap.play()
+
+
+func on_deactivate() -> void:
+	if not _ap:
+		return
+	if pause_on_inactive:
+		_ap.pause()
+	else:
+		_ap.stop()
 
 
 ## Depth-first search for the first AnimationPlayer under `node`.

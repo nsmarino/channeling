@@ -1,11 +1,11 @@
-extends FseDestructible
-class_name FseTurretProjectile
+extends Destructible
+class_name TurretProjectile
 
 ## A destructible projectile launched by a StationaryTurret. It follows a Curve2D
 ## owned by its emitter (via CurveFollowMovement on a MovementComponent child) and
 ## damages the player on contact (via a ContactDamage child). The player can shoot
-## it down — that's the point of basing it on FseDestructible rather than the
-## plain FseBaseProjectile.
+## it down — that's the point of basing it on Destructible rather than the
+## plain BaseProjectile.
 ##
 ## The emitter calls launch_on_curve() right after instancing it into the scene,
 ## which stamps the curve + base transform + advance speed the pattern reads, and

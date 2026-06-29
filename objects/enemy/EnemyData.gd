@@ -1,5 +1,5 @@
 extends Resource
-class_name FseEnemyData
+class_name EnemyData
 
 ## Stats for a rails-shooter enemy. The visible body and behavior components live
 ## on the enemy scene itself (editor-visible); this resource only carries tunable

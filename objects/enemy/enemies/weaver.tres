@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="FseEnemyData" format=3 uid="uid://bxrc5nyunqiry"]
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://bxrc5nyunqiry"]
 
 [ext_resource type="Script" uid="uid://dh7jnverpqck7" path="res://objects/enemy/EnemyData.gd" id="1"]
 

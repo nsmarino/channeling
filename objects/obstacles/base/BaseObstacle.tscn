@@ -11,7 +11,7 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_hit"]
 size = Vector3(2, 2, 2)
 
-[node name="FseObstacle" type="CharacterBody3D" groups=["obstacle"]]
+[node name="Obstacle" type="CharacterBody3D" groups=["obstacle"]]
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("1_base")

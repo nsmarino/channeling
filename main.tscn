@@ -1,12 +1,9 @@
-[gd_scene format=3 uid="uid://dm0ymt1k01748"]
+[gd_scene load_steps=11 format=3 uid="uid://dm0ymt1k01748"]
 
-[ext_resource type="Script" uid="uid://b1esvavhc0ixb" path="res://levels/main.gd" id="1_0xm2m"]
-[ext_resource type="PackedScene" uid="uid://duek3aqswvgk2" path="res://objects/player/MechaPlayer.tscn" id="2_m1504"]
-[ext_resource type="Script" uid="uid://cn8rbspth3d0a" path="res://addons/nurbs_path/nurbs_path_3d.gd" id="4_272bh"]
-[ext_resource type="PackedScene" uid="uid://sobb6kxvthei" path="res://levels/overworld/proto-overworld.tscn" id="5_ifaiv"]
-[ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/CombatUI.tscn" id="7_combat_ui"]
-[ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://assets/sounds/music/selection menu.mp3" id="9_etqu2"]
-[ext_resource type="Script" uid="uid://dcosu2ok1o013" path="res://levels/rail_follower.gd" id="10_rail"]
+[ext_resource type="Script" uid="uid://b1esvavhc0ixb" path="res://levels/main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://cplayrscn0fps" path="res://objects/player/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/CombatUI.tscn" id="3_hud"]
+[ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://assets/sounds/music/selection menu.mp3" id="4_music"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_jw1n3"]
 sky_top_color = Color(3.465414e-06, 0.63147265, 0.77430177, 1)
@@ -43,72 +40,49 @@ volumetric_fog_emission = Color(0.0352255, 0.24853325, 0.39479303, 1)
 adjustment_enabled = true
 adjustment_saturation = 1.26
 
-[sub_resource type="Curve3D" id="Curve3D_272bh"]
-_data = {
-"points": PackedVector3Array(0, 0, 0, -5.490792, 0, -11.968684, 0, 0, 0, -5.6740937, -5.90581, 19.847319, 5.6740937, 5.90581, -19.84732, -5.30749, 5.90581, -43.784687, -2.4158764, 0, 26.655449, 2.4158726, 0, -26.655449, 19.62146, 23.62324, -118.01342, 12.007229, 11.81162, 25.584946, 0, 0, 0, -1.9771233, 0, -195.83875),
-"tilts": PackedFloat32Array(0, 0, 0, 0)
-}
-point_count = 4
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(100, 100)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.3, 0.32, 0.35, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(100, 1, 100)
 
 [node name="Main" type="Node3D" unique_id=1370251571]
-script = ExtResource("1_0xm2m")
+script = ExtResource("1_main")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2065183461]
 environment = SubResource("Environment_qy63d")
 
 [node name="HUD" type="Node" parent="." unique_id=1494739639]
 
-[node name="CombatUI" parent="HUD" unique_id=1684459129 instance=ExtResource("7_combat_ui")]
+[node name="CombatUI" parent="HUD" unique_id=1684459129 instance=ExtResource("3_hud")]
 
 [node name="Level" type="Node3D" parent="." unique_id=2134277765]
 
-[node name="Overworld" parent="Level" unique_id=1089087201 instance=ExtResource("5_ifaiv")]
-
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="Level" unique_id=1905902579]
-transform = Transform3D(1, 0, 0, 0, 0.6755903, 0.73727727, 0, -0.73727727, 0.6755903, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.6755903, 0.73727727, 0, -0.73727727, 0.6755903, 0, 20, 0)
 shadow_enabled = true
 
 [node name="Enemies" type="Node3D" parent="Level" unique_id=2111095337]
 
 [node name="Obstacles" type="Node3D" parent="Level" unique_id=1811212233]
 
-[node name="Rail" type="Path3D" parent="Level" unique_id=353974188]
-curve = SubResource("Curve3D_272bh")
-debug_custom_color = Color(0.75428176, 0, 0.10327154, 1)
-script = ExtResource("4_272bh")
-control_points = Array[Vector3]([Vector3(0, 0, 0), Vector3(-16.472376, 0, -35.90605), Vector3(34.044563, 35.43486, -119.08392), Vector3(-1.9771233, 0, -195.83875)])
-metadata/_custom_type_script = "uid://cn8rbspth3d0a"
+[node name="Ground" type="StaticBody3D" parent="Level" unique_id=1500000001]
 
-[node name="RailFollow" type="PathFollow3D" parent="Level/Rail" unique_id=602357976]
-transform = Transform3D(0.9089039, 0, 0.4169696, 0, 0.99998164, 0, -0.41697174, 0, 0.9088992, 0, 0, 0)
-script = ExtResource("10_rail")
+[node name="Mesh" type="MeshInstance3D" parent="Level/Ground" unique_id=1500000002]
+mesh = SubResource("PlaneMesh_ground")
+surface_material_override/0 = SubResource("StandardMaterial3D_ground")
 
-[node name="PlayerRoot" type="Node3D" parent="Level/Rail/RailFollow" unique_id=454168420]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Level/Ground" unique_id=1500000003]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_ground")
 
-[node name="Navigator" parent="Level/Rail/RailFollow/PlayerRoot" unique_id=343871187 instance=ExtResource("2_m1504")]
-player_plane_distance = 8.0
-move_bounds_scale = 0.8
-aim_speed = 20.0
-ship_follow_fraction = 0.3
-ship_follow_lerp = 10.0
-ship_bank_max_deg = 2.0
-ship_yaw_max_deg = 20.0
-camera_roll_max_deg = 1.0
-camera_pitch_max_deg = 4.0
-camera_yaw_max_deg = 8.0
-evade_duration = 0.6
-camera_path = NodePath("../Camera3D")
-aim_target_path = NodePath("../Camera3D/AimTarget")
-
-[node name="Camera3D" type="Camera3D" parent="Level/Rail/RailFollow/PlayerRoot" unique_id=613983109]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
-current = true
-fov = 30.0
-
-[node name="AimTarget" type="Node3D" parent="Level/Rail/RailFollow/PlayerRoot/Camera3D" unique_id=613983110]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -30)
+[node name="Player" parent="Level" unique_id=1500000010 instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1852918013]
-stream = ExtResource("9_etqu2")
+stream = ExtResource("4_music")
 volume_db = -67.564
 autoplay = true

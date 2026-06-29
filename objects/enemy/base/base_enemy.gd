@@ -1,17 +1,17 @@
-extends FseDestructible
-class_name FseEnemy
+extends Destructible
+class_name Enemy
 
-## Enemy specialization of FseDestructible. Adds:
+## Enemy specialization of Destructible. Adds:
 ##   - Distance-based activation (INACTIVE → ACTIVE when the player gets close)
 ##   - Component setup that passes the resolved player reference to
 ##     MovementComponent and WeaponComponent
 ##   - Enemy-flavored log labels (uses enemy_data.display_name) and a death
 ##     message that includes the score
 ##
-## All HP/take_damage/death-VFX/PASSED behavior lives in FseDestructible — this
+## All HP/take_damage/death-VFX/PASSED behavior lives in Destructible — this
 ## class only adds what is enemy-specific.
 
-@export var enemy_data: FseEnemyData
+@export var enemy_data: EnemyData
 ## Player must get this close (world units) before the enemy activates.
 @export var activation_distance: float = 45.0
 

@@ -6,7 +6,7 @@ class_name MovementPattern
 ## produce distinct flight behavior, configured via @export params in the Inspector.
 
 ## Return the desired world-space velocity for this frame.
-## - enemy: the FseEnemy (CharacterBody3D) being driven
+## - enemy: the Enemy (CharacterBody3D) being driven
 ## - player: the player node (may be null)
 ## - time_active: seconds since the enemy activated
 ## - delta: physics frame delta

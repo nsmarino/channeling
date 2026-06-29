@@ -1,4 +1,4 @@
-extends Node
+extends Component
 class_name HitReactComponent
 
 ## Flash + shake (and, later, a particle burst) reaction to taking damage —
@@ -13,8 +13,8 @@ class_name HitReactComponent
 ##   - extra_offset: an extra local offset the owner layers on each frame (e.g.
 ##     the player's brake bob), composed into the same single position write.
 ##
-## Trigger: an FseDestructible parent that emits `hit` is auto-connected in
-## _ready (enemies need zero wiring); anything else just calls trigger().
+## Trigger: a Destructible host that emits `hit` is auto-connected in
+## _setup (enemies need zero wiring); anything else just calls trigger().
 
 ## Overlay shader for the flash (defaults to the shared blink shader).
 @export var flash_shader: Shader = preload("res://vfx/shaders/blink.gdshader")
@@ -46,14 +46,13 @@ var _flash_timer: float = 0.0
 var _shake_timer: float = 0.0
 
 
-func _ready() -> void:
+func _setup() -> void:
 	_resolve_mesh_root()
 	_setup_flash()
-	var parent: Node = get_parent()
-	if parent and parent.has_signal("hit"):
-		parent.hit.connect(_on_parent_hit)
-	if parent and parent.has_signal("died"):
-		parent.died.connect(_on_parent_died)
+	if host and host.has_signal("hit"):
+		host.hit.connect(_on_parent_hit)
+	if host and host.has_signal("died"):
+		host.died.connect(_on_parent_died)
 
 
 ## Kick off a flash + shake and spawn the hit burst.
@@ -96,7 +95,7 @@ func _resolve_mesh_root() -> void:
 	if mesh_root_path != NodePath() and has_node(mesh_root_path):
 		_mesh_root = get_node(mesh_root_path) as Node3D
 	if not _mesh_root:
-		_mesh_root = _find_first_mesh(get_parent())
+		_mesh_root = _find_first_mesh(host)
 	if _mesh_root:
 		_mesh_rest = _mesh_root.position
 
@@ -145,7 +144,7 @@ func _spawn_burst(scene: PackedScene) -> void:
 		return
 	var inst: Node = scene.instantiate()
 	tree.current_scene.add_child(inst)
-	var anchor: Node3D = _mesh_root if _mesh_root else get_parent() as Node3D
+	var anchor: Node3D = _mesh_root if _mesh_root else host as Node3D
 	if inst is Node3D and anchor:
 		(inst as Node3D).global_position = anchor.global_position
 	_play_burst_oneshot(inst)

@@ -1,5 +1,5 @@
 extends Node3D
-class_name FseBaseWeapon
+class_name BaseWeapon
 
 @export var data: Resource
 @export var muzzle_spawn_offset: float = 0.3
@@ -21,7 +21,7 @@ func _ready() -> void:
 	if data:
 		ammo_count = int(data.get("ammo_count"))
 	else:
-		push_warning("[FseBaseWeapon:%s] Missing weapon data." % name)
+		push_warning("[BaseWeapon:%s] Missing weapon data." % name)
 	cooldown_timer.one_shot = true
 	cooldown_timer.stop()
 	if not cooldown_timer.timeout.is_connected(_on_cooldown_timer_timeout):
@@ -98,7 +98,7 @@ func _on_cooldown_timer_timeout() -> void:
 func _spawn_projectiles(aim_direction: Vector3) -> void:
 	var world: Node = get_tree().current_scene
 	if world == null:
-		push_warning("[FseBaseWeapon:%s] Could not resolve current scene for projectile spawn." % name)
+		push_warning("[BaseWeapon:%s] Could not resolve current scene for projectile spawn." % name)
 		return
 
 	var direction: Vector3 = -muzzle.global_transform.basis.z
@@ -112,7 +112,7 @@ func _spawn_projectiles(aim_direction: Vector3) -> void:
 			continue
 		var inst: Node = projectile_scene.instantiate()
 		if not inst.has_method("launch"):
-			push_error("[FseBaseWeapon:%s] projectile_scene root must expose launch()." % name)
+			push_error("[BaseWeapon:%s] projectile_scene root must expose launch()." % name)
 			continue
 
 		var projectile: Node = inst

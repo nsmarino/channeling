@@ -1,5 +1,5 @@
 extends Node3D
-class_name FseBlast
+class_name Blast
 
 ## A one-shot blast spawned at a destroyed enemy by its BlastComponent.
 ##

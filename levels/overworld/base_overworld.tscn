@@ -10,6 +10,4 @@
 
 [node name="Interactive" type="Node3D" parent="." unique_id=498288437]
 
-[node name="DialogueTriggers" type="Node3D" parent="Interactive" unique_id=1996927852]
-
 [node name="Decoration" type="Node3D" parent="." unique_id=2107315747]

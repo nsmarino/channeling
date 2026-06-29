@@ -1,11 +1,11 @@
 extends CharacterBody3D
-class_name FseDestructible
+class_name Destructible
 
 ## Base class for anything in the level that the player can shoot: enemies,
 ## obstacles, turret-projectiles, etc. Provides HP / take_damage / death-with-VFX
 ## and a single lifecycle the camera can drive (ACTIVE → PASSED → DYING).
 ##
-## Subclasses add their own activation model on top (e.g. FseEnemy waits in
+## Subclasses add their own activation model on top (e.g. Enemy waits in
 ## INACTIVE until the player gets within range; obstacles & turret-projectiles
 ## start ACTIVE on spawn).
 ##
@@ -51,7 +51,7 @@ func _ready() -> void:
 
 
 ## Default behavior: once ACTIVE, flip to PASSED when the camera flies past us.
-## Subclasses can override (e.g. FseEnemy handles its own INACTIVE→ACTIVE check)
+## Subclasses can override (e.g. Enemy handles its own INACTIVE→ACTIVE check)
 ## but should call super for the PASSED check while ACTIVE.
 func _physics_process(_delta: float) -> void:
 	if state != State.ACTIVE:

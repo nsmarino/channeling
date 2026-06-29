@@ -1,11 +1,11 @@
-extends Node
+extends Component
 class_name BlastComponent
 
 ## Spawns a blast sphere when the owning destructible dies — the "red" category.
 ##
 ## Unlike MovementComponent / WeaponComponent (which are driven each frame by the
 ## set_active() lifecycle), the blast is a *death event*: this connects to the
-## parent FseDestructible's `died` signal and, when it fires, instantiates a Blast
+## parent Destructible's `died` signal and, when it fires, instantiates a Blast
 ## actor at the corpse and hands it this component's radius + damage. The Blast
 ## then damages nearby destructibles (is_blast=true), which can chain into more
 ## blasts. No set_active() needed.
@@ -22,8 +22,8 @@ class_name BlastComponent
 var _body: Node3D = null
 
 
-func _ready() -> void:
-	_body = get_parent() as Node3D
+func _setup() -> void:
+	_body = host as Node3D
 	if _body and _body.has_signal("died"):
 		_body.died.connect(_on_died)
 

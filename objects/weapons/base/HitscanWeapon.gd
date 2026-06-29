@@ -1,5 +1,5 @@
-extends FseBaseWeapon
-class_name FseHitscanWeapon
+extends BaseWeapon
+class_name HitscanWeapon
 
 @export var hitscan_range: float = 120.0
 @export var hitscan_collision_mask: int = 0

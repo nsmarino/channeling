@@ -1,4 +1,4 @@
-extends Node
+extends Component
 class_name WeaponComponent
 
 ## Fires an enemy projectile scene on a timed cadence while active. Projectiles
@@ -27,12 +27,11 @@ class_name WeaponComponent
 var _body: Node3D = null
 var _player: Node3D = null
 var _muzzle: Node3D = null
-var _active: bool = false
 var _cooldown: float = 0.0
 
 
-func _ready() -> void:
-	_body = get_parent() as Node3D
+func _setup() -> void:
+	_body = host as Node3D
 	if muzzle_path != NodePath() and has_node(muzzle_path):
 		_muzzle = get_node(muzzle_path) as Node3D
 	elif _body and _body.has_node("Muzzle"):
@@ -44,15 +43,17 @@ func setup(player: Node3D) -> void:
 	_player = player
 
 
-func set_active(active: bool) -> void:
-	_active = active
-	set_physics_process(active)
-	if active:
-		_cooldown = initial_delay
+func on_activate() -> void:
+	set_physics_process(true)
+	_cooldown = initial_delay
+
+
+func on_deactivate() -> void:
+	set_physics_process(false)
 
 
 func _physics_process(delta: float) -> void:
-	if not _active or not projectile_scene:
+	if not is_active or not projectile_scene:
 		return
 	_cooldown -= delta
 	if _cooldown <= 0.0:

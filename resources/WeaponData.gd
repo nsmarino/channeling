@@ -1,5 +1,5 @@
 extends Resource
-class_name FseWeaponData
+class_name WeaponData
 
 @export var display_name: StringName = &"Blaster"
 @export var fire_rate: float = 0.2

@@ -8,7 +8,7 @@ class_name ContactDamage
 ##   - Spike / hazard obstacles (persistent area).
 ##   - Turret-projectiles that consume themselves on hit (set consume_on_hit).
 ##
-## Lifecycle-driven via the duck-typed set_active() the FseDestructible base
+## Lifecycle-driven via the duck-typed set_active() the Destructible base
 ## broadcasts — inactive means monitoring is fully off, so PASSED/DYING parents
 ## stop dealing contact damage automatically.
 ##

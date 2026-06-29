@@ -1,4 +1,4 @@
-extends FseBaseProjectile
+extends BaseProjectile
 class_name HomingProjectile
 
 ## A projectile that curves toward a target at a capped turn rate. Because the

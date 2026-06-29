@@ -1,5 +1,5 @@
 extends Node3D
-class_name FseBaseProjectile
+class_name BaseProjectile
 
 ## Straight-flying projectile. Damage is delivered two ways so it works for both
 ## sides of the rails game:
