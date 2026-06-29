@@ -274,8 +274,8 @@ automatically (player in its scene + `_ready`; `destructible` in `Destructible._
 - The user prefers **small, reviewable changes** over big batches. Show a diff
   before committing when in doubt.
 - **Never commit without explicit permission.** The user reviews changes manually.
-- **Git remote:** the origin still points at the *previous* Godot project — do **not**
-  push to it. A new remote needs to be set up for this template first.
+- **Git remote:** `origin` is `https://github.com/nsmarino/starter-4.7.git` (this
+  template's own repo). `main` tracks `origin/main`.
 - Avoid concurrent edits to the same file in one batch — they race and the second
   one's "file has been modified since read" error can leave half-applied changes.
 
@@ -290,4 +290,4 @@ player replaced by a standard first-person controller.
 Possible next steps (unordered): rename the lingering `fse_*` filenames + the
 `CombatUI` scene; decide whether to keep the enemy/weapon/blast library or split it
 into an optional module; flesh out the empty `Level` containers with example
-content; set up a fresh git remote.
+content.
