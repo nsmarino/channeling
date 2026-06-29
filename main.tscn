@@ -80,7 +80,6 @@ script = ExtResource("10_rail")
 player_plane_distance = 8.0
 move_bounds_scale = 0.8
 aim_speed = 20.0
-capture_mouse_on_ready = false
 ship_follow_fraction = 0.3
 ship_follow_lerp = 10.0
 ship_bank_max_deg = 2.0

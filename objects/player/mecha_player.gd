@@ -14,7 +14,10 @@ extends CharacterBody3D
 ## local x/y), not the reticle's world point, so there's no feedback loop and the
 ## on-screen crosshair stays where you left it even as the world banks under it.
 ##
-## Gamepad only: left stick L/R flicks a barrel-roll evade; aim is right stick + mouse.
+## Two control schemes share one action set:
+##   - Gamepad: left stick L/R flicks the evade; aim is the right stick.
+##   - Keyboard/trackpad: aim is mouse/trackpad motion (captured; Escape toggles),
+##     J/L flick the evade, Space fires, K toggles the brake.
 
 @export_category("Movement")
 ## Distance in front of the camera where the ship plane sits (its rail depth).

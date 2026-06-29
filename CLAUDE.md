@@ -63,7 +63,11 @@ The rig is driven forward by **`levels/rail_follower.gd`** on the `PathFollow3D`
 - **Homing acquisition** (`_acquire_homing_target`) scans the **`destructible`** group, skips anything with `homing_eligible = false` or already defeated, and locks the candidate nearest the reticle **in screen space within a tight pixel radius** — so it never snaps to something far off to the side, and there's simply no lock (shots fly straight) when nothing is near the crosshair. The locked target is stored in `_homing_target` and exposed via `get_homing_target()` / `get_homing_target_screen_info()` for the HUD.
 - **Hit react** is delegated to a shared **`HitReactComponent`** child (see Destructibles → Components) — the player calls `trigger()` on `take_damage` and `trigger_death()` on death, and feeds its **brake bob** in through the component's `extra_offset`. The component owns the red flash + mesh shake (+ optional particle bursts); the player keeps only the bob math. (The component is referenced **duck-typed** — `var _hit_react: Node` + `.call()/.set()` — to dodge the `class_name`-registration lag noted in Working style.)
 
-**Input is gamepad-only.** IJKL / keyboard movement and the spacebar evade were removed. The **left stick (L/R) drives the pirouette evade**; aim is the right stick + mouse; **`ToggleBrake`** halts/resumes the rail.
+**Input supports gamepad and keyboard/trackpad** (both bound on the same actions, so either works at any time):
+- **Gamepad** — aim is the right stick; the **left stick (L/R) flicks the pirouette evade**; `CombatAttack` is button-10; `ToggleBrake` is the A button.
+- **Keyboard/trackpad** (left-handed home-row layout) — aim is **mouse/trackpad motion** (captured on ready, **Escape** toggles release); **`J`/`L`** flick the evade left/right (mapped onto `MoveLeft`/`MoveRight`, which the flick-detector reads as full deflection); **`Space`** fires; **`K`** toggles the brake.
+
+The reticle only tracks the trackpad while the mouse is captured. `CombatAttack` also keeps a legacy left-click binding, so a trackpad click fires too. (The old IJKL/keyboard movement and the legacy `CombatEvade` button-9 mapping remain dead.)
 
 Inspector-tunable knobs are deliberately dense and live under `@export_category` blocks: Movement, Aiming, Ship Follow, Camera React, Combat, Brake Bob, Evade, References (the hit flash/shake knobs now live on the `HitReactComponent`). The user iterates heavily in the Inspector.
 
