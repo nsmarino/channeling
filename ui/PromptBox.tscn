@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dbubdssx6nydw"]
 
-[ext_resource type="Script" path="res://ui/overworld/prompt_box.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://by3okyuo28l40" path="res://ui/prompt_box.gd" id="1_script"]
 
 [node name="PromptBox" type="Control" unique_id=597706640]
 layout_mode = 3

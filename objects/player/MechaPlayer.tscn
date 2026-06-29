@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://duek3aqswvgk2"]
 
-[ext_resource type="Script" uid="uid://dtohil85pebn2" path="res://objects/base/state/state_machine.gd" id="1_obejj"]
-[ext_resource type="Script" uid="uid://btifnlteqta4p" path="res://objects/base/state/ai_state.gd" id="2_dq2bm"]
+[ext_resource type="Script" uid="uid://dtohil85pebn2" path="res://objects/components/state/state_machine.gd" id="1_obejj"]
+[ext_resource type="Script" uid="uid://btifnlteqta4p" path="res://objects/components/state/ai_state.gd" id="2_dq2bm"]
 [ext_resource type="Script" uid="uid://b4dxmr0j3otkh" path="res://objects/player/mecha_player.gd" id="3_mecha"]
 [ext_resource type="PackedScene" uid="uid://ckiqlg7b5x2io" path="res://objects/weapons/player/PlayerBlaster.tscn" id="4_blaster"]
 [ext_resource type="PackedScene" uid="uid://cpywvoos8c8ow" path="res://assets/models/rails/mecha/mecha-frame.glb" id="5_6po1x"]

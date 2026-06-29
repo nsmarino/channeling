@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dob3fttypht13"]
 
 [ext_resource type="PackedScene" uid="uid://difbo80owwfy5" path="res://assets/models/character/npc/guy-to-test-root-motion.glb" id="1_7aw56"]
-[ext_resource type="Script" uid="uid://k43phiq1qi4q" path="res://objects/explore-animation/root_motion_test.gd" id="1_xry5p"]
+[ext_resource type="Script" uid="uid://k43phiq1qi4q" path="res://explores/explore-animation/root_motion_test.gd" id="1_xry5p"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_xry5p"]
 

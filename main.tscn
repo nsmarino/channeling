@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://b1esvavhc0ixb" path="res://levels/main.gd" id="1_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://duek3aqswvgk2" path="res://objects/player/MechaPlayer.tscn" id="2_m1504"]
 [ext_resource type="PackedScene" uid="uid://sobb6kxvthei" path="res://levels/overworld/proto-overworld.tscn" id="5_ifaiv"]
-[ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/overworld/CombatUI.tscn" id="7_combat_ui"]
+[ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/CombatUI.tscn" id="7_combat_ui"]
 [ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://assets/sounds/music/selection menu.mp3" id="9_etqu2"]
 [ext_resource type="Script" uid="uid://dcosu2ok1o013" path="res://levels/rail_follower.gd" id="10_rail"]
 

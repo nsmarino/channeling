@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bffgjay1pk7i0"]
 
-[ext_resource type="PackedScene" uid="uid://dob3fttypht13" path="res://objects/explore-animation/root-motion-test.tscn" id="1_0ek00"]
+[ext_resource type="PackedScene" uid="uid://dob3fttypht13" path="res://explores/explore-animation/root-motion-test.tscn" id="1_0ek00"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_0ek00"]
 size = Vector2(10, 10)

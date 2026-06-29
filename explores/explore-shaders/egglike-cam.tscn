@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://qko1dcpogfxe"]
 
-[ext_resource type="Shader" uid="uid://c3uknoj05eif4" path="res://objects/explore-shaders/outline-posterize-color-dither.gdshader" id="1_h7npq"]
+[ext_resource type="Shader" uid="uid://c3uknoj05eif4" path="res://explores/explore-shaders/outline-posterize-color-dither.gdshader" id="1_h7npq"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_w5bfo"]
 render_priority = 0

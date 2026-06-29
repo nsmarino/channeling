@@ -1,6 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://dkspe3go2x8xu"]
+[gd_scene format=3 uid="uid://dkspe3go2x8xu"]
 
-[ext_resource type="Script" uid="uid://cv2fwr6qxrq13" path="res://ui/overworld/combat_ui.gd" id="1_combat_ui_script"]
+[ext_resource type="Script" uid="uid://cv2fwr6qxrq13" path="res://ui/combat_ui.gd" id="1_combat_ui_script"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_crosshair"]
 font_size = 48

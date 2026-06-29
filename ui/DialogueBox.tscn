@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://qs2cdhultq7o"]
 
-[ext_resource type="Script" path="res://ui/overworld/dialogue_box.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cymf1yqk356bg" path="res://ui/dialogue_box.gd" id="1_script"]
 
 [node name="DialogueBox" type="Control" unique_id=1878604976]
 layout_mode = 3

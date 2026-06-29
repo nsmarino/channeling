@@ -8,10 +8,26 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 Main scene: `main.tscn` (project root). The project ships a Godot MCP server (`mcp__godot__*`) for AI-assisted iteration — prefer MCP tools (`run_project`, `game_eval`, `game_screenshot`) for verification over raw shell work.
 
+## Project layout
+
+Top-level dirs (the rearranged structure — expect things here):
+- **`main.tscn`** — the playable scene, at the **project root**. `levels/` holds the rail (`rail_follower.gd`), `main.gd`, and overworld pieces.
+- **`objects/`** — game objects: `objects/components/` (shared behavior components, used by enemies **and** the player), `objects/enemy/` (FseDestructible/FseEnemy bases, concrete enemies, `enemy/blast/`, movement patterns, `*Data` resources), `objects/obstacles/`, `objects/weapons/`, `objects/player/` (the player rig — `mecha_player.gd` + `MechaPlayer.tscn`), and `objects/triggers/` (the legacy dialogue/trigger system).
+- **`explores/`** — standalone R&D sandboxes (`explore-animation/`, `explore-shaders/`, `explore-vfx/`); not loaded by `main.tscn`.
+- **`moments/`** — new top-level dir, currently empty (reserved for upcoming work).
+- **`vfx/`** — `vfx/shaders/` (e.g. `blink.gdshader`) and `vfx/particles/` (e.g. the `blast.tscn` burst).
+- **`ui/`** — HUD / menus, flat (`ui/CombatUI.tscn`, `ui/combat_ui.gd`, plus the legacy `DialogueBox`/`PromptBox`).
+- **`autoloads/`** — `Events`, `GameManager`, `McpInteractionServer`.
+- **`resources/`** — shared `Resource` data types (weapon / dialogue / etc.).
+- **`assets/`** — all imported content: `assets/models/` (incl. `assets/models/rails/mecha/mecha-frame.glb`), `assets/sounds/`, `assets/sprites/`, `assets/fonts/`, `assets/hdr/`, plus vendored `assets/brackeys-vfx/` + `assets/kenney_prototype-textures/`.
+- **`addons/`** — editor plugins: `GPUTrail/`, `view_overlay_toggle/` (the multi-toggle overlay hotkey), `brackeys_particle_controls/`.
+
+Rule of thumb: new content assets go under `assets/`; new game logic/scenes under `objects/`; shaders/particles under `vfx/`.
+
 ## Running & Tooling
 
 - **Open in editor**: launch Godot 4.6, or `mcp__godot__launch_editor`. Run with `mcp__godot__run_project`.
-- **Open Blender source**: `make blend` (or `./open-blends`) — opens `blender/level/level.blend` and `blender/models/props.blend` once those files exist. Blender sources live under `blender/` (currently `blockout.blend`).
+- **Open Blender source**: `make blend` (or `./open-blends`) opens the Blender sources. Note: `.blend` sources are **not currently tracked in-repo** — exported `.glb` land under `assets/models/`.
 - **Godot version**: 4.6.stable.official — GDScript with **typed declarations throughout**; untyped is treated as a warning.
 
 ## Architecture
@@ -21,7 +37,7 @@ Main scene: `main.tscn` (project root). The project ships a Godot MCP server (`m
 - **`GameManager`** (`autoloads/game_manager.gd`) — holds runtime references to the navigator (player `CharacterBody3D`) and overworld root.
 - **`McpInteractionServer`** (`autoloads/mcp_interaction_server.gd`) — TCP server on `127.0.0.1:9090` for the Godot MCP tool. Many style warnings emanate from this file; **treat its warnings as noise** when triaging.
 
-### Player rig (`objects/overworld/player/mecha/`)
+### Player rig (`objects/player/`)
 
 **Aim-led, Star Fox / Panzer Dragoon model** — the reticle is the only directly-driven element; the ship follows it and the camera reacts to it. (This replaced the earlier dual-cursor system where ship and reticle were steered independently.)
 
@@ -51,7 +67,7 @@ The rig is driven forward by **`levels/rail_follower.gd`** on the `PathFollow3D`
 
 Inspector-tunable knobs are deliberately dense and live under `@export_category` blocks: Movement, Aiming, Ship Follow, Camera React, Combat, Brake Bob, Evade, References (the hit flash/shake knobs now live on the `HitReactComponent`). The user iterates heavily in the Inspector.
 
-### HUD (`ui/overworld/CombatUI.tscn`, `combat_ui.gd`)
+### HUD (`ui/CombatUI.tscn`, `ui/combat_ui.gd`)
 
 A `CanvasLayer` reading the player each frame:
 - **Health** — a `HEALTH: ###` label top-left, polled from the player's `hp` every frame (`_update_health`, same polling pattern as the crosshair — not signal-driven).
@@ -108,7 +124,7 @@ A chain-reaction explosion mechanic. Enemies fall into three blast categories:
 - **Red** — destructible *and* spawns a blast on death (`BlastComponent`).
 - **Green** — `blast_only = true`: immune to normal fire, dies *only* to a blast.
 
-`BlastComponent` connects to the parent's `died` signal and spawns a transient **`Blast`** (`objects/enemy/blast/Blast.tscn` + `blast.gd`, `class_name FseBlast`) at the corpse, detached into the scene root so it outlives the body. After a small `detonation_delay` (gives chains a visible ripple) the Blast damages every `destructible` whose center is within `radius` via `take_damage(dmg, is_blast = true)` — which reaches greens and re-detonates other reds, cascading. Already-`DYING`/defeated targets are skipped, so chains terminate. The Blast parents a `BurstVfx` (`vfx/particle-scenes/blast.tscn`) it fires one-shot. Sizes scale together (small Ø3 / 10 dmg / 10 hp … large Ø12 / 90 dmg / 90 hp). Prototype `SmallYellow/Red/Green` enemies live in `objects/enemy/enemies/explore-blast-radius/`.
+`BlastComponent` connects to the parent's `died` signal and spawns a transient **`Blast`** (`objects/enemy/blast/Blast.tscn` + `blast.gd`, `class_name FseBlast`) at the corpse, detached into the scene root so it outlives the body. After a small `detonation_delay` (gives chains a visible ripple) the Blast damages every `destructible` whose center is within `radius` via `take_damage(dmg, is_blast = true)` — which reaches greens and re-detonates other reds, cascading. Already-`DYING`/defeated targets are skipped, so chains terminate. The Blast parents a `BurstVfx` (`vfx/particles/blast.tscn`) it fires one-shot. Sizes scale together (small Ø3 / 10 dmg / 10 hp … large Ø12 / 90 dmg / 90 hp). Prototype `SmallYellow/Red/Green` enemies live in `objects/enemy/enemies/explore-blast-radius/`.
 
 ### Combat collision layers (defined in `project.godot`)
 
@@ -120,7 +136,7 @@ A chain-reaction explosion mechanic. Enemies fall into three blast categories:
 | 4 | `player_projectile` | player projectile areas (mask scans `enemy`) |
 | 5 | `enemy_projectile` | enemy projectile areas (mask scans `player`) |
 
-### Exploration prototypes (`objects/explore-*/`)
+### Exploration prototypes (`explores/`)
 
 Standalone sandboxes for in-progress R&D — not loaded by `main.tscn`:
 - `explore-animation/` — IK / procedural animation tests (mecha-rigging reference).
@@ -129,12 +145,12 @@ Standalone sandboxes for in-progress R&D — not loaded by `main.tscn`:
 
 ### Third-party / in-progress
 
-- **`GPUTrail-main/`** — vendored [GPUTrail3D](https://github.com/) addon for GPU-driven ribbon trails (projectiles, evade streaks); not wired into `main.tscn` yet. (The old `test-ribbons.tscn` sandbox was pruned.)
-- **`models/rails/mecha/mecha-frame.glb`** — the imported mecha frame. Rail level geometry also lives under `models/rails/` (e.g. `kelp-walls.glb`).
+- **`addons/GPUTrail/`** — vendored [GPUTrail3D](https://github.com/) addon for GPU-driven ribbon trails (projectiles, evade streaks); not wired into `main.tscn` yet.
+- **`assets/models/rails/mecha/mecha-frame.glb`** — the imported mecha frame. Rail level geometry also lives under `assets/models/rails/`.
 
 ### Legacy code still present (not active in `main.tscn`)
 
-- **Dialogue system** (`objects/overworld/triggers/dialogue/`, `ui/overworld/DialogueBox.tscn`, `resources/dialogue/`) — `DialogueTrigger` + `Events` lifecycle exists from the source project; not used by the current scene. Keep around in case dialogue between rail segments becomes a feature.
+- **Dialogue system** (`objects/triggers/dialogue/`, `ui/DialogueBox.tscn`, `resources/dialogue/`) — `DialogueTrigger` + `Events` lifecycle exists from the source project; not used by the current scene. Keep around in case dialogue between rail segments becomes a feature.
 
 ## Global groups
 
@@ -145,9 +161,9 @@ Standalone sandboxes for in-progress R&D — not loaded by `main.tscn`:
 - GDScript with **static typing** throughout. Untyped declarations warn.
 - `class_name` prefixes use `Fse*` (legacy from the source project) — keep the convention for consistency.
 - Cross-system signals go through `Events` rather than direct node-to-node connections.
-- Scene files for exploration live under `objects/explore-*/`; production game objects under `objects/{overworld,enemy,weapons,base,components}/`.
+- Scene files for exploration live under `explores/`; production game objects under `objects/{player,enemy,obstacles,weapons,triggers,components}/`.
 - Component scripts attach by `script` on a child node and resolve siblings/parents in `_ready`; the `FseDestructible` parent coordinates them via the duck-typed `set_active(bool)` broadcast — a new driver only needs that one method.
-- Blender source under `blender/`; exported `.glb`/`.obj` land in the project root or `models/` (`models/rails/` holds level geometry).
+- Imported content lives under `assets/` (`assets/models/`, `assets/sounds/`, …); editor plugins under `addons/`. Exported `.glb`/`.obj` land under `assets/models/` (`assets/models/rails/` holds level geometry).
 
 ## Working style notes
 
@@ -167,7 +183,7 @@ The earlier numbered "phase roadmap" is retired — the core systems it tracked 
 Active work:
 - **Blast radius / chain reactions** — the yellow/red/green blast-category enemies + `BlastComponent` / `Blast` are in; prototyped in `objects/enemy/enemies/explore-blast-radius/` with a test cluster in `main.tscn`. Building out the `blast.tscn` burst VFX, and (next) the Medium/Large size variants.
 - **Shared component layer** — the behavior components moved to `objects/components/` so the player can share them (`HitReactComponent`). Enemy death VFX consolidated onto `HitReactComponent.death_burst` (the old per-enemy `VfxEmitter` death particles were removed).
-- **Level blockout** — `blender/blockout.blend` (in progress).
+- **Level blockout** — in progress in Blender (sources not tracked in-repo; exports land under `assets/models/`).
 - **Player feel** — health readout, hit-react (now the shared `HitReactComponent`: flash + shake + hit/death particle bursts), a velocity-driven rail with a `ToggleBrake` brake, and the combat-only left/right pirouette evade (all in the Player rig section above). Puzzle gameplay is no longer tied to evade. Future evade work: VFX, possible i-frames, and tuning enemies like the Swooper so its dive-bombs can be cleanly dodged.
 
 Longer-horizon ideas (unordered): curved Bézier rails (Blender→JSON→`Curve3D`), independent `Progress Speed`, a PursuitEnemy miniboss, more weapons, object-grabbing, time-manipulation tools, powerups, mecha rigging/procedural animation (`mecha-frame.glb` imported; `TwoBoneIK3D` / `LookAtModifier3D` / `BoneAttachment3D`), and two more levels.

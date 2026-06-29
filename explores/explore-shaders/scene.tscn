@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://c6vx56ouc2fy1"]
 
-[ext_resource type="PackedScene" uid="uid://qko1dcpogfxe" path="res://objects/explore-shaders/egglike-cam.tscn" id="1_pemvv"]
-[ext_resource type="Texture2D" uid="uid://csr0ux2uyjlij" path="res://models/level/ground/terrain_TERRAIN Color.png" id="1_u761j"]
-[ext_resource type="Shader" uid="uid://bwax8l1ei6nkv" path="res://objects/explore-shaders/water.gdshader" id="2_wuy2e"]
-[ext_resource type="ArrayMesh" uid="uid://dsv21kp38136u" path="res://objects/explore-shaders/grass.obj" id="5_kxkg0"]
+[ext_resource type="PackedScene" uid="uid://qko1dcpogfxe" path="res://explores/explore-shaders/egglike-cam.tscn" id="1_pemvv"]
+[ext_resource type="Texture2D" path="res://models/level/ground/terrain_TERRAIN Color.png" id="1_u761j"]
+[ext_resource type="Shader" uid="uid://bwax8l1ei6nkv" path="res://explores/explore-shaders/water.gdshader" id="2_wuy2e"]
+[ext_resource type="ArrayMesh" uid="uid://dsv21kp38136u" path="res://explores/explore-shaders/grass.obj" id="5_kxkg0"]
 
 [sub_resource type="Gradient" id="Gradient_wuy2e"]
 offsets = PackedFloat32Array(0, 0.784058)

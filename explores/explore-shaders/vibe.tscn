@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bort3fcg6s0p1"]
 
-[ext_resource type="PackedScene" uid="uid://qko1dcpogfxe" path="res://objects/explore-shaders/egglike-cam.tscn" id="3_w6ctv"]
+[ext_resource type="PackedScene" uid="uid://qko1dcpogfxe" path="res://explores/explore-shaders/egglike-cam.tscn" id="3_w6ctv"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_rou67"]
 sky_top_color = Color(0.66223836, 0.35585558, 0.15071052, 1)
