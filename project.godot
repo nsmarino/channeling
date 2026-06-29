@@ -36,7 +36,7 @@ window/size/viewport_height=768
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/view_overlay_toggle/plugin.cfg")
+enabled=PackedStringArray("res://addons/nurbs_path/plugin.cfg", "res://addons/view_overlay_toggle/plugin.cfg")
 
 [global_group]
 

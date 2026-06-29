@@ -20,7 +20,7 @@ Top-level dirs (the rearranged structure — expect things here):
 - **`autoloads/`** — `Events`, `GameManager`, `McpInteractionServer`.
 - **`resources/`** — shared `Resource` data types (weapon / dialogue / etc.).
 - **`assets/`** — all imported content: `assets/models/` (incl. `assets/models/rails/mecha/mecha-frame.glb`), `assets/sounds/`, `assets/sprites/`, `assets/fonts/`, `assets/hdr/`, plus vendored `assets/brackeys-vfx/` + `assets/kenney_prototype-textures/`.
-- **`addons/`** — editor plugins: `GPUTrail/`, `view_overlay_toggle/` (the multi-toggle overlay hotkey), `brackeys_particle_controls/`.
+- **`addons/`** — editor plugins: `GPUTrail/`, `view_overlay_toggle/` (the multi-toggle overlay hotkey), `brackeys_particle_controls/`, `nurbs_path/` (the curved-rail authoring gizmo).
 
 Rule of thumb: new content assets go under `assets/`; new game logic/scenes under `objects/`; shaders/particles under `vfx/`.
 
@@ -151,6 +151,32 @@ Standalone sandboxes for in-progress R&D — not loaded by `main.tscn`:
 
 - **`addons/GPUTrail/`** — vendored [GPUTrail3D](https://github.com/) addon for GPU-driven ribbon trails (projectiles, evade streaks); not wired into `main.tscn` yet.
 - **`assets/models/rails/mecha/mecha-frame.glb`** — the imported mecha frame. Rail level geometry also lives under `assets/models/rails/`.
+
+### Curved-rail authoring (`addons/nurbs_path/`)
+
+An in-editor `@tool` plugin for composing the curved rails the player follows.
+Add a **`NurbsPath3D`** node (a `Path3D` subclass) and author its rail as a
+**control polygon** instead of hand-tuning Bézier tangents:
+- The node holds an `Array[Vector3] control_points` + a `closed` flag and, on any
+  change, rebuilds its own `Curve3D` (`nurbs_path_3d.gd`). It's a **uniform cubic
+  B-spline**, which converts *exactly* — segment-for-segment — into the cubic
+  Bézier that `Curve3D` stores, so there's **no sampling error**. `PathFollow3D`
+  + `levels/rail_follower.gd` consume the baked `curve` with zero changes.
+- Open curves are **clamped** (reflected phantom endpoints) so the rail starts/ends
+  on the first/last control point; `closed` wraps into a seamless loop (pair with
+  PathFollow3D `loop = true`). Interior control points are *approximated*, not
+  interpolated — that's the B-spline trade that removes per-point tangent fiddling.
+- **Editing** is a viewport gizmo (`nurbs_path_gizmo.gd`): drag a handle per control
+  point (free move on a camera-facing plane, with undo/redo); **Shift+Left-click**
+  in the viewport appends a point (`nurbs_path_plugin.gd`, `_forward_3d_gui_input`,
+  raycast onto a horizontal plane at the last point's height). Removing points is
+  via the Inspector `control_points` array for now.
+- Despite the name it's the **non-rational** case (no weights) — rational NURBS
+  (exact circular arcs) would add a `weights` array baked by sampling; omitted
+  because rails don't need it. The plugin/gizmo reference the node **duck-typed**
+  (matched by script resource, not `class_name`) to dodge the class-cache lag.
+- This is the in-editor counterpart to the longer-horizon "Blender→JSON→`Curve3D`"
+  idea below — same `Curve3D` target, no round-trip.
 
 ### Legacy code still present (not active in `main.tscn`)
 
