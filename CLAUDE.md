@@ -143,10 +143,13 @@ on the active target and soft markers on the rest (see below).
 
 ### Restart system (`GameManager`)
 
-`GameManager.restart_level()` reloads the current scene (`reload_current_scene()`)
-behind a re-entrancy guard, so multiple triggers in one frame collapse to one
-reload. It survives the reload because it's an autoload; the fresh scene
-re-registers its player via `register_navigator`. Three triggers are wired:
+`GameManager.restart_level()` reloads the current scene (a **deferred**
+`reload_current_scene()`) behind a re-entrancy guard, so multiple triggers in one
+frame collapse to one reload. Deferring matters: death often fires from inside a
+physics callback (a projectile's `body_entered`), and a synchronous reload there
+errors on removing collider nodes mid-callback. It survives the reload because it's
+an autoload; the fresh scene re-registers its player via `register_navigator`.
+Three triggers are wired:
 - **Player death** — connected to `Events.player_killed` in `_ready`.
 - **Fall off map** — `_process` watches the registered navigator's `global_position.y`
   against `fall_limit_y` (default −50), toggleable via `fall_check_enabled`. It is
@@ -166,7 +169,7 @@ soft `◇` markers (`EligibleMarkers`) on every other eligible target.
 
 Small Nodes you attach to a host body (enemy, obstacle, player) to add one slice of
 behavior. The host coordinates them through **`set_active(bool)`**: `Destructible`
-broadcasts its lifecycle (`ACTIVE` / `DYING` / `PASSED`) to every child exposing
+broadcasts its lifecycle (`ACTIVE` / `DYING`) to every child exposing
 that method (duck-typed dispatch — the host needs no per-component knowledge).
 
 - **`Component`** (`component.gd`, `class_name Component`, `extends Node`) — the
@@ -184,7 +187,9 @@ that method (duck-typed dispatch — the host needs no per-component knowledge).
   contract by hand and are recognised through the same duck-typed dispatch.
 
 Component roster: `HitBox` (routes `receive_hit` → host `take_damage`),
-`MovementComponent` (drives the body via a `MovementPattern`), `WeaponComponent`
+`MovementComponent` (drives the body via a `MovementPattern`, and turns it to face
+travel or — with `face_player` — the player; a null pattern = a stationary sentry
+that still aims), `WeaponComponent`
 (fires a projectile on a cadence), `ContactDamage` (damages overlapping bodies on a
 per-body cooldown), `AnimationDriver` (plays a keyframed `AnimationPlayer`),
 `TurretEmitter` (spawns curve-following projectiles), `HitReactComponent` (flash +
@@ -208,7 +213,7 @@ editor-visible child node.
 
 - **`Destructible`** (`objects/enemy/base/fse_destructible.gd`, extends
   `CharacterBody3D`) — the shared spine: lifecycle states
-  `{ INACTIVE, ACTIVE, DYING, PASSED }`, HP / `take_damage(amount, is_blast := false)`,
+  `{ INACTIVE, ACTIVE, DYING }`, HP / `take_damage(amount, is_blast := false)`,
   a public `destroy()`, a `blast_only` flag, `homing_eligible`, the `hit` / `died`
   signals that `HitReactComponent` / `BlastComponent` hook, and the duck-typed
   `_dispatch_active(bool)` broadcast. Registers into the **`destructible`** group.
@@ -222,7 +227,8 @@ editor-visible child node.
 Movement patterns (`objects/enemy/movement/`): `MovementPattern` base +
 `WeaveMovement`, `SwoopMovement`, `StrafeMovement`, `BobMovement`,
 `CurveFollowMovement`. Concrete enemies (`objects/enemy/enemies/`): **Weaver**,
-**Swooper**, **Turret**, each with an `*.tres` `EnemyData`. Obstacles
+**Swooper**, **Turret** (a stationary sentry — no movement pattern, `face_player`
+on — that looks at and shoots the player), each with an `*.tres` `EnemyData`. Obstacles
 (`objects/obstacles/`): **BobBlock**, **AnimObstacle**, **StationaryTurret**.
 
 > These enemies/weapons/obstacles ship as a **reusable library** but are **not

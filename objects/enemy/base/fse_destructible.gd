@@ -3,7 +3,7 @@ class_name Destructible
 
 ## Base class for anything in the level that the player can shoot: enemies,
 ## obstacles, turret-projectiles, etc. Provides HP / take_damage / death-with-VFX
-## and a single lifecycle the camera can drive (ACTIVE → PASSED → DYING).
+## and a simple lifecycle: ACTIVE → DYING (subclasses may add an INACTIVE wait).
 ##
 ## Subclasses add their own activation model on top (e.g. Enemy waits in
 ## INACTIVE until the player gets within range; obstacles & turret-projectiles
@@ -19,7 +19,7 @@ signal died
 ## the amount. Drives per-instance reactions like HitReactComponent.
 signal hit(amount: int)
 
-enum State { INACTIVE, ACTIVE, DYING, PASSED }
+enum State { INACTIVE, ACTIVE, DYING }
 
 @export var max_hp: int = 100
 ## Seconds the death VFX/SFX play before the body is freed.
@@ -48,24 +48,6 @@ func _ready() -> void:
 	# Dispatch the initial lifecycle so children (movement, animation, etc.)
 	# start in the correct enabled/disabled state.
 	_dispatch_active(state == State.ACTIVE)
-
-
-## Default behavior: once ACTIVE, flip to PASSED when the camera flies past us.
-## Subclasses can override (e.g. Enemy handles its own INACTIVE→ACTIVE check)
-## but should call super for the PASSED check while ACTIVE.
-func _physics_process(_delta: float) -> void:
-	if state != State.ACTIVE:
-		return
-	var cam: Camera3D = get_viewport().get_camera_3d()
-	if cam and cam.is_position_behind(global_position):
-		_freeze_passed()
-
-
-func _freeze_passed() -> void:
-	state = State.PASSED
-	_dispatch_active(false)
-	velocity = Vector3.ZERO
-	print("[%s] Passed by rail; frozen." % _label())
 
 
 ## Apply damage. `is_blast` marks damage coming from a blast radius — the only

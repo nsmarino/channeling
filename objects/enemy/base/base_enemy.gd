@@ -8,7 +8,7 @@ class_name Enemy
 ##   - Enemy-flavored log labels (uses enemy_data.display_name) and a death
 ##     message that includes the score
 ##
-## All HP/take_damage/death-VFX/PASSED behavior lives in Destructible — this
+## All HP/take_damage/death-VFX behavior lives in Destructible — this
 ## class only adds what is enemy-specific.
 
 @export var enemy_data: EnemyData
@@ -44,17 +44,16 @@ func _ready() -> void:
 	print("[%s] Spawned (HP %d/%d), waiting to activate within %.0fu." % [_label(), hp, max_hp, activation_distance])
 
 
-func _physics_process(delta: float) -> void:
-	if state == State.INACTIVE:
-		if not _player:
-			_player = _resolve_player()
-			return
-		if global_position.distance_to(_player.global_position) <= activation_distance:
-			_activate()
+func _physics_process(_delta: float) -> void:
+	# The only work here is the INACTIVE → ACTIVE proximity check; once ACTIVE the
+	# movement/weapon components run themselves.
+	if state != State.INACTIVE:
 		return
-
-	# ACTIVE / PASSED / DYING — delegate to the base (handles PASSED check).
-	super._physics_process(delta)
+	if not _player:
+		_player = _resolve_player()
+		return
+	if global_position.distance_to(_player.global_position) <= activation_distance:
+		_activate()
 
 
 func _activate() -> void:

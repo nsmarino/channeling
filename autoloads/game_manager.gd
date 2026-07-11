@@ -39,13 +39,16 @@ func _process(_delta: float) -> void:
 
 
 ## Reload the current scene from scratch. Safe to call from multiple sources in
-## the same frame — only the first call in a reload cycle takes effect.
+## the same frame — only the first call in a reload cycle takes effect. The reload
+## is deferred so it's safe to trigger from inside a physics callback (e.g. a
+## projectile's body_entered killing the player), which otherwise errors on
+## removing CollisionObject nodes mid-callback.
 func restart_level() -> void:
 	if _restart_pending:
 		return
 	_restart_pending = true
 	navigator = null
-	get_tree().reload_current_scene()
+	get_tree().call_deferred(&"reload_current_scene")
 
 
 func register_navigator(nav: CharacterBody3D) -> void:
