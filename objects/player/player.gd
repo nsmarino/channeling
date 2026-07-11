@@ -1,19 +1,25 @@
 extends CharacterBody3D
 
-## Standard first-person character controller. Works with mouse/keyboard and
-## gamepad interchangeably:
-##   - Look: mouse motion or the right stick (look_*). Yaw turns the whole body
-##     so movement follows where you face; pitch tilts only the camera (clamped).
-##   - Move: WASD or the left stick (move_*), relative to facing.
-##   - Jump: Space or the gamepad A button (jump).
-##   - Escape toggles mouse capture so you can reach the editor / OS.
+## Standard third-person character controller with a SpringArm3D camera rig, plus
+## a Dark Souls-style lock-on mode driven by a sibling LockOnComponent.
+##
+## Free (unlocked) movement — works with mouse/keyboard and gamepad:
+##   - Look: mouse motion or the right stick (look_*). Orbits the CameraPivot —
+##     yaw around Y, clamped pitch — the SpringArm3D pulls the camera in on walls.
+##   - Move: WASD/IJKL or the left stick (move_*), relative to the camera facing.
+##     The visible Model turns to face the direction of travel.
+##
+## Locked movement (LockOnComponent reports a target):
+##   - Camera auto-frames the target (free look is suppressed) and the FOV punches
+##     in. Forward/back approaches/retreats along the player→target line and
+##     left/right strafes tangentially, so you orbit the target; the Model faces
+##     the target the whole time.
+##
+## The body itself never rotates — look lives on the pivot, facing on the Model.
+## The capsule renders slightly left of center via the camera's `h_offset`.
 ##
 ## Registers into the "player" group (GameManager finds the navigator and the HUD
-## reads `hp` through it). Death/fall/Restart all route through GameManager — see
-## take_damage() below and game_manager.gd.
-##
-## Tuning lives in the Inspector @export blocks, matching the project's
-## iterate-by-playing workflow.
+## reads `hp` through it). Death/fall/Restart route through GameManager.
 
 @export_category("Movement")
 ## Target horizontal speed (world units/sec).
@@ -26,6 +32,8 @@ extends CharacterBody3D
 @export var jump_velocity: float = 5.0
 ## Downward acceleration. 0 = use the project's default gravity.
 @export var gravity_override: float = 0.0
+## How quickly the model swings to face its target direction (radians/sec).
+@export var turn_speed: float = 12.0
 
 @export_category("Look")
 ## Mouse look sensitivity, radians per pixel of motion.
@@ -33,29 +41,62 @@ extends CharacterBody3D
 ## Gamepad look speed, radians/sec at full stick deflection.
 @export var gamepad_look_speed: float = 3.0
 ## Camera pitch clamp, in degrees.
-@export var pitch_min_deg: float = -89.0
-@export var pitch_max_deg: float = 89.0
+@export var pitch_min_deg: float = -60.0
+@export var pitch_max_deg: float = 70.0
+
+@export_category("Lock-On")
+## LockOnComponent that owns targeting. Referenced duck-typed (no class_name).
+@export var lock_on_path: NodePath = ^"LockOnComponent"
+## Frustum offset (world units) so the capsule sits left of center in free look.
+## Higher = further left. Tunable live in the Inspector.
+@export var camera_h_offset: float = 0.35
+## Frustum offset while locked — a touch more, to keep the target readable right.
+@export var locked_h_offset: float = 0.5
+## Camera FOV while locked (tighter than the base FOV for a punch-in).
+@export var locked_fov: float = 50.0
+## How fast the camera swings to frame the target (higher = snappier).
+@export var frame_lerp_speed: float = 8.0
+## How fast FOV / h_offset ease between free and locked.
+@export var blend_speed: float = 6.0
 
 @export_category("Health")
 @export var max_hp: int = 100
 
 @export_category("References")
-## Camera tilted for pitch. Yaw is applied to the body itself.
-@export var camera_path: NodePath = ^"Camera3D"
+## Pivot orbited for yaw/pitch. Holds the SpringArm3D + Camera3D.
+@export var camera_pivot_path: NodePath = ^"CameraPivot"
+## Visible body that turns to face its target direction.
+@export var model_path: NodePath = ^"Model"
+## The Camera3D on the spring arm (for FOV / h_offset).
+@export var camera_path: NodePath = ^"CameraPivot/SpringArm3D/Camera3D"
 
 var hp: int = 0
 
+var _pivot: Node3D = null
+var _model: Node3D = null
 var _camera: Camera3D = null
+var _lock_on: Node = null
 var _gravity: float = 0.0
+var _yaw: float = 0.0
 var _pitch: float = 0.0
+var _base_fov: float = 65.0
 
 
 func _ready() -> void:
 	add_to_group("player")
+	_pivot = get_node_or_null(camera_pivot_path) as Node3D
+	_model = get_node_or_null(model_path) as Node3D
 	_camera = get_node_or_null(camera_path) as Camera3D
+	_lock_on = get_node_or_null(lock_on_path)
 	_gravity = gravity_override if gravity_override > 0.0 \
 		else float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
 	hp = max_hp
+	if _pivot:
+		_yaw = _pivot.rotation.y
+		_pitch = _pivot.rotation.x
+	if _camera:
+		_base_fov = _camera.fov
+		_camera.h_offset = camera_h_offset
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -70,15 +111,21 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	_process_gamepad_look(delta)
+	_process_lock_camera(delta)
 	_process_movement(delta)
 
 
-## Yaw rotates the body (so movement tracks facing); pitch tilts the camera only.
+## Orbit the camera pivot: yaw around Y, pitch tilts the arm (clamped). Suppressed
+## while locked — the auto-frame owns the pivot then (the LockOnComponent consumes
+## the same look input for target switching).
 func _apply_look(yaw_delta: float, pitch_delta: float) -> void:
-	rotate_y(yaw_delta)
+	if _is_locked():
+		return
+	_yaw = wrapf(_yaw + yaw_delta, -PI, PI)
 	_pitch = clampf(_pitch + pitch_delta, deg_to_rad(pitch_min_deg), deg_to_rad(pitch_max_deg))
-	if _camera:
-		_camera.rotation.x = _pitch
+	if _pivot:
+		_pivot.rotation.y = _yaw
+		_pivot.rotation.x = _pitch
 
 
 func _process_gamepad_look(delta: float) -> void:
@@ -87,22 +134,101 @@ func _process_gamepad_look(delta: float) -> void:
 		_apply_look(-look.x * gamepad_look_speed * delta, -look.y * gamepad_look_speed * delta)
 
 
+## Blend FOV / h_offset toward the current mode every frame, and — when locked —
+## swing the pivot so its forward (-Z) points at the target, framing it.
+func _process_lock_camera(delta: float) -> void:
+	var locked := _is_locked()
+	var target: Node3D = _lock_target() if locked else null
+
+	if _camera:
+		var blend := clampf(blend_speed * delta, 0.0, 1.0)
+		_camera.fov = lerpf(_camera.fov, locked_fov if locked else _base_fov, blend)
+		_camera.h_offset = lerpf(_camera.h_offset, locked_h_offset if locked else camera_h_offset, blend)
+
+	if not locked or target == null or _pivot == null:
+		return
+
+	var to := target.global_position - _pivot.global_position
+	var horiz := Vector2(to.x, to.z).length()
+	if horiz < 0.01:
+		return
+	var desired_yaw := atan2(-to.x, -to.z)
+	var desired_pitch := clampf(atan2(to.y, horiz), deg_to_rad(pitch_min_deg), deg_to_rad(pitch_max_deg))
+	var t := clampf(frame_lerp_speed * delta, 0.0, 1.0)
+	_yaw = lerp_angle(_yaw, desired_yaw, t)
+	_pitch = lerpf(_pitch, desired_pitch, t)
+	_pivot.rotation.y = _yaw
+	_pivot.rotation.x = _pitch
+
+
 func _process_movement(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	elif Input.is_action_just_pressed(&"jump"):
 		velocity.y = jump_velocity
 
-	# Input.get_vector maps left/right to X and forward/back to Y (forward = -1),
-	# so Vector3(x, 0, y) is already a forward = -Z direction in local space.
 	var input := Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
-	var direction := (transform.basis * Vector3(input.x, 0.0, input.y)).normalized()
-	var target := direction * move_speed
+	var target: Node3D = _lock_target() if _is_locked() else null
+	var direction := _orbit_direction(input, target) if target != null \
+		else _camera_relative_direction(input)
+
+	var target_vel := direction * move_speed
 	var accel := ground_acceleration if is_on_floor() else air_acceleration
-	velocity.x = move_toward(velocity.x, target.x, accel * delta)
-	velocity.z = move_toward(velocity.z, target.z, accel * delta)
+	velocity.x = move_toward(velocity.x, target_vel.x, accel * delta)
+	velocity.z = move_toward(velocity.z, target_vel.z, accel * delta)
+
+	if target != null:
+		_face_point(target.global_position, delta)
+	elif direction.length_squared() > 0.001:
+		_face_point(global_position + direction, delta)
 
 	move_and_slide()
+
+
+## Map stick/WASD input onto the camera's yaw so "forward" is where you look.
+## Only the yaw matters here — movement stays on the ground plane.
+func _camera_relative_direction(input: Vector2) -> Vector3:
+	var forward := Vector3(-sin(_yaw), 0.0, -cos(_yaw))  # pivot -Z, flattened
+	var right := Vector3(cos(_yaw), 0.0, -sin(_yaw))     # pivot +X, flattened
+	return (right * input.x + forward * -input.y).normalized()
+
+
+## Target-relative orbit: forward/back (input.y) runs along the player→target
+## line; left/right (input.x) strafes tangentially, circling the target.
+func _orbit_direction(input: Vector2, target: Node3D) -> Vector3:
+	var to := target.global_position - global_position
+	to.y = 0.0
+	if to.length_squared() < 0.0001:
+		return Vector3.ZERO
+	var radial := to.normalized()                     # toward the target
+	var tangent := Vector3(-radial.z, 0.0, radial.x)  # 90° on the ground plane
+	var dir := radial * -input.y + tangent * input.x
+	return dir.normalized() if dir.length_squared() > 0.0001 else Vector3.ZERO
+
+
+## Smoothly swing the visible model to face a world point (movement dir or target).
+func _face_point(point: Vector3, delta: float) -> void:
+	if not _model:
+		return
+	var to := point - global_position
+	to.y = 0.0
+	if to.length_squared() < 0.0001:
+		return
+	var target_yaw := atan2(-to.x, -to.z)
+	_model.rotation.y = lerp_angle(_model.rotation.y, target_yaw, turn_speed * delta)
+
+
+func _is_locked() -> bool:
+	if _lock_on == null:
+		return false
+	return bool(_lock_on.call("is_locked"))
+
+
+func _lock_target() -> Node3D:
+	if _lock_on == null:
+		return null
+	var raw: Variant = _lock_on.call("get_target")
+	return raw as Node3D if is_instance_valid(raw) else null
 
 
 ## Apply damage; emit player_killed at 0 HP so GameManager restarts the level.

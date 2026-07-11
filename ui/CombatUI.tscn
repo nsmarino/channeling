@@ -65,6 +65,9 @@ offset_bottom = 28.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_lockon")
 
+[node name="EligibleMarkers" type="Control" parent="."]
+mouse_filter = 2
+
 [node name="Health" type="Label" parent="." unique_id=402530100]
 offset_left = 24.0
 offset_top = 16.0

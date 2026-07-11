@@ -7,12 +7,13 @@ This file provides guidance to Claude Code when working with code in this reposi
 **starter-4.7** is a clean **3D character-controller starter template** for Godot 4
 (Forward+ renderer), carved out of an earlier rail-shooter prototype. The goal is a
 small, legible base you can clone for new 3D game prototypes and hit the ground
-running: a working first-person player, a reusable component system, a restart
-loop, and a curved-path authoring tool — without the prototype-specific cruft.
+running: a working third-person player (with a SpringArm camera and Dark
+Souls-style lock-on), a reusable component system, a restart loop, and a
+curved-path authoring tool — without the prototype-specific cruft.
 
 Assume games built from this template are **3D and character-controller based**.
 
-Main scene: `main.tscn` (project root) — an FPS player standing on a ground plane.
+Main scene: `main.tscn` (project root) — a third-person player on a ground plane.
 The project ships a Godot MCP server (`mcp__godot__*`) for AI-assisted iteration —
 prefer MCP tools (`run_project`, `game_eval`, `game_screenshot`) for verification
 over raw shell work.
@@ -25,7 +26,7 @@ over raw shell work.
 - **`levels/`** — `main.gd` (scene controller; registers the player + level with
   `GameManager`) and `overworld/` scene scaffolding.
 - **`objects/`** — game objects:
-  - `objects/player/` — the **first-person player** (`player.gd` + `Player.tscn`).
+  - `objects/player/` — the **third-person player** (`player.gd` + `Player.tscn`).
   - `objects/components/` — shared behavior components + the base `Component` class.
   - `objects/enemy/` — `Destructible` / `Enemy` bases, concrete enemies, the blast
     system (`enemy/blast/`), movement patterns, and `*Data` resources.
@@ -86,21 +87,50 @@ fails at a debugger break with *"Could not find base class"*. Fixes:
   `run_project` tool per-run (it is not a persistent project autoload). Many style
   warnings emanate from this file; **treat its warnings as noise** when triaging.
 
-### Player (`objects/player/`) — first-person controller
+### Player (`objects/player/`) — third-person controller + lock-on
 
-A standard **first-person `CharacterBody3D`** (`player.gd` + `Player.tscn`) that
-works with **mouse/keyboard and gamepad interchangeably**:
-- **Look** — mouse motion or the right stick (`look_*`). Yaw rotates the whole body
-  (so movement follows facing); pitch tilts only the camera, clamped.
-- **Move** — `WASD` or the left stick (`move_*`), accelerated toward `move_speed`
-  relative to facing.
+A **third-person `CharacterBody3D`** (`player.gd` + `Player.tscn`) that works with
+**mouse/keyboard and gamepad interchangeably**. The body never rotates: look lives
+on a `CameraPivot`, facing on a `Model` child. Scene rig:
+`Player → CameraPivot → SpringArm3D → Camera3D` (the spring arm pulls the camera
+in on walls) plus a visible `Model` (capsule + front indicator) and the
+`LockOnComponent`. The capsule renders slightly left of center via the camera's
+**`h_offset`** (not a transform offset — the SpringArm overwrites its child's
+transform each frame; `camera_h_offset` / `locked_h_offset` are `@export` knobs).
+
+**Free (unlocked)** — camera-relative:
+- **Look** — mouse motion or the right stick (`look_*`) orbits the pivot (yaw +
+  clamped pitch).
+- **Move** — `WASD`/`IJKL` or the left stick (`move_*`), relative to the camera's
+  facing; the `Model` turns toward the direction of travel.
 - **Jump** — `Space` or the gamepad A button (`jump`).
 - **Escape** toggles mouse capture (so you can reach the editor / OS).
 
+**Locked** (LockOnComponent reports a target) — Dark Souls-style: free look is
+suppressed and the camera auto-frames the target (FOV punches in to `locked_fov`);
+forward/back approaches/retreats along the player→target line, left/right strafes
+tangentially to orbit, and the `Model` faces the target the whole time.
+
 It registers into the **`player`** group, exposes `hp` (read by the HUD), and on
 death calls `Events.player_killed.emit()` (which `GameManager` turns into a
-restart). Tuning lives in Inspector `@export` blocks (Movement / Look / Health /
-References), matching the iterate-by-playing workflow.
+restart). Tuning lives in Inspector `@export` blocks (Movement / Look / Lock-On /
+Health / References), matching the iterate-by-playing workflow.
+
+### Lock-on (`objects/components/lock_on_component.gd`, `lock_on_target.gd`)
+
+A `LockOnComponent` (`extends Component`) attached under the player owns
+**targeting only** — it never touches the camera rig (player.gd reads it
+duck-typed via `is_locked()` / `get_target()` / `get_eligible_targets()` so the
+pivot stays single-writer). Eligible entities are **opt-in by group**: add a
+`lock_on_target.gd` marker (a plain `Node3D`, no `class_name`) as a child at the
+aim point (e.g. chest height) — it registers itself in the **`lockable`** group;
+its `global_position` is the aim point and `get_parent()` is the entity. Each
+frame the component gathers markers that are alive, within `max_lock_distance`, in
+front of the camera, and inside the inner `inner_viewport_fraction` of the
+viewport. Pressing `lock_on` locks the most-centered one; pressing again drops it;
+a look flick (right stick / mouse) switches targets; the lock also drops when the
+target dies (`is_defeated()`), is freed, or leaves range. The HUD draws a reticle
+on the active target and soft markers on the rest (see below).
 
 ### Restart system (`GameManager`)
 
@@ -118,7 +148,10 @@ re-registers its player via `register_navigator`. Three triggers are wired:
 
 A `CanvasLayer` with a **center-anchored crosshair** (it stays put on its own
 anchors; the script just keeps it visible) and a `HEALTH: ###` label polled from
-the player's `hp` each frame. (The legacy lock-on indicator node is hidden.)
+the player's `hp` each frame. It also drives the **lock-on overlay**: it finds the
+player's `LockOnComponent` (duck-typed) and each frame `unproject_position`s the
+targets — repurposing the `LockOn` square as the **active reticle** and pooling
+soft `◇` markers (`EligibleMarkers`) on every other eligible target.
 
 ### Components (`objects/components/`)
 
@@ -148,7 +181,8 @@ per-body cooldown), `AnimationDriver` (plays a keyframed `AnimationPlayer`),
 `TurretEmitter` (spawns curve-following projectiles), `HitReactComponent` (flash +
 shake + optional particle bursts; on enemies **and** the player),
 `BlastComponent` (spawns a blast on death), `SfxEmitter` / `VfxEmitter` (keyed
-one-shot players).
+one-shot players), `LockOnComponent` (player-only; poll/input-driven targeting for
+the lock-on system — see the Player section).
 
 ### Destructibles: enemies, obstacles, turret-projectiles
 
@@ -214,11 +248,15 @@ A clean snake_case FPS action set, each bound for **keyboard and gamepad**:
 
 | Action | Keyboard | Gamepad |
 |---|---|---|
-| `move_forward` / `move_back` | W / S | left stick Y |
-| `move_left` / `move_right` | A / D | left stick X |
+| `move_forward` / `move_back` | W / S (also I / K) | left stick Y |
+| `move_left` / `move_right` | A / D (also J / L) | left stick X |
 | `jump` | Space | A button |
 | `look_left/right/up/down` | (mouse motion, in code) | right stick |
+| `lock_on` | O | right-stick click (R3) |
 | `restart` | R | Back button |
+
+(Movement is dual-bound to WASD **and** the right-hand IJKL cluster for
+left-handed play; `lock_on` sits on `O` beside IJKL.)
 
 ### Combat collision layers
 
@@ -252,9 +290,10 @@ conflicts with Volumetric Fog unless `fog_disabled` is added to `render_mode`; p
 
 ## Global groups
 
-`"player"`, `"enemy"`, `"obstacle"`, `"destructible"`, `"level"` — registered
-automatically (player in its scene + `_ready`; `destructible` in `Destructible._ready`;
-`enemy`/`obstacle` in the respective subclass). Lookups use
+`"player"`, `"enemy"`, `"obstacle"`, `"destructible"`, `"level"`, `"lockable"` —
+registered automatically (player in its scene + `_ready`; `destructible` in
+`Destructible._ready`; `enemy`/`obstacle` in the respective subclass; `lockable`
+in `lock_on_target.gd._ready`). Lookups use
 `get_tree().get_first_node_in_group(...)` / `get_nodes_in_group(...)`.
 
 ## Conventions
@@ -284,8 +323,9 @@ automatically (player in its scene + `_ready`; `destructible` in `Destructible._
 This repo is being shaped into a **clean starter template**. Landed so far: the
 `Fse*` → unprefixed class renames, a sturdy `GameManager` restart loop (death /
 fall / `restart` input), the legacy dialogue + trigger systems removed, a base
-`Component` class with the components migrated onto it, and the rail-shooter mecha
-player replaced by a standard first-person controller.
+`Component` class with the components migrated onto it, the rail-shooter mecha
+player replaced by a **third-person SpringArm controller**, and a **Dark
+Souls-style lock-on** (`LockOnComponent` + `lockable` markers + HUD reticle).
 
 Possible next steps (unordered): rename the lingering `fse_*` filenames + the
 `CombatUI` scene; decide whether to keep the enemy/weapon/blast library or split it
