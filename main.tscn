@@ -1,9 +1,13 @@
-[gd_scene load_steps=11 format=3 uid="uid://dm0ymt1k01748"]
+[gd_scene format=3 uid="uid://dm0ymt1k01748"]
 
 [ext_resource type="Script" uid="uid://b1esvavhc0ixb" path="res://levels/main.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://cplayrscn0fps" path="res://objects/player/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" uid="uid://cnfeyro7m6ljc" path="res://objects/enemy/enemies/blast-radius/SmallYellow.tscn" id="3_272bh"]
 [ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/CombatUI.tscn" id="3_hud"]
+[ext_resource type="Material" uid="uid://cudpdb74j4ur1" path="res://environs-material.tres" id="3_lquwl"]
 [ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://assets/sounds/music/selection menu.mp3" id="4_music"]
+[ext_resource type="PackedScene" uid="uid://d056uqxy8i36b" path="res://assets/models/channeling1.glb" id="6_7mycd"]
+[ext_resource type="PackedScene" uid="uid://cwsl8yjlunsl2" path="res://objects/enemy/enemies/Turret.tscn" id="8_5vw27"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_jw1n3"]
 sky_top_color = Color(3.465414e-06, 0.63147265, 0.77430177, 1)
@@ -19,12 +23,7 @@ sky_material = SubResource("ProceduralSkyMaterial_jw1n3")
 [sub_resource type="Environment" id="Environment_qy63d"]
 background_mode = 2
 sky = SubResource("Sky_s07ge")
-ambient_light_source = 3
-ambient_light_color = Color(0.8776157, 0.8776158, 0.8776157, 1)
-ambient_light_sky_contribution = 0.0
-ambient_light_energy = 2.0
-glow_enabled = true
-fog_enabled = true
+ambient_light_source = 1
 fog_mode = 1
 fog_light_color = Color(0.14564103, 0.42633775, 0.508289, 1)
 fog_density = 1.0
@@ -37,14 +36,10 @@ fog_depth_end = 477.9
 volumetric_fog_density = 0.01
 volumetric_fog_albedo = Color(0.35308334, 0.82349783, 0.5012416, 1)
 volumetric_fog_emission = Color(0.0352255, 0.24853325, 0.39479303, 1)
-adjustment_enabled = true
 adjustment_saturation = 1.26
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(100, 100)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
-albedo_color = Color(0.3, 0.32, 0.35, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(100, 1, 100)
@@ -61,19 +56,19 @@ environment = SubResource("Environment_qy63d")
 
 [node name="Level" type="Node3D" parent="." unique_id=2134277765]
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Level" unique_id=1905902579]
-transform = Transform3D(1, 0, 0, 0, 0.6755903, 0.73727727, 0, -0.73727727, 0.6755903, 0, 20, 0)
-shadow_enabled = true
-
 [node name="Enemies" type="Node3D" parent="Level" unique_id=2111095337]
+
+[node name="SmallYellow" parent="Level/Enemies" unique_id=1880741835 instance=ExtResource("3_272bh")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 2, 0)
 
 [node name="Obstacles" type="Node3D" parent="Level" unique_id=1811212233]
 
 [node name="Ground" type="StaticBody3D" parent="Level" unique_id=1500000001]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Level/Ground" unique_id=1500000002]
 mesh = SubResource("PlaneMesh_ground")
-surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+surface_material_override/0 = ExtResource("3_lquwl")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Level/Ground" unique_id=1500000003]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
@@ -81,8 +76,50 @@ shape = SubResource("BoxShape3D_ground")
 
 [node name="Player" parent="Level" unique_id=1500000010 instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+air_acceleration = 6.0
+jump_velocity = 20.0
+camera_h_offset = 1.16
+locked_h_offset = 0.9
+locked_fov = 45.0
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1852918013]
 stream = ExtResource("4_music")
 volume_db = -67.564
 autoplay = true
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1905902579]
+transform = Transform3D(1, 0, 0, 0, 0.6755903, 0.73727727, 0, -0.73727727, 0.6755903, 0, 20, 0)
+shadow_enabled = true
+
+[node name="OmniLight3D" type="OmniLight3D" parent="." unique_id=1655781046]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 16, 0)
+visible = false
+light_energy = 4000.0
+omni_range = 34.772
+omni_attenuation = 2.244
+
+[node name="AreaLight3D" type="AreaLight3D" parent="." unique_id=1933392766]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -38, 42, 20)
+visible = false
+light_energy = 4000.0
+area_range = 50.0
+area_attenuation = 1.493
+area_size = Vector2(20, 20)
+
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=65479427]
+material_override = ExtResource("3_lquwl")
+use_collision = true
+
+[node name="CSGBox3D5" type="CSGBox3D" parent="CSGCombiner3D" unique_id=1555484096]
+transform = Transform3D(3, 0, 0, 0, 1, 0, 0, 0, 1, 21, -2.277893, -1.5)
+size = Vector3(10, 5.444214, 17)
+
+[node name="CSGBox3D7" type="CSGBox3D" parent="CSGCombiner3D" unique_id=1111824689]
+transform = Transform3D(7.1054274e-15, 5.9604645e-08, 1.0000001, 3, -4.3711392e-08, -3.0767402e-15, 1.3113419e-07, 1.0000001, -5.9604645e-08, 42, 10.722107, 46.5)
+size = Vector3(10, 5.444214, 17)
+
+[node name="channeling1" parent="." unique_id=382426643 instance=ExtResource("6_7mycd")]
+transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 0, -1, 0)
+
+[node name="Turret" parent="." unique_id=865009759 instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21, 1, 6)

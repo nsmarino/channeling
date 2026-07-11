@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cudpdb74j4ur1"]
+
+[ext_resource type="Texture2D" uid="uid://c0y4c0hl3jy43" path="res://assets/kenney_prototype-textures/PNG/Light/texture_08.png" id="1_lquvc"]
+
+[resource]
+albedo_color = Color(0.3, 0.32, 0.35, 1)
+albedo_texture = ExtResource("1_lquvc")
+metallic = 0.5
+roughness = 0.66
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

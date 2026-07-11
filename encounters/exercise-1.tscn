@@ -1,0 +1,60 @@
+[gd_scene format=3 uid="uid://cndw1t2rxavh4"]
+
+[ext_resource type="PackedScene" uid="uid://cnfeyro7m6ljc" path="res://objects/enemy/enemies/blast-radius/SmallYellow.tscn" id="1_b85sc"]
+
+[sub_resource type="Animation" id="Animation_b85sc"]
+resource_name = "GO"
+length = 5.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(6.2831855, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_dfjrt"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_7g80f"]
+_data = {
+&"GO": SubResource("Animation_b85sc"),
+&"RESET": SubResource("Animation_dfjrt")
+}
+
+[node name="EnemyComposition" type="Node3D" unique_id=1246697611]
+top_level = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=852007874]
+libraries/ = SubResource("AnimationLibrary_7g80f")
+autoplay = &"GO"
+
+[node name="SmallYellow" parent="." unique_id=1880741835 instance=ExtResource("1_b85sc")]
+transform = Transform3D(1, 0, 0, 0, 0, 0.99999994, 0, -0.99999994, 0, 0, 0, -6)
+
+[node name="SmallYellow3" parent="." unique_id=1713559537 instance=ExtResource("1_b85sc")]
+transform = Transform3D(1, 0, 0, 0, -5.9604645e-08, -0.99999994, 0, 0.99999994, -5.9604645e-08, 0, 0, 6)
+
+[node name="SmallYellow4" parent="." unique_id=1292798835 instance=ExtResource("1_b85sc")]
+transform = Transform3D(1, 0, 0, 0, -1, 1.4901161e-07, 0, -1.4901161e-07, -1, 0, -6, 0)
+
+[node name="SmallYellow2" parent="." unique_id=401076563 instance=ExtResource("1_b85sc")]
+transform = Transform3D(1, 0, 0, 0, 0.99999994, -5.9604645e-08, 0, 5.9604645e-08, 0.99999994, 0, 6, 0)

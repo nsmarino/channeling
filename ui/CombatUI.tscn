@@ -41,6 +41,7 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Circle" type="Label" parent="Crosshair" unique_id=402529284]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -55,9 +56,12 @@ vertical_alignment = 1
 
 [node name="LockOn" type="Control" parent="." unique_id=402530000]
 visible = false
+layout_mode = 3
+anchors_preset = 0
 mouse_filter = 2
 
 [node name="Square" type="Panel" parent="LockOn" unique_id=402530001]
+layout_mode = 0
 offset_left = -28.0
 offset_top = -28.0
 offset_right = 28.0
@@ -65,7 +69,9 @@ offset_bottom = 28.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_lockon")
 
-[node name="EligibleMarkers" type="Control" parent="."]
+[node name="EligibleMarkers" type="Control" parent="." unique_id=1520386693]
+layout_mode = 3
+anchors_preset = 0
 mouse_filter = 2
 
 [node name="Health" type="Label" parent="." unique_id=402530100]
@@ -73,6 +79,5 @@ offset_left = 24.0
 offset_top = 16.0
 offset_right = 320.0
 offset_bottom = 56.0
-mouse_filter = 2
 text = "HEALTH: 100"
 label_settings = SubResource("LabelSettings_health")
