@@ -61,7 +61,12 @@ func _apply_damage(collider: Variant) -> void:
 	var target: Node = collider as Node
 	var damage_amount: int = roundi(float(data.get("damage")))
 
-	if target.has_method("take_damage"):
+	# Enemy hurtboxes (HitBox areas) forward damage to their owner via receive_hit.
+	if target.has_method("receive_hit"):
+		target.call("receive_hit", damage_amount)
+		if Events:
+			Events.attack_hit.emit(owner_character, target, damage_amount)
+	elif target.has_method("take_damage"):
 		target.call("take_damage", damage_amount)
 		if Events:
 			Events.attack_hit.emit(owner_character, target, damage_amount)

@@ -29,6 +29,8 @@ trail_scene = ExtResource("3_bullet_trail_scene")
 trail_lifetime = 2.0
 data = SubResource("Resource_player_rifle_data")
 muzzle_spawn_offset = 0.25
+collide_with_areas = true
+hitscan_collision_mask = 5
 
 [node name="Muzzle" type="Marker3D" parent="." unique_id=1253461397]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.95)

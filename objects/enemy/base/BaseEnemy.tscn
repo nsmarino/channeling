@@ -9,6 +9,7 @@
 [ext_resource type="AudioStream" uid="uid://ct1sv14b1hb2v" path="res://assets/sounds/doom-sound-fx-secret.wav" id="8_death"]
 [ext_resource type="Script" uid="uid://bh7xn2react0c" path="res://objects/components/hit_react_component.gd" id="9_hitreact"]
 [ext_resource type="PackedScene" uid="uid://b4h1ep7qebmuu" path="res://vfx/particles/blast.tscn" id="10_burst"]
+[ext_resource type="Script" uid="uid://dglfsh64ac1f3" path="res://objects/components/lock_on_target.gd" id="10_yjxd1"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
 radius = 1.2
@@ -49,3 +50,7 @@ stream = ExtResource("8_death")
 script = ExtResource("9_hitreact")
 hit_burst = ExtResource("10_burst")
 death_burst = ExtResource("10_burst")
+
+[node name="LockOnTargetComponent" type="Node3D" parent="." unique_id=2110957130]
+script = ExtResource("10_yjxd1")
+metadata/_custom_type_script = "uid://dglfsh64ac1f3"

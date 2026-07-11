@@ -111,10 +111,17 @@ suppressed and the camera auto-frames the target (FOV punches in to `locked_fov`
 forward/back approaches/retreats along the player→target line, left/right strafes
 tangentially to orbit, and the `Model` faces the target the whole time.
 
+**Weapon** — a `weapon_scene` (`@export`, default `PlayerRifle.tscn`) is instanced
+under a `WeaponSocket` (a child of `Model`, so it swings with the body's facing) on
+ready, with `owner_character` set to the player so its hitscan excludes us. The
+`attack` action fires it, **but only while locked on** — you shoot the thing you're
+locked to, and aim runs straight from the muzzle to the lock target. The weapon's
+own `should_fire_for_input()` decides semi vs auto from its `WeaponData`.
+
 It registers into the **`player`** group, exposes `hp` (read by the HUD), and on
 death calls `Events.player_killed.emit()` (which `GameManager` turns into a
 restart). Tuning lives in Inspector `@export` blocks (Movement / Look / Lock-On /
-Health / References), matching the iterate-by-playing workflow.
+Weapon / Health / References), matching the iterate-by-playing workflow.
 
 ### Lock-on (`objects/components/lock_on_component.gd`, `lock_on_target.gd`)
 
@@ -122,9 +129,11 @@ A `LockOnComponent` (`extends Component`) attached under the player owns
 **targeting only** — it never touches the camera rig (player.gd reads it
 duck-typed via `is_locked()` / `get_target()` / `get_eligible_targets()` so the
 pivot stays single-writer). Eligible entities are **opt-in by group**: add a
-`lock_on_target.gd` marker (a plain `Node3D`, no `class_name`) as a child at the
-aim point (e.g. chest height) — it registers itself in the **`lockable`** group;
-its `global_position` is the aim point and `get_parent()` is the entity. Each
+`LockOnTargetComponent` (`lock_on_target.gd`, a `Node3D`) as a child at the aim
+point (e.g. chest height) — it registers itself in the **`lockable`** group (toggle
+via its `enabled` flag / `set_lockable()`); its `global_position` is the aim point
+and `get_parent()` is the entity. `BaseEnemy.tscn` ships with one, so every enemy is
+lockable out of the box. Each
 frame the component gathers markers that are alive, within `max_lock_distance`, in
 front of the camera, and inside the inner `inner_viewport_fraction` of the
 viewport. Pressing `lock_on` locks the most-centered one; pressing again drops it;
@@ -230,6 +239,12 @@ Movement patterns (`objects/enemy/movement/`): `MovementPattern` base +
   (bodies exposing `take_damage` / `receive_attack` / `on_damage`).
 - **`HomingProjectile`** (`player/homing_projectile.gd`) — curves toward a target at
   a capped turn rate. Enemy bolt variants live under `objects/weapons/enemy/`.
+- **`HitscanWeapon`** (`base/HitscanWeapon.gd`) — instant raycast instead of a
+  projectile; used by the player's `PlayerRifle.tscn`. To damage enemies it needs
+  `collide_with_areas = true` and a `hitscan_collision_mask` covering the `enemy`
+  layer, because the hurtbox is a `HitBox` **Area3D**, not a body. `_apply_damage`
+  routes through `receive_hit` → `take_damage` → `on_damage` (first match wins), so
+  it feeds the same `HitBox.receive_hit` path the projectiles use.
 
 ### Blast radius & chain reactions (`objects/enemy/blast/`, `blast_component.gd`)
 
@@ -253,6 +268,7 @@ A clean snake_case FPS action set, each bound for **keyboard and gamepad**:
 | `jump` | Space | A button |
 | `look_left/right/up/down` | (mouse motion, in code) | right stick |
 | `lock_on` | O | right-stick click (R3) |
+| `attack` | left mouse | R2 trigger |
 | `restart` | R | Back button |
 
 (Movement is dual-bound to WASD **and** the right-hand IJKL cluster for

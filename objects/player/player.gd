@@ -59,6 +59,16 @@ extends CharacterBody3D
 ## How fast FOV / h_offset ease between free and locked.
 @export var blend_speed: float = 6.0
 
+@export_category("Weapon")
+## Weapon instanced under the WeaponSocket on ready and fired with `attack`
+## (semi/auto follows the weapon's own data). Swap it here to change loadout.
+@export var weapon_scene: PackedScene = preload("res://objects/weapons/player/PlayerRifle.tscn")
+## Socket the weapon is parented to. Under Model so it swings with the body's
+## facing (which, when locked, points at the target).
+@export var weapon_socket_path: NodePath = ^"Model/WeaponSocket"
+## Unlocked aim converges shots on the camera's center ray at this distance (m).
+@export var aim_distance: float = 50.0
+
 @export_category("Health")
 @export var max_hp: int = 100
 
@@ -80,6 +90,9 @@ var _gravity: float = 0.0
 var _yaw: float = 0.0
 var _pitch: float = 0.0
 var _base_fov: float = 65.0
+var _weapon: Node = null
+var _weapon_socket: Node3D = null
+var _muzzle: Node3D = null
 
 
 func _ready() -> void:
@@ -97,6 +110,8 @@ func _ready() -> void:
 	if _camera:
 		_base_fov = _camera.fov
 		_camera.h_offset = camera_h_offset
+	_weapon_socket = get_node_or_null(weapon_socket_path) as Node3D
+	_spawn_weapon()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -113,6 +128,7 @@ func _physics_process(delta: float) -> void:
 	_process_gamepad_look(delta)
 	_process_lock_camera(delta)
 	_process_movement(delta)
+	_process_weapon()
 
 
 ## Orbit the camera pivot: yaw around Y, pitch tilts the arm (clamped). Suppressed
@@ -229,6 +245,47 @@ func _lock_target() -> Node3D:
 		return null
 	var raw: Variant = _lock_on.call("get_target")
 	return raw as Node3D if is_instance_valid(raw) else null
+
+
+## Instance the weapon under the socket and tell it who owns it (so its hitscan
+## excludes the player). Referenced duck-typed to dodge the class-cache lag.
+func _spawn_weapon() -> void:
+	if weapon_scene == null or _weapon_socket == null:
+		return
+	_weapon = weapon_scene.instantiate()
+	_weapon_socket.add_child(_weapon)
+	_weapon.set("owner_character", self)
+	_muzzle = _weapon.get_node_or_null("Muzzle") as Node3D
+
+
+## Poll the attack action and let the weapon decide (semi vs auto) whether to fire.
+## Firing is gated on lock-on — you shoot the thing you're locked to.
+func _process_weapon() -> void:
+	if _weapon == null or not _is_locked():
+		return
+	var pressed := Input.is_action_pressed(&"attack")
+	var just := Input.is_action_just_pressed(&"attack")
+	if not bool(_weapon.call("should_fire_for_input", pressed, just)):
+		return
+	var muzzle_pos := _muzzle.global_position if _muzzle else (_weapon as Node3D).global_position
+	_weapon.call("try_fire", _aim_direction(muzzle_pos))
+
+
+## Where the shot goes: straight at the lock-on target when locked, otherwise
+## converging on the camera's center ray so it tracks the crosshair.
+func _aim_direction(muzzle_pos: Vector3) -> Vector3:
+	if _is_locked():
+		var target: Node3D = _lock_target()
+		if target != null:
+			var to_target := target.global_position - muzzle_pos
+			if to_target.length_squared() > 0.0001:
+				return to_target.normalized()
+	if _camera:
+		var focus := _camera.global_position - _camera.global_transform.basis.z * aim_distance
+		var to_focus := focus - muzzle_pos
+		if to_focus.length_squared() > 0.0001:
+			return to_focus.normalized()
+	return -global_transform.basis.z
 
 
 ## Apply damage; emit player_killed at 0 HP so GameManager restarts the level.

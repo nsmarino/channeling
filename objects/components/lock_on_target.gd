@@ -1,4 +1,5 @@
 extends Node3D
+class_name LockOnTargetComponent
 
 ## Opt-in lock-on marker. Add as a child of any entity (enemy, prop, boss) and
 ## place it at the point the camera should aim at when locked — usually chest or

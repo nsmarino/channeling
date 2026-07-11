@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cplayrscn0fps"]
 
 [ext_resource type="Script" uid="uid://cplayrgd0fps1" path="res://objects/player/player.gd" id="1_player"]
-[ext_resource type="Script" path="res://objects/components/lock_on_component.gd" id="2_lockon"]
+[ext_resource type="Script" uid="uid://dqp4ncqc8v4gb" path="res://objects/components/lock_on_component.gd" id="2_lockon"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
@@ -14,35 +14,37 @@ height = 1.8
 [sub_resource type="BoxMesh" id="BoxMesh_front"]
 size = Vector3(0.25, 0.25, 0.3)
 
-[node name="Player" type="CharacterBody3D" groups=["player"]]
+[node name="Player" type="CharacterBody3D" unique_id=1382951870 groups=["player"]]
 collision_layer = 2
 script = ExtResource("1_player")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2668393]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_player")
 
-[node name="Model" type="Node3D" parent="."]
+[node name="Model" type="Node3D" parent="." unique_id=1371042896]
 
-[node name="BodyMesh" type="MeshInstance3D" parent="Model"]
+[node name="BodyMesh" type="MeshInstance3D" parent="Model" unique_id=1171097817]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 mesh = SubResource("CapsuleMesh_body")
 
-[node name="FrontIndicator" type="MeshInstance3D" parent="Model"]
+[node name="FrontIndicator" type="MeshInstance3D" parent="Model" unique_id=1354955092]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, -0.4)
 mesh = SubResource("BoxMesh_front")
 
-[node name="CameraPivot" type="Node3D" parent="."]
+[node name="CameraPivot" type="Node3D" parent="." unique_id=1118956827]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
-[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=876503036]
 spring_length = 4.0
 margin = 0.2
-collision_mask = 1
 
-[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D" unique_id=1168240129]
 current = true
 fov = 65.0
 
-[node name="LockOnComponent" type="Node" parent="."]
+[node name="LockOnComponent" type="Node" parent="." unique_id=836065464]
 script = ExtResource("2_lockon")
+
+[node name="WeaponSocket" type="Node3D" parent="Model" unique_id=1659372612]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6123047, 0.9638977, -1.3920898)
