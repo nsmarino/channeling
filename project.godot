@@ -15,23 +15,21 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="channeling"
-config/tags=PackedStringArray("avern_starter")
+config/tags=PackedStringArray("game")
 run/main_scene="uid://dm0ymt1k01748"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
-
-
-
-
 Events="*res://autoloads/events.gd"
 GameManager="*res://autoloads/game_manager.gd"
+Cinematic="*res://autoloads/cinematic.gd"
 
 [debug]
 
 gdscript/warnings/untyped_declaration=1
+shapes/paths/geometry_width=5.0
 
 [display]
 
@@ -40,7 +38,7 @@ window/size/viewport_height=768
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/nurbs_path/plugin.cfg", "res://addons/view_overlay_toggle/plugin.cfg")
+enabled=PackedStringArray("res://addons/GPUTrail/plugin.cfg", "res://addons/nurbs_path/plugin.cfg", "res://addons/view_overlay_toggle/plugin.cfg")
 
 [global_group]
 

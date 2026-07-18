@@ -1,0 +1,94 @@
+[gd_scene format=3 uid="uid://b6mr14yhrmla7"]
+
+[ext_resource type="Texture2D" uid="uid://c58clyh2d4y0j" path="res://assets/kenney_prototype-textures/PNG/Light/texture_06.png" id="1_r4t5x"]
+[ext_resource type="Texture2D" uid="uid://c0y4c0hl3jy43" path="res://assets/kenney_prototype-textures/PNG/Light/texture_08.png" id="2_egf0c"]
+[ext_resource type="ArrayMesh" uid="uid://cqimmtsmos33i" path="res://assets/models/csg-hill.glb" id="3_r4t5x"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wsp3h"]
+albedo_color = Color(2.2862106e-07, 0.18624485, 0.10924091, 1)
+albedo_texture = ExtResource("1_r4t5x")
+metallic = 0.4
+roughness = 0.6
+uv1_scale = Vector3(0.125, 0.125, 0.125)
+uv1_triplanar = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rdbjv"]
+albedo_color = Color(0.59822047, 0.3686421, 0.27896923, 1)
+albedo_texture = ExtResource("2_egf0c")
+metallic = 1.0
+metallic_specular = 0.0
+uv1_scale = Vector3(0.125, 0.125, 0.125)
+uv1_triplanar = true
+
+[node name="Node3D" type="Node3D" unique_id=571747656]
+
+[node name="Structure" type="CSGCombiner3D" parent="." unique_id=489622229]
+material_override = SubResource("StandardMaterial3D_wsp3h")
+use_collision = true
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Structure" unique_id=146387018]
+size = Vector3(32, 16, 32)
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="Structure" unique_id=1800338511]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 9, 0)
+size = Vector3(8, 2, 12)
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="Structure" unique_id=1211281114]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, -2)
+polygon = PackedVector2Array(0, 0, 0, 1, 2, 0)
+depth = 4.0
+
+[node name="CSGPolygon3D3" type="CSGPolygon3D" parent="Structure" unique_id=26113276]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 6)
+polygon = PackedVector2Array(0, 0, 0, 1, 2, 0)
+depth = 4.0
+
+[node name="CSGPolygon3D2" type="CSGPolygon3D" parent="Structure" unique_id=384348253]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 2)
+polygon = PackedVector2Array(0, 0, 0, 2, 4, 0)
+depth = 4.0
+
+[node name="CSGPolygon3D4" type="CSGPolygon3D" parent="Structure" unique_id=1415825077]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 6, 4)
+polygon = PackedVector2Array(0, 0, 0, 2, 4, 0)
+depth = 8.0
+
+[node name="CSGPolygon3D5" type="CSGPolygon3D" parent="Structure" unique_id=1493129225]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 4, 4)
+polygon = PackedVector2Array(0, 0, 0, 2, 4, 0)
+depth = 8.0
+
+[node name="Terrain" type="CSGCombiner3D" parent="." unique_id=1533778489]
+material_override = SubResource("StandardMaterial3D_rdbjv")
+use_collision = true
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Terrain" unique_id=569593924]
+size = Vector3(64, 1, 64)
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="Terrain" unique_id=1385340837]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, -8, -32)
+size = Vector3(1, 16, 64)
+
+[node name="CSGBox3D5" type="CSGBox3D" parent="Terrain" unique_id=1669208881]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, -8, 32)
+size = Vector3(1, 16, 64)
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="Terrain" unique_id=1088747115]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 35)
+mesh = ExtResource("3_r4t5x")
+
+[node name="CSGMesh3D4" type="CSGMesh3D" parent="Terrain" unique_id=778324518]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, -34)
+mesh = ExtResource("3_r4t5x")
+
+[node name="CSGMesh3D5" type="CSGMesh3D" parent="Terrain" unique_id=1681774548]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -32, -10, 1)
+mesh = ExtResource("3_r4t5x")
+
+[node name="CSGMesh3D2" type="CSGMesh3D" parent="Terrain" unique_id=240794191]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 15, -5, 11)
+mesh = ExtResource("3_r4t5x")
+
+[node name="CSGMesh3D3" type="CSGMesh3D" parent="Terrain" unique_id=1013376368]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 15, -5, -12)
+mesh = ExtResource("3_r4t5x")

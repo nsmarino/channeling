@@ -82,6 +82,10 @@ extends CharacterBody3D
 
 var hp: int = 0
 
+## Cleared while a cutscene runs (Events.cutscene_started/finished). Input is
+## ignored and the body coasts to a stop; the camera is handed back on finish.
+var _control_enabled: bool = true
+
 var _pivot: Node3D = null
 var _model: Node3D = null
 var _camera: Camera3D = null
@@ -112,10 +116,14 @@ func _ready() -> void:
 		_camera.h_offset = camera_h_offset
 	_weapon_socket = get_node_or_null(weapon_socket_path) as Node3D
 	_spawn_weapon()
+	Events.cutscene_started.connect(_on_cutscene_started)
+	Events.cutscene_finished.connect(_on_cutscene_finished)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not _control_enabled:
+		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var motion := event as InputEventMouseMotion
 		_apply_look(-motion.relative.x * mouse_sensitivity, -motion.relative.y * mouse_sensitivity)
@@ -125,10 +133,34 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if not _control_enabled:
+		_process_frozen(delta)
+		return
 	_process_gamepad_look(delta)
 	_process_lock_camera(delta)
 	_process_movement(delta)
 	_process_weapon()
+
+
+## While a cutscene owns control: no input, but keep the body honest — apply
+## gravity and bleed off any horizontal momentum so it settles in place.
+func _process_frozen(delta: float) -> void:
+	if not is_on_floor():
+		velocity.y -= _gravity * delta
+	velocity.x = move_toward(velocity.x, 0.0, ground_acceleration * delta)
+	velocity.z = move_toward(velocity.z, 0.0, ground_acceleration * delta)
+	move_and_slide()
+
+
+func _on_cutscene_started() -> void:
+	_control_enabled = false
+
+
+## Control returns to the player: reclaim the camera the cutscene borrowed.
+func _on_cutscene_finished() -> void:
+	_control_enabled = true
+	if _camera:
+		_camera.current = true
 
 
 ## Orbit the camera pivot: yaw around Y, pitch tilts the arm (clamped). Suppressed
