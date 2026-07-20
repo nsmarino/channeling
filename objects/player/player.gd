@@ -85,6 +85,9 @@ extends CharacterBody3D
 
 var hp: int = 0
 
+## Running total of collected PowerDrops.
+var power: int = 0
+
 ## Cleared while a cutscene runs (Events.cutscene_started/finished). Input is
 ## ignored and the body coasts to a stop; the camera is handed back on finish.
 var _control_enabled: bool = true
@@ -346,6 +349,13 @@ func apply_knockback(impulse: Vector3, duration: float) -> void:
 	if impulse.y > 0.0:
 		velocity.y = impulse.y
 	_knockback_timer = maxf(_knockback_timer, duration)
+
+
+## Collect a PowerDrop. Called duck-typed by the drop when we walk into it.
+## Console-only for now — wire it to the HUD once the feature firms up.
+func collect_power(amount: int) -> void:
+	power += amount
+	print("[Player] Power: %d" % power)
 
 
 ## Apply damage; emit player_killed at 0 HP so GameManager restarts the level.
