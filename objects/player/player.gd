@@ -34,6 +34,9 @@ extends CharacterBody3D
 @export var gravity_override: float = 0.0
 ## How quickly the model swings to face its target direction (radians/sec).
 @export var turn_speed: float = 12.0
+## How fast an external knockback impulse bleeds off (units/sec²). Lower = you
+## slide further after a bump.
+@export var knockback_damping: float = 18.0
 
 @export_category("Look")
 ## Mouse look sensitivity, radians per pixel of motion.
@@ -85,6 +88,10 @@ var hp: int = 0
 ## Cleared while a cutscene runs (Events.cutscene_started/finished). Input is
 ## ignored and the body coasts to a stop; the camera is handed back on finish.
 var _control_enabled: bool = true
+
+## Seconds remaining in which an external impulse (bump combat) owns horizontal
+## movement instead of input. See apply_knockback().
+var _knockback_timer: float = 0.0
 
 var _pivot: Node3D = null
 var _model: Node3D = null
@@ -215,6 +222,16 @@ func _process_movement(delta: float) -> void:
 	elif Input.is_action_just_pressed(&"jump"):
 		velocity.y = jump_velocity
 
+	# A knockback impulse owns horizontal velocity for a moment — skip input
+	# steering and let it bleed off, so the bounce actually reads.
+	if _knockback_timer > 0.0:
+		_knockback_timer -= delta
+		var damp := knockback_damping * delta
+		velocity.x = move_toward(velocity.x, 0.0, damp)
+		velocity.z = move_toward(velocity.z, 0.0, damp)
+		move_and_slide()
+		return
+
 	var input := Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
 	var target: Node3D = _lock_target() if _is_locked() else null
 	var direction := _orbit_direction(input, target) if target != null \
@@ -318,6 +335,17 @@ func _aim_direction(muzzle_pos: Vector3) -> Vector3:
 		if to_focus.length_squared() > 0.0001:
 			return to_focus.normalized()
 	return -global_transform.basis.z
+
+
+## Shove the player with an external impulse (BumpCombatComponent uses this on a
+## landed bump). Movement input is suppressed for `duration` so the hit reads;
+## overlapping calls keep the longest remaining window rather than cutting it short.
+func apply_knockback(impulse: Vector3, duration: float) -> void:
+	velocity.x = impulse.x
+	velocity.z = impulse.z
+	if impulse.y > 0.0:
+		velocity.y = impulse.y
+	_knockback_timer = maxf(_knockback_timer, duration)
 
 
 ## Apply damage; emit player_killed at 0 HP so GameManager restarts the level.

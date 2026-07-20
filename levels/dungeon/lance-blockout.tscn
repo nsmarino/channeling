@@ -1,0 +1,230 @@
+[gd_scene format=3 uid="uid://ccj3g5kmvib3c"]
+
+[ext_resource type="Texture2D" uid="uid://c58clyh2d4y0j" path="res://assets/kenney_prototype-textures/PNG/Light/texture_06.png" id="1_dd8ae"]
+[ext_resource type="Texture2D" uid="uid://c0y4c0hl3jy43" path="res://assets/kenney_prototype-textures/PNG/Light/texture_08.png" id="2_vse8v"]
+[ext_resource type="ArrayMesh" uid="uid://cqimmtsmos33i" path="res://assets/models/csg-hill.glb" id="3_7a6q2"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wsp3h"]
+albedo_color = Color(2.2862106e-07, 0.18624485, 0.10924091, 1)
+albedo_texture = ExtResource("1_dd8ae")
+metallic = 0.4
+roughness = 0.8
+uv1_scale = Vector3(0.125, 0.125, 0.125)
+uv1_triplanar = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rdbjv"]
+albedo_color = Color(0.59822047, 0.3686421, 0.27896923, 1)
+albedo_texture = ExtResource("2_vse8v")
+metallic = 1.0
+metallic_specular = 0.0
+uv1_scale = Vector3(0.125, 0.125, 0.125)
+uv1_triplanar = true
+
+[node name="LOCAL-csg2" type="Node3D" unique_id=960180503]
+
+[node name="Structure" type="CSGCombiner3D" parent="." unique_id=1361936362]
+material_override = SubResource("StandardMaterial3D_wsp3h")
+use_collision = true
+
+[node name="8x16Platform" type="CSGBox3D" parent="Structure" unique_id=1663560514]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, -4)
+size = Vector3(8, 1, 16)
+
+[node name="8x16Platform5" type="CSGBox3D" parent="Structure" unique_id=245066577]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, 12)
+size = Vector3(8, 1, 16)
+
+[node name="8x16Platform3" type="CSGBox3D" parent="Structure" unique_id=1790449471]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 9, -31)
+size = Vector3(8, 1, 16)
+
+[node name="8x16Platform2" type="CSGBox3D" parent="Structure" unique_id=980156617]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 9, -11)
+size = Vector3(8, 1, 16)
+
+[node name="8x16Platform4" type="CSGBox3D" parent="Structure" unique_id=40778479]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 21, -51)
+size = Vector3(8, 1, 16)
+
+[node name="16x16Platform" type="CSGBox3D" parent="Structure" unique_id=1246158339]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, -20)
+size = Vector3(16, 1, 16)
+
+[node name="16x16Platform2" type="CSGBox3D" parent="Structure" unique_id=195568000]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -31, 9, -18)
+size = Vector3(16, 1, 16)
+
+[node name="8x8Platform3" type="CSGBox3D" parent="Structure" unique_id=991294441]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 9, -1)
+size = Vector3(8, 1, 8)
+
+[node name="8x8Platform5" type="CSGBox3D" parent="Structure" unique_id=834045718]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72, 21, -51)
+size = Vector3(8, 1, 8)
+
+[node name="8x8Platform10" type="CSGBox3D" parent="Structure" unique_id=20816814]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 14, -51)
+size = Vector3(8, 1, 8)
+
+[node name="8x8Platform4" type="CSGBox3D" parent="Structure" unique_id=83486292]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 9, -35)
+size = Vector3(8, 1, 8)
+
+[node name="8x8Platform11" type="CSGBox3D" parent="Structure" unique_id=169047517]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 11.5, -35)
+size = Vector3(8, 4, 8)
+
+[node name="8x8Platform7" type="CSGBox3D" parent="Structure" unique_id=566033998]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 9, -35)
+size = Vector3(8, 1, 8)
+
+[node name="8x8Platform6" type="CSGBox3D" parent="Structure" unique_id=1936169978]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 11, -43)
+size = Vector3(8, 5, 8)
+
+[node name="8x8Platform8" type="CSGBox3D" parent="Structure" unique_id=376175922]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 13.5, -51)
+size = Vector3(8, 8, 8)
+
+[node name="8x8Platform9" type="CSGBox3D" parent="Structure" unique_id=927370699]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44, 21, -27)
+size = Vector3(8, 1, 8)
+
+[node name="4x8Platform" type="CSGBox3D" parent="Structure" unique_id=1437911511]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 9, 5)
+size = Vector3(4, 1, 8)
+
+[node name="4x8Platform3" type="CSGBox3D" parent="Structure" unique_id=1452095855]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 27, -51)
+size = Vector3(4, 1, 8)
+
+[node name="4x8Platform4" type="CSGBox3D" parent="Structure" unique_id=2022019018]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 27, -51)
+size = Vector3(4, 1, 8)
+
+[node name="4x8Platform2" type="CSGBox3D" parent="Structure" unique_id=1837606250]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 21, -51)
+size = Vector3(4, 1, 8)
+
+[node name="4x16Platform" type="CSGBox3D" parent="Structure" unique_id=1248316590]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 9, 18)
+size = Vector3(4, 1, 16)
+
+[node name="4x16Platform2" type="CSGBox3D" parent="Structure" unique_id=1146448160]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 56, 27.2, -51)
+size = Vector3(4, 0.6, 16)
+
+[node name="4x4Platform" type="CSGBox3D" parent="Structure" unique_id=801989457]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 9, 3)
+size = Vector3(4, 1, 4)
+
+[node name="2x2Platform" type="CSGBox3D" parent="Structure" unique_id=623546752]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 9, 7)
+size = Vector3(2, 1, 2)
+
+[node name="RampSmall" type="CSGPolygon3D" parent="Structure" unique_id=520194790]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 8, 14)
+polygon = PackedVector2Array(0, 0, 0, 1, 2, 0)
+depth = 4.0
+
+[node name="RampMedium" type="CSGPolygon3D" parent="Structure" unique_id=1985612181]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 8, 9)
+polygon = PackedVector2Array(0, 0, 0, 2, 4, 0)
+depth = 4.0
+
+[node name="RampMedium2" type="CSGPolygon3D" parent="Structure" unique_id=1292979449]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 44, 17.5, -31.021759)
+polygon = PackedVector2Array(0, 0, 0, 4, 16, 0)
+depth = 4.0
+
+[node name="RampMedium3" type="CSGPolygon3D" parent="Structure" unique_id=1963788828]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 44, 21.5, -47.02176)
+polygon = PackedVector2Array(0, 0, 0, 6, 16, 0)
+depth = 4.0
+
+[node name="8x8x4Ramp" type="CSGPolygon3D" parent="Structure" unique_id=1425246320]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 4, 4)
+polygon = PackedVector2Array(0, 0, 0, 4, 8, 0)
+depth = 8.0
+
+[node name="8x8x4Ramp2" type="CSGPolygon3D" parent="Structure" unique_id=1893167752]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 32, 9.5, -39)
+polygon = PackedVector2Array(0, 0, 0, 4, 8, 0)
+depth = 8.0
+
+[node name="8x8x4Ramp4" type="CSGPolygon3D" parent="Structure" unique_id=949473878]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 48, 17.5, -55)
+polygon = PackedVector2Array(0, 0, 0, 4, 8, 0)
+depth = 8.0
+
+[node name="8x8x4Ramp3" type="CSGPolygon3D" parent="Structure" unique_id=1863370274]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 32, 13.5, -47)
+polygon = PackedVector2Array(0, 0, 0, 4, 8, 0)
+depth = 8.0
+
+[node name="Terrain" type="CSGCombiner3D" parent="." unique_id=1049445748]
+material_override = SubResource("StandardMaterial3D_rdbjv")
+use_collision = true
+
+[node name="8x8Wall" type="CSGBox3D" parent="Terrain" unique_id=532581775]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 33, -31)
+size = Vector3(8, 8, 1)
+
+[node name="4x8Wall" type="CSGBox3D" parent="Terrain" unique_id=68279818]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 23, -27)
+size = Vector3(4, 8, 1)
+
+[node name="4x4Wall" type="CSGBox3D" parent="Terrain" unique_id=203052457]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 29, -28)
+size = Vector3(4, 4, 1)
+
+[node name="16x8Wall" type="CSGBox3D" parent="Terrain" unique_id=1846348418]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 13.5, -27.8)
+size = Vector3(16, 8, 0.5)
+
+[node name="16x8Wall2" type="CSGBox3D" parent="Terrain" unique_id=391662977]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -7.8, 13.5, -19.999996)
+size = Vector3(16, 8, 0.5)
+
+[node name="16x8Wall3" type="CSGBox3D" parent="Terrain" unique_id=1129205573]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -3.8000002, 13.5, -3.9999962)
+size = Vector3(16, 8, 0.5)
+
+[node name="16x8Wall4" type="CSGBox3D" parent="Terrain" unique_id=1868411525]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.7999997, 13.5, -3.9999962)
+size = Vector3(16, 8, 0.5)
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="Terrain" unique_id=244717795]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, -8, -32)
+visible = false
+size = Vector3(1, 16, 64)
+
+[node name="CSGBox3D5" type="CSGBox3D" parent="Terrain" unique_id=2085233883]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, -8, 32)
+visible = false
+size = Vector3(1, 16, 64)
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="Terrain" unique_id=377524865]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 35)
+visible = false
+mesh = ExtResource("3_7a6q2")
+
+[node name="CSGMesh3D4" type="CSGMesh3D" parent="Terrain" unique_id=657631115]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, -34)
+visible = false
+mesh = ExtResource("3_7a6q2")
+
+[node name="CSGMesh3D5" type="CSGMesh3D" parent="Terrain" unique_id=1032976883]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -32, -10, 1)
+visible = false
+mesh = ExtResource("3_7a6q2")
+
+[node name="CSGMesh3D2" type="CSGMesh3D" parent="Terrain" unique_id=1972937380]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 15, -5, 11)
+visible = false
+mesh = ExtResource("3_7a6q2")
+
+[node name="CSGMesh3D3" type="CSGMesh3D" parent="Terrain" unique_id=1895355064]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 15, -5, -12)
+visible = false
+mesh = ExtResource("3_7a6q2")

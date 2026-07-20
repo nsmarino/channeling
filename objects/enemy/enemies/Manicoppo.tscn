@@ -2,6 +2,8 @@
 
 [ext_resource type="PackedScene" uid="uid://t8fvwynvct2" path="res://objects/enemy/base/BaseEnemy.tscn" id="1_7nm3q"]
 [ext_resource type="PackedScene" uid="uid://dhduxwhj7qg5f" path="res://assets/models/test/manicoppo-for-export.glb" id="2_e4ut0"]
+[ext_resource type="Resource" path="res://objects/enemy/movement/manicoppo_wander.tres" id="3_wander"]
+[ext_resource type="Script" path="res://objects/components/locomotion_animator.gd" id="4_locomotion"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_e4ut0"]
 height = 1.5
@@ -15,12 +17,16 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.39999998, 0)
 shape = SubResource("CapsuleShape3D_e4ut0")
 
+[node name="MovementComponent" parent="." index="1" unique_id=1586329003]
+pattern = ExtResource("3_wander")
+
 [node name="LockOnTargetComponent" parent="." index="6" unique_id=2110957130]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 
 [node name="manicoppo-for-export" parent="." index="7" unique_id=516075957 instance=ExtResource("2_e4ut0")]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 0, 0)
 
-[node name="Skeleton3D" parent="manicoppo-for-export/CharacterArmature" parent_id_path=PackedInt32Array(516075957, 270825470) index="0" unique_id=1944559995]
+[node name="Skeleton3D" parent="manicoppo-for-export/CharacterArmature" parent_id_path=PackedInt32Array(516075957, 1655222848) index="0" unique_id=52580403]
 bones/1/position = Vector3(0.34293205, 0.8316578, 0.9532225)
 bones/2/position = Vector3(-0.34293205, 0.8316578, 0.9532225)
 bones/3/position = Vector3(0.40417477, 0.95125085, 0.60113156)
@@ -112,7 +118,16 @@ bones/81/position = Vector3(0.19672349, 1.5932908, -0.58319473)
 bones/81/rotation = Quaternion(0.7071068, 5.3385087e-08, 5.3385087e-08, 0.7071068)
 bones/88/position = Vector3(-9.105638e-08, -0.5123129, 0.57645375)
 
-[node name="AnimationPlayer" parent="manicoppo-for-export" index="1" unique_id=180861247]
+[node name="AnimationPlayer" parent="manicoppo-for-export" index="1" unique_id=2133788793]
 autoplay = &"Idle1"
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." index="8" unique_id=1500000031]
+path_desired_distance = 0.6
+height = 1.5
+
+[node name="LocomotionAnimator" type="Node" parent="." index="9" unique_id=1500000032]
+script = ExtResource("4_locomotion")
+move_animation = &"LeanForward"
+idle_animation = &"Idle1"
 
 [editable path="manicoppo-for-export"]

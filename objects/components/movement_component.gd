@@ -62,18 +62,22 @@ func _physics_process(delta: float) -> void:
 
 
 ## Turn the body toward the player (face_player) or along its travel direction.
+##
+## Facing follows Godot's standard convention: the body's **-Z** is its forward,
+## so `atan2(-x, -z)` (matching player.gd) puts -Z on the target. Muzzles and
+## other "in front of me" markers therefore sit at negative Z.
 func _update_facing(delta: float) -> void:
 	var target_yaw: float
 	if face_player and _player:
 		var to_player: Vector3 = _player.global_position - _body.global_position
 		if absf(to_player.x) < 0.001 and absf(to_player.z) < 0.001:
 			return
-		target_yaw = atan2(to_player.x, to_player.z)
+		target_yaw = atan2(-to_player.x, -to_player.z)
 	elif face_travel_direction:
 		var flat: Vector3 = Vector3(_body.velocity.x, 0.0, _body.velocity.z)
 		if flat.length_squared() <= 0.04:
 			return
-		target_yaw = atan2(flat.x, flat.z)
+		target_yaw = atan2(-flat.x, -flat.z)
 	else:
 		return
 	_body.rotation.y = lerp_angle(_body.rotation.y, target_yaw, clampf(turn_lerp * delta, 0.0, 1.0))

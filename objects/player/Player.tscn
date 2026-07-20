@@ -2,10 +2,14 @@
 
 [ext_resource type="Script" uid="uid://cplayrgd0fps1" path="res://objects/player/player.gd" id="1_player"]
 [ext_resource type="Script" uid="uid://dqp4ncqc8v4gb" path="res://objects/components/lock_on_component.gd" id="2_lockon"]
+[ext_resource type="Script" path="res://objects/components/bump_combat_component.gd" id="3_bump"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
 height = 1.8
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_bump"]
+radius = 0.9
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
 radius = 0.4
@@ -48,3 +52,12 @@ fov = 65.0
 
 [node name="LockOnComponent" type="Node" parent="." unique_id=836065464]
 script = ExtResource("2_lockon")
+
+[node name="BumpCombat" type="Area3D" parent="." unique_id=1500000021]
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("3_bump")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BumpCombat" unique_id=1500000022]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("SphereShape3D_bump")

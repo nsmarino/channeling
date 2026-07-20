@@ -321,6 +321,11 @@ in `lock_on_target.gd._ready`). Lookups use
 ## Conventions
 
 - GDScript with **static typing** throughout. Untyped declarations warn.
+- **Facing is Godot-standard `-Z` forward**, everywhere — the player, enemies
+  (`MovementComponent` aims with `atan2(-x, -z)`), and weapons (which fire along
+  `-basis.z`). "In front of me" markers like `Muzzle` therefore sit at **negative
+  Z**. Don't reintroduce a `+Z`-forward node; rotate the *model* child instead if
+  imported art faces the wrong way.
 - Cross-system signals go through `Events` rather than direct node-to-node connections.
 - Components attach by `script` on a child node and resolve `host`/siblings in
   `_setup()`; the `Destructible` parent coordinates them via the duck-typed
