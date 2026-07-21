@@ -80,6 +80,13 @@ enum Action { NONE, ORBIT_LEFT, ORBIT_RIGHT, ATTACK }
 @export_range(0.0, 1.0, 0.01) var hit_window_end: float = 0.68
 ## Damage per connected swing.
 @export var attack_damage: int = 12
+## Knockback a landed swing deals the player — deliberately gentler than the
+## ZigzagTwirl's fling.
+@export var swing_knockback_force: float = 8.0
+## Upward pop on a swing hit.
+@export var swing_knockback_up: float = 2.0
+## Seconds a swing hit suppresses the player's input.
+@export var swing_knockback_duration: float = 0.18
 
 @export_group("Zigzag Twirl")
 ## Chance a swing combo is chased by a ZigzagTwirl. Only ever follows swings.
@@ -134,7 +141,7 @@ var _agent: NavigationAgent3D = null
 var _perception: Node = null
 var _player: Node3D = null
 
-var _attack_box: Area3D = null
+var _hitbox: Node = null  # MeleeHitbox on the AttackBox (duck-typed)
 var _ap: AnimationPlayer = null
 
 var _state: State = State.WANDER
@@ -163,14 +170,14 @@ func _setup() -> void:
 	_move = get_node_or_null(movement_path)
 	_agent = get_node_or_null(agent_path) as NavigationAgent3D
 	_perception = get_node_or_null(perception_path)
-	_attack_box = get_node_or_null(attack_box_path) as Area3D
+	_hitbox = get_node_or_null(attack_box_path)
 	if animation_player_path != NodePath() and has_node(animation_player_path):
 		_ap = get_node(animation_player_path) as AnimationPlayer
 	else:
 		_ap = _find_animation_player(host)
 	if _move == null:
 		push_warning("[EnemyBrain] No MovementComponent at '%s'; brain disabled." % movement_path)
-	_set_attack_box(false)
+	_close_hitbox()
 	set_physics_process(false)
 
 
@@ -204,7 +211,7 @@ func _abort_actions() -> void:
 	_busy = false
 	_committed = false
 	_action = Action.NONE
-	_set_attack_box(false)
+	_close_hitbox()
 	if _ap:
 		# The twirl parks speed_scale at 0 to freeze its pose — restore it, or every
 		# later animation would play frozen.
@@ -466,7 +473,7 @@ func _finish_action(token: int) -> void:
 	_busy = false
 	_committed = false
 	_action = Action.NONE
-	_set_attack_box(false)
+	_close_hitbox()
 
 
 ## Plant the feet for one frame. Needed rather than simply not steering: drive()
@@ -525,7 +532,6 @@ func _swing(token: int, base_yaw: float) -> bool:
 	_ap.play(attack_animation)
 
 	var open: bool = false
-	var hit_landed: bool = false
 
 	while _ap.is_playing() and _ap.current_animation == String(attack_animation):
 		if not _still_running(token):
@@ -544,16 +550,20 @@ func _swing(token: int, base_yaw: float) -> bool:
 			_move.call("set_facing", target_yaw)
 		_move.call("drive", Vector3.ZERO)
 
+		# The MeleeHitbox owns detection + damage + knockback while open; a cooldown
+		# above the window length keeps a swing to one connection. Gentle knockback.
 		var should_open: bool = t >= hit_window_start and t <= hit_window_end
 		if should_open != open:
 			open = should_open
-			_set_attack_box(open)
-		if open and not hit_landed and _attack_box_hit_player():
-			hit_landed = true  # one connection per swing.
+			if open and _hitbox:
+				_hitbox.call("open", attack_damage, swing_knockback_force,
+					swing_knockback_up, swing_knockback_duration, 1.0)
+			else:
+				_close_hitbox()
 
 		await get_tree().physics_frame
 
-	_set_attack_box(false)
+	_close_hitbox()
 	_ap.speed_scale = 1.0
 	return _still_running(token)
 
@@ -580,11 +590,13 @@ func _zigzag_twirl(token: int) -> bool:
 
 	_twirl_yaw = _body.rotation.y
 	_twirl_dir = _random_heading()
-	_set_attack_box(true)  # the sweeping "hands" that do the flinging.
+	# The sweeping "hands": the MeleeHitbox flings whoever it catches, on its own
+	# per-target cooldown, so a spin is a series of impacts not a per-frame barrage.
+	if _hitbox:
+		_hitbox.call("open", zigzag_damage, fling_force, fling_up, fling_duration, zigzag_hit_cooldown)
 
 	var elapsed: float = 0.0
 	var reroll: float = 0.0
-	var hit_cd: float = 0.0
 	var dt: float = get_physics_process_delta_time()
 
 	while elapsed < zigzag_duration:
@@ -602,12 +614,6 @@ func _zigzag_twirl(token: int) -> bool:
 			_twirl_dir = _strong_turn(_twirl_dir)
 			reroll = zigzag_reroll_interval
 		_zigzag_move(dt)
-
-		# Fling whoever the sweeping hands catch, on a per-target cooldown so a spin
-		# is a series of impacts, not a per-frame machine-gun.
-		hit_cd -= dt
-		if hit_cd <= 0.0 and _twirl_fling_player():
-			hit_cd = zigzag_hit_cooldown
 
 		elapsed += dt
 		await get_tree().physics_frame
@@ -672,26 +678,6 @@ func _strong_turn(current: Vector3) -> Vector3:
 
 ## Fling the player if the (spinning) AttackBox is over them. Distinct from a swing
 ## hit: bigger knockback, away from the enemy, damage optional.
-func _twirl_fling_player() -> bool:
-	if _attack_box == null:
-		return false
-	for body: Node3D in _attack_box.get_overlapping_bodies():
-		if not body.is_in_group("player"):
-			continue
-		if body.has_method("apply_knockback"):
-			var away: Vector3 = body.global_position - _body.global_position
-			away.y = 0.0
-			var dir: Vector3 = away.normalized() if away.length_squared() > 0.0001 \
-				else -_body.global_transform.basis.z
-			body.call("apply_knockback", dir * fling_force + Vector3.UP * fling_up, fling_duration)
-		if zigzag_damage > 0 and body.has_method("take_damage"):
-			body.call("take_damage", zigzag_damage)
-		if debug_log:
-			print("[EnemyBrain] %s flung the player" % String(host.name))
-		return true
-	return false
-
-
 ## Like _wait, but holds facing where it is (no player aim) — for the windup.
 func _wait_still(seconds: float, token: int) -> bool:
 	var elapsed: float = 0.0
@@ -705,7 +691,7 @@ func _wait_still(seconds: float, token: int) -> bool:
 
 
 func _twirl_cleanup() -> void:
-	_set_attack_box(false)
+	_close_hitbox()
 	if _ap:
 		_ap.speed_scale = 1.0
 		if _ap.current_animation == String(attack_animation):
@@ -752,21 +738,9 @@ func _retreat(token: int) -> void:
 		await get_tree().physics_frame
 
 
-func _set_attack_box(on: bool) -> void:
-	if _attack_box:
-		_attack_box.monitoring = on
-
-
-func _attack_box_hit_player() -> bool:
-	if _attack_box == null:
-		return false
-	for body: Node3D in _attack_box.get_overlapping_bodies():
-		if body.is_in_group("player") and body.has_method("take_damage"):
-			body.call("take_damage", attack_damage)
-			if debug_log:
-				print("[EnemyBrain] %s hit the player for %d" % [String(host.name), attack_damage])
-			return true
-	return false
+func _close_hitbox() -> void:
+	if _hitbox:
+		_hitbox.call("close")
 
 
 ## Yaw that points our -Z at `point`.

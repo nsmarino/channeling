@@ -231,18 +231,24 @@ that method (duck-typed dispatch — the host needs no per-component knowledge).
 Component roster: `HitBox` (routes `receive_hit` → host `take_damage`),
 `MovementComponent` (drives the body via a `MovementPattern`, and turns it to face
 travel or — with `face_player` — the player; a null pattern = a stationary sentry
-that still aims; also takes an external `apply_knockback` that overrides the
-pattern then snaps back onto the navmesh), `LocomotionAnimator` (swaps an
-AnimationPlayer between idle/move clips by host speed — pairs with, doesn't replace,
+that still aims; also the **single writer of the body's velocity/rotation**, taking
+external `apply_knockback` and the AI steering seam `drive` / `face_toward` /
+`set_facing` — see Enemy AI), `LocomotionAnimator` (swaps an
+AnimationPlayer between idle/move clips by host speed, and backs off any clip it
+doesn't own so attack animations aren't stomped — pairs with, doesn't replace,
 a `MovementComponent`), `WeaponComponent`
 (fires a projectile on a cadence), `ContactDamage` (damages overlapping bodies on a
-per-body cooldown), `AnimationDriver` (plays a keyframed `AnimationPlayer`),
+per-body cooldown), `MeleeHitbox` (an `Area3D` a brain `open()`s for a hit window;
+owns detection + per-target cooldown + damage + knockback, emits `hit` — see Enemy
+AI), `AnimationDriver` (plays a keyframed `AnimationPlayer`),
 `TurretEmitter` (spawns curve-following projectiles), `HitReactComponent` (flash +
-shake + optional particle bursts; on enemies **and** the player),
+shake + optional particle bursts; auto-connects to a host `hit` signal — the player
+emits one from `take_damage`, so it flashes red when hit just like enemies),
 `BlastComponent` (spawns a blast on death), `SfxEmitter` / `VfxEmitter` (keyed
 one-shot players), `LockOnComponent` (player-only; poll/input-driven targeting for
-the lock-on system — see the Player section), and the player ability components
-`BumpCombatComponent` / `PowerSlamComponent` (see Player energy & abilities).
+the lock-on system — see the Player section), the player ability components
+`BumpCombatComponent` / `PowerSlamComponent` (see Player energy & abilities), and
+the enemy AI components `PerceptionComponent` / `EnemyBrain` (see Enemy AI).
 
 ### Destructibles: enemies, obstacles, turret-projectiles
 
@@ -278,6 +284,62 @@ re-rolling on arrival — stateless, so the `.tres` is shareable),
 **Swooper**, **Turret** (a stationary sentry — no movement pattern, `face_player`
 on — that looks at and shoots the player), each with an `*.tres` `EnemyData`. Obstacles
 (`objects/obstacles/`): **BobBlock**, **AnimObstacle**, **StationaryTurret**.
+
+### Enemy AI (`PerceptionComponent`, `EnemyBrain`, `MeleeHitbox`)
+
+Prototyped on the **Manicoppo** as the testbed for the eventual base-enemy AI (the
+other enemies still use bare movement patterns). Three ideas hold it together:
+
+**Single-writer movement.** `MovementComponent` is the *only* thing that writes the
+body's velocity/rotation and calls `move_and_slide`. Everything else routes intent
+through one-frame latches — **`drive(velocity)`** (move this way this frame),
+**`face_toward(point)`** (smooth aim), **`set_facing(yaw)`** (exact aim, no
+smoothing) — plus `apply_knockback`. You call them every frame you want control and
+*stop calling* to hand the body back to its pattern; precedence is
+`knockback > drive > pattern`. This is the invariant that lets wander patterns,
+knockback and AI steering coexist instead of fighting over velocity.
+
+**PerceptionComponent** — a vision cone (distance + angle + optional line of sight)
+with **sticky loss** (grace time / lose-distance hysteresis) so the alert doesn't
+flicker at the cone edge. Exposes `is_alerted()` / `get_player()`.
+
+**EnemyBrain** — two layers:
+- A tiny **enum FSM** over modes: `WANDER` (hands off — the `MovementPattern`
+  drives), `CHASE` (nav-agent path to the player), `COMBAT` (pick an action, run
+  it, re-pick).
+- **Combat actions**: simple ones (orbit L/R) run per-frame; complex ones (the
+  attack combo) run as **`await` coroutines** so a multi-step sequence reads
+  top-to-bottom. The combo approaches, swings 1–3× (count locked at decision time,
+  facing locked at the first swing, aim lerped over the first half of the clip off
+  the *animation's own clock*, `MeleeHitbox` open only in the hit window), then
+  optionally a **ZigzagTwirl** (freeze `PracticeSwing` at 1.7s via `speed_scale = 0`,
+  spin blind, pool-ball bounce off the navmesh via `map_get_closest_point` normals,
+  fling the player), then a reposition.
+
+Coroutine safety rests on three flags: an **`_action_token`** (bumped by
+`_abort_actions()`; a coroutine captures it and bails after any `await` once it
+mismatches — nothing resumes half-finished), **`_busy`** (a coroutine owns the body;
+the per-frame dispatcher stays out), and **`_committed`** (a running combo suppresses
+range/perception transitions, since it's already bounded by its own timeouts — this
+is what stops a roaming twirl from range-transitioning itself mid-attack).
+
+**Adding an attack pattern** is one coroutine + one hookup: write
+`_my_action(token) -> bool` that loops `await get_tree().physics_frame`, checks
+`_still_running(token)` after every await, steers via `_move.drive/…`, opens the
+`MeleeHitbox` for its damage window, and returns when done — then either add it to
+the `Action` enum + `_pick_action`, or `await` it inside `_attack_combo` (its
+position there *is* the "only after a swing" rule). Expose the numbers as `@export`.
+
+Hit-detection lives entirely in **`MeleeHitbox`**: the brain calls
+`open(damage, knockback, up, duration, cooldown)` at a window's start and `close()`
+at its end; the hitbox polls overlaps, applies damage + knockback once per target
+per cooldown, and emits `hit`. One hitbox serves both the light swing (gentle
+knockback) and the twirl (a big fling) — the difference is just the `open()` args.
+
+The old node-per-state FSM (`objects/components/state/`) was **deleted** — it was
+dead code, and its wall-clock timing ignored `time_scale`/pausing. Deferred for
+later: moving these components onto `BaseEnemy`, a data-driven action set, and a
+shared blackboard once multiple Manicoppos coordinate.
 
 > These enemies/weapons/obstacles ship as a **reusable library** but are **not
 > instanced in `main.tscn`** — the starter scene is just the player + ground. Drop

@@ -1,5 +1,9 @@
 extends CharacterBody3D
 
+## Emitted when damage lands (with the amount) — a HitReactComponent child connects
+## to this to flash/shake, matching how Destructible drives enemy hit reactions.
+signal hit(amount: int)
+
 ## Standard third-person character controller with a SpringArm3D camera rig, plus
 ## a Dark Souls-style lock-on mode driven by a sibling LockOnComponent.
 ##
@@ -406,5 +410,8 @@ func take_damage(amount: int) -> void:
 	if hp <= 0:
 		return
 	hp = maxi(0, hp - amount)
+	# Mirrors Destructible's `hit` signal so a HitReactComponent under the player
+	# auto-connects and flashes, with no player-specific wiring.
+	hit.emit(amount)
 	if hp <= 0:
 		Events.player_killed.emit()

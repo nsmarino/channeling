@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://b6dufwgxijh37" path="res://objects/components/locomotion_animator.gd" id="4_locomotion"]
 [ext_resource type="Script" path="res://objects/components/perception_component.gd" id="5_perception"]
 [ext_resource type="Script" path="res://objects/components/enemy_brain.gd" id="6_brain"]
+[ext_resource type="Script" path="res://objects/components/melee_hitbox.gd" id="7_melee"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_e4ut0"]
 height = 1.5
@@ -141,6 +142,7 @@ idle_animation = &"Idle1"
 collision_layer = 0
 collision_mask = 2
 monitoring = false
+script = ExtResource("7_melee")
 
 [node name="PerceptionComponent" type="Node" parent="." index="11" unique_id=1500000051]
 script = ExtResource("5_perception")

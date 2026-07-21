@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://objects/pickups/PowerDrop.tscn" id="4_drop"]
 [ext_resource type="Script" uid="uid://cn8rbspth3d0a" path="res://addons/nurbs_path/nurbs_path_3d.gd" id="5_h7ooo"]
 [ext_resource type="Script" uid="uid://ijktbaavdm6b" path="res://objects/components/power_slam_component.gd" id="6_slam"]
+[ext_resource type="Script" uid="uid://bh7xn2react0c" path="res://objects/components/hit_react_component.gd" id="7_hitreact"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
@@ -90,3 +91,7 @@ curve = SubResource("Curve3D_lalkq")
 script = ExtResource("5_h7ooo")
 control_points = Array[Vector3]([Vector3(0, 0, 0), Vector3(0, 9, -0.5), Vector3(0, 0, -9)])
 metadata/_custom_type_script = "uid://cn8rbspth3d0a"
+
+[node name="HitReactComponent" type="Node" parent="." unique_id=1500000061]
+script = ExtResource("7_hitreact")
+mesh_root_path = NodePath("../Model")
