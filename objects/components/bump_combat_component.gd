@@ -38,12 +38,25 @@ class_name BumpCombatComponent
 ## Seconds the impulse owns the player's movement before input resumes.
 @export_range(0.0, 1.0, 0.01) var knockback_duration: float = 0.22
 
+@export_group("Energy")
+## Energy the player spends per landed ground bump. If they can't afford it the
+## bump deals no damage — they just bounce off (a stub for a future knockdown).
+@export_range(0.0, 100.0, 1.0) var energy_cost: float = 10.0
+
 @export_group("Rules")
 ## Minimum horizontal speed required to register a bump — standing still and
 ## leaning on an enemy shouldn't damage it.
 @export_range(0.0, 10.0, 0.1) var min_bump_speed: float = 1.5
 ## Seconds before the same enemy can be bumped again.
 @export_range(0.0, 3.0, 0.05) var hit_cooldown: float = 0.45
+## Flat damage for a bump landed mid-air during a scripted move (a PowerSlam
+## flight). Facing is ignored — you're committed to an arc, not choosing an angle.
+@export_range(0, 200, 1) var air_bump_damage: int = 12
+
+## Set by PowerSlamComponent for the duration of a slam's flight. Bumps then deal
+## `air_bump_damage` and apply NO knockback, since bouncing the player mid-flight
+## would fight the trajectory they're locked into.
+var airborne_mode: bool = false
 
 @export_group("Power Drops")
 ## Physics pickup burst out of the enemy on a landed bump. Empty = no drops.
@@ -99,10 +112,27 @@ func _is_moving_fast_enough() -> bool:
 func _bump(hitbox: Area3D, enemy: Node3D) -> void:
 	_cooldown_by_enemy[enemy] = hit_cooldown
 
-	var back := _back_factor(enemy)
-	var t: float = pow(back, facing_falloff)
-	var damage: int = int(roundf(lerpf(float(min_damage), float(max_damage), t)))
+	# Mid-dive bumps are part of the already-paid Power Dive: flat damage, no
+	# energy cost, no knockback (bouncing mid-flight fights the locked-in arc).
+	if airborne_mode:
+		hitbox.call("receive_hit", air_bump_damage)
+		_try_spawn_drop(enemy)
+		Events.attack_hit.emit(_host, enemy, air_bump_damage)
+		if debug_log:
+			print("[BumpCombat] %s for %d (air)" % [String(enemy.name), air_bump_damage])
+		return
 
+	# A ground bump costs energy. Too little and it's a whiff — the player still
+	# bounces off, but deals no damage and shakes loose no drop. (Placeholder for
+	# the planned player-gets-knocked-down state.)
+	if _host.has_method("spend_energy") and not bool(_host.call("spend_energy", energy_cost)):
+		_apply_knockback(enemy)
+		if debug_log:
+			print("[BumpCombat] %s — not enough energy, bounced off" % String(enemy.name))
+		return
+
+	var back := _back_factor(enemy)
+	var damage := int(roundf(lerpf(float(min_damage), float(max_damage), pow(back, facing_falloff))))
 	hitbox.call("receive_hit", damage)
 	_apply_knockback(enemy)
 	_try_spawn_drop(enemy)

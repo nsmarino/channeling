@@ -220,6 +220,10 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -5, 
 polygon = PackedVector2Array(0, 0, 0, 4, 8, 0)
 depth = 8.0
 
+[node name="CSGCylinder3D" type="CSGCylinder3D" parent="NavigationRegion3D/LOCAL-csg/Structure" unique_id=16323081]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 9, 11, -39)
+radius = 5.0
+
 [node name="Terrain" type="CSGCombiner3D" parent="NavigationRegion3D/LOCAL-csg" unique_id=1533778489]
 material_override = SubResource("StandardMaterial3D_rdbjv")
 use_collision = true

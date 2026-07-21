@@ -75,6 +75,15 @@ extends CharacterBody3D
 @export_category("Health")
 @export var max_hp: int = 100
 
+@export_category("Energy")
+## Size of the energy pool. Abilities spend from it; it refills over time so
+## traversal moves (like the Power Dive) are always eventually available.
+@export var max_energy: float = 100.0
+## Energy regained per second.
+@export var energy_regen: float = 20.0
+## Energy spent per jump. The jump is suppressed if you can't afford it.
+@export var jump_energy_cost: float = 8.0
+
 @export_category("References")
 ## Pivot orbited for yaw/pitch. Holds the SpringArm3D + Camera3D.
 @export var camera_pivot_path: NodePath = ^"CameraPivot"
@@ -85,8 +94,9 @@ extends CharacterBody3D
 
 var hp: int = 0
 
-## Running total of collected PowerDrops.
-var power: int = 0
+## Current energy. Regenerates toward max_energy every frame; abilities and jumps
+## spend from it, and PowerDrops restore it.
+var energy: float = 0.0
 
 ## Cleared while a cutscene runs (Events.cutscene_started/finished). Input is
 ## ignored and the body coasts to a stop; the camera is handed back on finish.
@@ -95,6 +105,11 @@ var _control_enabled: bool = true
 ## Seconds remaining in which an external impulse (bump combat) owns horizontal
 ## movement instead of input. See apply_knockback().
 var _knockback_timer: float = 0.0
+
+## True while an ability (PowerSlamComponent) is driving our transform directly.
+## Distinct from _control_enabled: that still runs gravity and move_and_slide,
+## which would fight a scripted trajectory. See begin/end_scripted_move().
+var _scripted_move: bool = false
 
 var _pivot: Node3D = null
 var _model: Node3D = null
@@ -118,6 +133,7 @@ func _ready() -> void:
 	_gravity = gravity_override if gravity_override > 0.0 \
 		else float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
 	hp = max_hp
+	energy = max_energy
 	if _pivot:
 		_yaw = _pivot.rotation.y
 		_pitch = _pivot.rotation.x
@@ -143,6 +159,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Energy regenerates regardless of what else is happening (cutscene, scripted
+	# move, normal play) so abilities are always eventually back online.
+	energy = minf(energy + energy_regen * delta, max_energy)
+	# An ability owns our transform this frame — don't touch it at all.
+	if _scripted_move:
+		return
 	if not _control_enabled:
 		_process_frozen(delta)
 		return
@@ -222,7 +244,7 @@ func _process_lock_camera(delta: float) -> void:
 func _process_movement(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
-	elif Input.is_action_just_pressed(&"jump"):
+	elif Input.is_action_just_pressed(&"jump") and spend_energy(jump_energy_cost):
 		velocity.y = jump_velocity
 
 	# A knockback impulse owns horizontal velocity for a moment — skip input
@@ -351,11 +373,32 @@ func apply_knockback(impulse: Vector3, duration: float) -> void:
 	_knockback_timer = maxf(_knockback_timer, duration)
 
 
-## Collect a PowerDrop. Called duck-typed by the drop when we walk into it.
-## Console-only for now — wire it to the HUD once the feature firms up.
-func collect_power(amount: int) -> void:
-	power += amount
-	print("[Player] Power: %d" % power)
+## Restore energy (a PowerDrop, on pickup). Called duck-typed. Clamped to max.
+func restore_energy(amount: float) -> void:
+	energy = minf(energy + amount, max_energy)
+
+
+## Spend energy on a jump or ability. All-or-nothing: returns false and spends
+## nothing if we can't afford it, so callers can gate on the return value.
+func spend_energy(amount: float) -> bool:
+	if energy < amount:
+		return false
+	energy -= amount
+	return true
+
+
+## Hand our transform to an ability (PowerSlamComponent). Movement, gravity and
+## input are all suspended until end_scripted_move().
+func begin_scripted_move() -> void:
+	_scripted_move = true
+	velocity = Vector3.ZERO
+
+
+## Return control after a scripted move, dropping any stale momentum.
+func end_scripted_move() -> void:
+	_scripted_move = false
+	velocity = Vector3.ZERO
+	_knockback_timer = 0.0
 
 
 ## Apply damage; emit player_killed at 0 HP so GameManager restarts the level.

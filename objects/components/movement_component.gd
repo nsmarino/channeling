@@ -15,10 +15,14 @@ class_name MovementComponent
 @export var face_player: bool = false
 ## How fast the body turns to face travel (higher = snappier).
 @export var turn_lerp: float = 6.0
+## How fast an external knockback impulse bleeds off (units/sec²).
+@export var knockback_damping: float = 14.0
 
 var _body: CharacterBody3D = null
 var _player: Node3D = null
 var _time_active: float = 0.0
+var _knockback_velocity: Vector3 = Vector3.ZERO
+var _knockback_timer: float = 0.0
 
 
 func _setup() -> void:
@@ -50,6 +54,18 @@ func _physics_process(delta: float) -> void:
 
 	_time_active += delta
 
+	# A knockback overrides the pattern while it lasts, then hands back cleanly.
+	if _knockback_timer > 0.0:
+		_knockback_timer -= delta
+		_body.velocity = _knockback_velocity
+		_body.move_and_slide()
+		_knockback_velocity = _knockback_velocity.move_toward(
+			Vector3.ZERO, knockback_damping * delta
+		)
+		if _knockback_timer <= 0.0:
+			_snap_to_navmesh()
+		return
+
 	# A pattern is optional: without one the body stays put (a stationary turret
 	# still runs, so it can keep facing the player).
 	if pattern:
@@ -59,6 +75,44 @@ func _physics_process(delta: float) -> void:
 		_body.velocity = Vector3.ZERO
 
 	_update_facing(delta)
+
+
+## Shove the body with an external impulse (a PowerSlam landing, say), overriding
+## the movement pattern for `duration`.
+##
+## Knockback has to run THROUGH this component: the pattern reassigns
+## `_body.velocity` every single frame, so a velocity written directly onto the
+## body from outside would be overwritten before it moved anywhere.
+##
+## Safe for navmesh-driven movement — see _snap_to_navmesh().
+func apply_knockback(impulse: Vector3, duration: float) -> void:
+	if not is_active or _body == null:
+		return
+	_knockback_velocity = impulse
+	_knockback_timer = maxf(_knockback_timer, duration)
+
+
+## Pull the body back onto the navigation map once a shove ends.
+##
+## This is what keeps knockback from breaking a wanderer. Enemy bodies carry no
+## CollisionShape3D (only their HitBox area does), so nothing stops a shove from
+## pushing one through a wall or off a ledge, where it would be stranded off-mesh
+## and unable to path. Snapping to the closest point on the map guarantees it
+## always resumes from somewhere navigable; the NavigationAgent3D keeps its
+## existing target and simply re-paths from the corrected position.
+func _snap_to_navmesh() -> void:
+	var agent: NavigationAgent3D = null
+	for child in _body.get_children():
+		if child is NavigationAgent3D:
+			agent = child as NavigationAgent3D
+			break
+	if agent == null:
+		return  # not a nav-driven enemy; leave it wherever it landed.
+
+	var map: RID = agent.get_navigation_map()
+	if not map.is_valid() or NavigationServer3D.map_get_iteration_id(map) == 0:
+		return
+	_body.global_position = NavigationServer3D.map_get_closest_point(map, _body.global_position)
 
 
 ## Turn the body toward the player (face_player) or along its travel direction.

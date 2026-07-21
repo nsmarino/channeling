@@ -10,10 +10,10 @@ class_name PowerDrop
 ## handled by the PickupArea child (which scans the `player` layer) rather than by
 ## physical contact.
 ##
-## Collection routes through a duck-typed `collect_power(amount)` on the player.
+## Collection routes through a duck-typed `restore_energy(amount)` on the player.
 
-## Power granted on pickup.
-@export var power_value: int = 1
+## Energy restored to the player on pickup.
+@export var energy_restore: float = 25.0
 ## Seconds before it despawns uncollected. This is the pickup window.
 @export var lifetime: float = 12.0
 ## Seconds after spawning before it can be collected — without this it would be
@@ -98,6 +98,6 @@ func _physics_process(_delta: float) -> void:
 
 func _collect(player: Node) -> void:
 	set_physics_process(false)
-	if player.has_method("collect_power"):
-		player.call("collect_power", power_value)
+	if player.has_method("restore_energy"):
+		player.call("restore_energy", energy_restore)
 	queue_free()

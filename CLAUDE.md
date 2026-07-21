@@ -77,9 +77,10 @@ fails at a debugger break with *"Could not find base class"*. Fixes:
 ## Architecture
 
 ### Autoloads
-- **`Events`** (`autoloads/events.gd`) — central signal bus. Holds `player_killed`
-  and the enemy/hit feedback signals (`enemy_hp_changed`, `enemy_damaged`,
-  `attack_hit`). Cross-system communication should go through here.
+- **`Events`** (`autoloads/events.gd`) — central signal bus. Holds `player_killed`,
+  the cutscene bracket (`cutscene_started` / `cutscene_finished`), and the
+  enemy/hit feedback signals (`enemy_hp_changed`, `enemy_damaged`, `attack_hit`).
+  Cross-system communication should go through here.
 - **`GameManager`** (`autoloads/game_manager.gd`) — holds runtime refs (the player
   `navigator`, the level root) **and owns level restart** (see below).
 - **`McpInteractionServer`** — TCP server for the Godot MCP tool. Lives at
@@ -121,7 +122,48 @@ own `should_fire_for_input()` decides semi vs auto from its `WeaponData`.
 It registers into the **`player`** group, exposes `hp` (read by the HUD), and on
 death calls `Events.player_killed.emit()` (which `GameManager` turns into a
 restart). Tuning lives in Inspector `@export` blocks (Movement / Look / Lock-On /
-Weapon / Health / References), matching the iterate-by-playing workflow.
+Weapon / Health / Energy / References), matching the iterate-by-playing workflow.
+
+### Player energy & abilities
+
+The player owns an **`energy`** pool (a float, like `hp` — a core stat on
+`player.gd`, not a component) that abilities spend and that **regenerates every
+frame** (`energy_regen`, in `_physics_process` before any state gate, so it ticks
+even during cutscenes / scripted moves — this is what guarantees traversal moves
+are always eventually available). The interface is duck-typed so components need
+no reference to the player type: **`spend_energy(amount) -> bool`** (all-or-nothing;
+returns false and spends nothing if unaffordable, so callers gate on it) and
+**`restore_energy(amount)`** (clamped to `max_energy`). The HUD shows it as a bar.
+
+Energy consumers / restorers:
+- **Jump** (`player.gd`) — costs `jump_energy_cost`; suppressed if unaffordable.
+- **Bump combat** (`BumpCombatComponent`, an `Area3D` on the player) — Ys-style:
+  running into an enemy's `HitBox` area damages it (scaled by where you hit — most
+  into their back, least head-on) and bounces the player back. Costs `energy_cost`
+  per landed bump; **too little energy = you bounce off but deal no damage / no
+  drop** (a stub for a planned knockdown state). Detects `HitBox` **areas**, not
+  bodies (enemy bodies are `collision_layer = 0`), and routes damage through
+  `HitBox.receive_hit`.
+- **Power Dive** (`PowerSlamComponent`, `power_slam` action) — spends `energy_cost`
+  to arc into the air and slam down where the **camera** is aimed, damaging (and
+  knocking back) destructibles in the landing zone. The trajectory is **sampled
+  from a `NurbsPath3D` child of the player** (the editor-authored curve is the
+  in-engine "root-motion bake" — drag its control points to retune). During flight
+  the player hands its transform over via `begin_scripted_move()` /
+  `end_scripted_move()`, and moves by the curve **delta** through `move_and_slide`
+  (so walls still stop it); mid-flight bumps switch `BumpCombatComponent` into
+  `airborne_mode` (flat chip damage, no bounce, no energy). `free_cast` is a testing
+  toggle that skips the cost.
+- **PowerDrops** (`objects/pickups/`, `PowerDrop.tscn`) — small `RigidBody3D`
+  pickups a bump has a `drop_chance` of bursting out of the enemy; they bounce/roll
+  on the `environment` layer, settle, and are collected by walking into them
+  (a `PickupArea` polls the `player` layer), calling `restore_energy`.
+
+Enemy knockback (from a Power Dive impact) routes through
+`MovementComponent.apply_knockback` — **not** written onto the body directly,
+because the movement pattern reassigns velocity every frame. When the shove ends it
+**snaps the body back onto the navmesh** (`map_get_closest_point`), so knocking a
+navmesh-wandering enemy can't strand it off-mesh.
 
 ### Lock-on (`objects/components/lock_on_component.gd`, `lock_on_target.gd`)
 
@@ -189,14 +231,18 @@ that method (duck-typed dispatch — the host needs no per-component knowledge).
 Component roster: `HitBox` (routes `receive_hit` → host `take_damage`),
 `MovementComponent` (drives the body via a `MovementPattern`, and turns it to face
 travel or — with `face_player` — the player; a null pattern = a stationary sentry
-that still aims), `WeaponComponent`
+that still aims; also takes an external `apply_knockback` that overrides the
+pattern then snaps back onto the navmesh), `LocomotionAnimator` (swaps an
+AnimationPlayer between idle/move clips by host speed — pairs with, doesn't replace,
+a `MovementComponent`), `WeaponComponent`
 (fires a projectile on a cadence), `ContactDamage` (damages overlapping bodies on a
 per-body cooldown), `AnimationDriver` (plays a keyframed `AnimationPlayer`),
 `TurretEmitter` (spawns curve-following projectiles), `HitReactComponent` (flash +
 shake + optional particle bursts; on enemies **and** the player),
 `BlastComponent` (spawns a blast on death), `SfxEmitter` / `VfxEmitter` (keyed
 one-shot players), `LockOnComponent` (player-only; poll/input-driven targeting for
-the lock-on system — see the Player section).
+the lock-on system — see the Player section), and the player ability components
+`BumpCombatComponent` / `PowerSlamComponent` (see Player energy & abilities).
 
 ### Destructibles: enemies, obstacles, turret-projectiles
 
@@ -225,6 +271,8 @@ editor-visible child node.
   destructible projectile that follows a curve from its emitter.
 
 Movement patterns (`objects/enemy/movement/`): `MovementPattern` base +
+`NavWanderMovement` (walks a `NavigationAgent3D` to random reachable navmesh points,
+re-rolling on arrival — stateless, so the `.tres` is shareable),
 `WeaveMovement`, `SwoopMovement`, `StrafeMovement`, `BobMovement`,
 `CurveFollowMovement`. Concrete enemies (`objects/enemy/enemies/`): **Weaver**,
 **Swooper**, **Turret** (a stationary sentry — no movement pattern, `face_player`

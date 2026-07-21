@@ -2,15 +2,14 @@
 
 [ext_resource type="Script" uid="uid://cplayrgd0fps1" path="res://objects/player/player.gd" id="1_player"]
 [ext_resource type="Script" uid="uid://dqp4ncqc8v4gb" path="res://objects/components/lock_on_component.gd" id="2_lockon"]
-[ext_resource type="Script" path="res://objects/components/bump_combat_component.gd" id="3_bump"]
+[ext_resource type="Script" uid="uid://copeff2v7xmtw" path="res://objects/components/bump_combat_component.gd" id="3_bump"]
 [ext_resource type="PackedScene" path="res://objects/pickups/PowerDrop.tscn" id="4_drop"]
+[ext_resource type="Script" uid="uid://cn8rbspth3d0a" path="res://addons/nurbs_path/nurbs_path_3d.gd" id="5_h7ooo"]
+[ext_resource type="Script" uid="uid://ijktbaavdm6b" path="res://objects/components/power_slam_component.gd" id="6_slam"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
 height = 1.8
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_bump"]
-radius = 0.9
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
 radius = 0.4
@@ -18,6 +17,20 @@ height = 1.8
 
 [sub_resource type="BoxMesh" id="BoxMesh_front"]
 size = Vector3(0.25, 0.25, 0.3)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_bump"]
+radius = 0.9
+
+[sub_resource type="Curve" id="Curve_t2uaq"]
+_data = [Vector2(0, 0), 0.0, 0.17514817, 0, 0, Vector2(1, 1), 3.014817, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Curve3D" id="Curve3D_lalkq"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 3, -0.16666667, 0, 0, 0, 0, 0, 1.5, 0, 0, -1.4999999, 0, 6, -1.8333334, 0, 3, 2.8333335, 0, 0, 0, 0, 0, -9),
+"tilts": PackedFloat32Array(0, 0, 0)
+}
+point_count = 3
 
 [node name="Player" type="CharacterBody3D" unique_id=1382951870 groups=["player"]]
 collision_layer = 2
@@ -63,3 +76,17 @@ power_drop_scene = ExtResource("4_drop")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BumpCombat" unique_id=1500000022]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("SphereShape3D_bump")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1654237816]
+
+[node name="PowerSlamComponent" type="Node" parent="." unique_id=1500000041]
+script = ExtResource("6_slam")
+free_cast = true
+duration = 1.0
+time_curve = SubResource("Curve_t2uaq")
+
+[node name="NurbsPath3D" type="Path3D" parent="." unique_id=290428690]
+curve = SubResource("Curve3D_lalkq")
+script = ExtResource("5_h7ooo")
+control_points = Array[Vector3]([Vector3(0, 0, 0), Vector3(0, 9, -0.5), Vector3(0, 0, -9)])
+metadata/_custom_type_script = "uid://cn8rbspth3d0a"

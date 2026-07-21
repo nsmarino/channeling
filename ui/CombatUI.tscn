@@ -22,6 +22,31 @@ font_color = Color(1, 1, 1, 0.95)
 outline_size = 6
 outline_color = Color(0, 0, 0, 0.7)
 
+[sub_resource type="LabelSettings" id="LabelSettings_energy"]
+font_size = 16
+font_color = Color(0.6, 0.9, 1, 0.95)
+outline_size = 5
+outline_color = Color(0, 0, 0, 0.7)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_energy_bg"]
+bg_color = Color(0.05, 0.07, 0.1, 0.6)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 0.5)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_energy_fill"]
+bg_color = Color(0.25, 0.75, 1, 0.9)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
 [node name="CombatUI" type="CanvasLayer" unique_id=1419006388]
 script = ExtResource("1_combat_ui_script")
 
@@ -81,3 +106,23 @@ offset_right = 320.0
 offset_bottom = 56.0
 text = "HEALTH: 100"
 label_settings = SubResource("LabelSettings_health")
+
+[node name="EnergyLabel" type="Label" parent="." unique_id=402530200]
+offset_left = 24.0
+offset_top = 60.0
+offset_right = 320.0
+offset_bottom = 80.0
+text = "ENERGY"
+label_settings = SubResource("LabelSettings_energy")
+
+[node name="Energy" type="ProgressBar" parent="." unique_id=402530201]
+offset_left = 24.0
+offset_top = 82.0
+offset_right = 260.0
+offset_bottom = 100.0
+theme_override_styles/background = SubResource("StyleBoxFlat_energy_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_energy_fill")
+max_value = 100.0
+value = 100.0
+show_percentage = false
+mouse_filter = 2

@@ -9,6 +9,7 @@ extends CanvasLayer
 
 @onready var crosshair: Control = $Crosshair
 @onready var health_label: Label = $Health
+@onready var energy_bar: ProgressBar = $Energy
 @onready var lock_on_reticle: Control = $LockOn
 @onready var eligible_markers: Control = $EligibleMarkers
 
@@ -30,12 +31,19 @@ func _process(_delta: float) -> void:
 		_player = get_tree().get_first_node_in_group("player")
 	_resolve_lock_on()
 	_update_health()
+	_update_energy()
 	_update_lock_on()
 
 
 func _update_health() -> void:
 	if is_instance_valid(_player) and "hp" in _player:
 		health_label.text = "HEALTH: %d" % int(_player.hp)
+
+
+func _update_energy() -> void:
+	if is_instance_valid(_player) and "energy" in _player and "max_energy" in _player:
+		energy_bar.max_value = _player.max_energy
+		energy_bar.value = _player.energy
 
 
 func _resolve_lock_on() -> void:
