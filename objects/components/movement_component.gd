@@ -23,6 +23,13 @@ var _player: Node3D = null
 var _time_active: float = 0.0
 var _knockback_velocity: Vector3 = Vector3.ZERO
 var _knockback_timer: float = 0.0
+# One-frame latches set by an AI brain via drive() / face_toward(). See drive().
+var _drive_velocity: Vector3 = Vector3.ZERO
+var _drive_active: bool = false
+var _face_point: Vector3 = Vector3.ZERO
+var _face_active: bool = false
+var _facing_yaw: float = 0.0
+var _facing_snap: bool = false
 
 
 func _setup() -> void:
@@ -66,6 +73,14 @@ func _physics_process(delta: float) -> void:
 			_snap_to_navmesh()
 		return
 
+	# An AI brain steering us this frame outranks the pattern (but not knockback).
+	if _drive_active:
+		_drive_active = false
+		_body.velocity = _drive_velocity
+		_body.move_and_slide()
+		_update_facing(delta)
+		return
+
 	# A pattern is optional: without one the body stays put (a stationary turret
 	# still runs, so it can keep facing the player).
 	if pattern:
@@ -75,6 +90,43 @@ func _physics_process(delta: float) -> void:
 		_body.velocity = Vector3.ZERO
 
 	_update_facing(delta)
+
+
+## Steer the body this frame from an AI brain, overriding the MovementPattern.
+##
+## Deliberately a ONE-FRAME latch: the brain calls this every frame it wants
+## control and simply stops calling to hand the body back to its pattern — no
+## release call to forget. Keeps this component the single writer of velocity,
+## move_and_slide and facing, which is the invariant that lets knockback, patterns
+## and AI steering coexist instead of fighting (see apply_knockback).
+##
+## Facing follows the driven velocity unless face_toward() is also called.
+func drive(velocity: Vector3) -> void:
+	if not is_active or _body == null:
+		return
+	_drive_velocity = velocity
+	_drive_active = true
+
+
+## Aim the body at a world point for this frame instead of along its travel.
+## Pairs with drive() for strafing/orbiting, where you move sideways but keep
+## looking at the target.
+func face_toward(point: Vector3) -> void:
+	if not is_active or _body == null:
+		return
+	_face_point = point
+	_face_active = true
+
+
+## Set the body's yaw outright this frame, bypassing `turn_lerp`. For cases where
+## the caller owns the interpolation curve — e.g. an attack that has to finish
+## aiming exactly halfway through its animation. Still routed through here so this
+## component remains the only thing writing rotation.
+func set_facing(yaw: float) -> void:
+	if not is_active or _body == null:
+		return
+	_facing_yaw = yaw
+	_facing_snap = true
 
 
 ## Shove the body with an external impulse (a PowerSlam landing, say), overriding
@@ -121,8 +173,25 @@ func _snap_to_navmesh() -> void:
 ## so `atan2(-x, -z)` (matching player.gd) puts -Z on the target. Muzzles and
 ## other "in front of me" markers therefore sit at negative Z.
 func _update_facing(delta: float) -> void:
+	# An exact yaw wins outright and skips smoothing entirely.
+	if _facing_snap:
+		_facing_snap = false
+		_face_active = false
+		_body.rotation.y = _facing_yaw
+		return
+
+	# Consume the brain's one-frame aim override, if any.
+	var forced := _face_active
+	var forced_point := _face_point
+	_face_active = false
+
 	var target_yaw: float
-	if face_player and _player:
+	if forced:
+		var to_point: Vector3 = forced_point - _body.global_position
+		if absf(to_point.x) < 0.001 and absf(to_point.z) < 0.001:
+			return
+		target_yaw = atan2(-to_point.x, -to_point.z)
+	elif face_player and _player:
 		var to_player: Vector3 = _player.global_position - _body.global_position
 		if absf(to_player.x) < 0.001 and absf(to_player.z) < 0.001:
 			return

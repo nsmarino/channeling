@@ -1,8 +1,7 @@
-[gd_resource type="Resource" script_class="NavWanderMovement" format=3]
+[gd_resource type="Resource" script_class="NavWanderMovement" format=3 uid="uid://c64act80aspnn"]
 
-[ext_resource type="Script" path="res://objects/enemy/movement/nav_wander_movement.gd" id="1"]
+[ext_resource type="Script" uid="uid://c3ss1gbvc6o85" path="res://objects/enemy/movement/nav_wander_movement.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
-speed = 3.0
-wander_radius = 20.0
+wander_radius = 5.0

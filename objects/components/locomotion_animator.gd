@@ -61,6 +61,13 @@ func _physics_process(delta: float) -> void:
 	if _ap == null or _body == null:
 		return
 
+	# Never fight a clip we don't own — e.g. an attack the brain is playing. Backing
+	# off on our own means there's no explicit "release" call for a caller to
+	# forget, and nothing leaks if their coroutine is aborted mid-swing.
+	if _ap.is_playing() and not _owns_clip(_ap.current_animation):
+		_slow_time = 0.0
+		return
+
 	var flat := Vector3(_body.velocity.x, 0.0, _body.velocity.z)
 	var moving := flat.length() >= move_speed_threshold
 	_slow_time = 0.0 if moving else _slow_time + delta
@@ -71,6 +78,11 @@ func _physics_process(delta: float) -> void:
 		return
 	if _ap.current_animation != String(want):
 		_ap.play(want, blend_time)
+
+
+## Is this one of the two locomotion clips we're responsible for?
+func _owns_clip(anim: String) -> bool:
+	return anim == "" or anim == String(move_animation) or anim == String(idle_animation)
 
 
 ## Depth-first search for the first AnimationPlayer under `node`.
