@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://cq8wn3xvmr7tk"]
+[gd_scene format=3 uid="uid://cq8wn3xvmr7tk"]
 
 [ext_resource type="Script" uid="uid://by9kt3xrmw7vq" path="res://objects/weapons/enemy/bouncing_bomb.gd" id="1_bomb"]
 [ext_resource type="PackedScene" path="res://objects/enemy/blast/Blast.tscn" id="2_blast"]

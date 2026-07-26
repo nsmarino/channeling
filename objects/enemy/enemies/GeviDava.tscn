@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://ct5wq2xnhr8vm"]
+[gd_scene format=3 uid="uid://ct5wq2xnhr8vm"]
 
 [ext_resource type="PackedScene" uid="uid://t8fvwynvct2" path="res://objects/enemy/base/BaseEnemy.tscn" id="1_base"]
 [ext_resource type="PackedScene" uid="uid://cwb01q3dpylpp" path="res://placeholder/gevi-dava.tscn" id="2_model"]

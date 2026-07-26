@@ -401,6 +401,29 @@ func launch(impulse: Vector3) -> void:
 	_knockback_timer = 0.0
 
 
+## Add to our velocity from an outside force while LEAVING INPUT ALONE — for a
+## sustained pull or push the player is meant to fight, like being sucked toward a
+## mouth.
+##
+## The third member of the family, and the distinctions matter: apply_knockback()
+## overrides velocity and suppresses input (you have been hit, you are going);
+## launch() replaces motion along one axis but keeps you steering (you have been
+## fired somewhere); this one only ADDS, so the player's own acceleration is still
+## fighting it every frame.
+##
+## That fight is the mechanic. Each frame the puller adds `pull` and the player's
+## movement code pulls velocity back toward their input by `ground_acceleration`,
+## so the net drag is the difference between them. A pull weaker than the player's
+## acceleration is escapable by running; a much stronger one is inevitable. Tune it
+## between those and getting swallowed becomes a thing you can lose rather than a
+## thing that happens to you.
+func apply_external_velocity(delta_v: Vector3) -> void:
+	# A scripted move owns our transform outright; nothing may push it around.
+	if _scripted_move:
+		return
+	velocity += delta_v
+
+
 ## Restore energy (a PowerDrop, on pickup). Called duck-typed. Clamped to max.
 func restore_energy(amount: float) -> void:
 	energy = minf(energy + amount, max_energy)

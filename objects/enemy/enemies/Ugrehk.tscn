@@ -1,0 +1,99 @@
+[gd_scene format=3 uid="uid://bv7kq4xnwm2rt"]
+
+[ext_resource type="PackedScene" uid="uid://t8fvwynvct2" path="res://objects/enemy/base/BaseEnemy.tscn" id="1_base"]
+[ext_resource type="Script" uid="uid://dq9wt5xkmn3vb" path="res://objects/enemy/enemies/ugrehk.gd" id="2_ugrehk"]
+[ext_resource type="Script" uid="uid://dw3nk7xvmq8tr" path="res://objects/enemy/actions/suck_spit_action.gd" id="3_suck"]
+[ext_resource type="Script" uid="uid://cb6vh2xnwr4km" path="res://objects/enemy/actions/strike_action.gd" id="4_strike"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hit"]
+radius = 0.4
+height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="mat_stalk"]
+albedo_color = Color(0.86, 0.82, 0.7, 1)
+roughness = 0.85
+
+[sub_resource type="CylinderMesh" id="mesh_stalk"]
+material = SubResource("mat_stalk")
+top_radius = 0.2
+bottom_radius = 0.26
+height = 1.8
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="mat_cap"]
+albedo_color = Color(0.66, 0.22, 0.26, 1)
+roughness = 0.6
+
+[sub_resource type="SphereMesh" id="mesh_cap"]
+material = SubResource("mat_cap")
+radius = 0.44
+height = 0.64
+radial_segments = 16
+rings = 8
+is_hemisphere = true
+
+[sub_resource type="StandardMaterial3D" id="mat_mouth"]
+albedo_color = Color(0.1, 0.05, 0.07, 1)
+roughness = 0.9
+
+[sub_resource type="SphereMesh" id="mesh_mouth"]
+material = SubResource("mat_mouth")
+radius = 0.19
+height = 0.3
+radial_segments = 12
+rings = 6
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_attack"]
+radius = 0.55
+height = 1.9
+
+[node name="Ugrehk" instance=ExtResource("1_base")]
+script = ExtResource("2_ugrehk")
+max_hp = 60
+activation_mode = 1
+
+[node name="HitBox" parent="." index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+
+[node name="CollisionShape3D" parent="HitBox" index="0"]
+shape = SubResource("CapsuleShape3D_hit")
+
+[node name="EnemyBrain" parent="." index="4"]
+combat_range = 12.0
+can_chase = false
+
+[node name="CollisionShape3D" parent="AttackBox" index="0"]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.1, -0.85)
+shape = SubResource("CapsuleShape3D_attack")
+
+[node name="SuckSpit" type="Node3D" parent="Actions"]
+script = ExtResource("3_suck")
+weight = 1.0
+max_range = 9.0
+cooldown = 5.0
+committed = true
+timeout = 12.0
+
+[node name="Slam" type="Node3D" parent="Actions"]
+script = ExtResource("4_strike")
+weight = 1.0
+max_range = 3.6
+cooldown = 1.5
+timeout = 6.0
+
+[node name="Model" type="Node3D" parent="." index="11"]
+
+[node name="Stalk" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("mesh_stalk")
+
+[node name="Cap" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.78, 0)
+mesh = SubResource("mesh_cap")
+
+[node name="MouthMesh" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -0.2)
+mesh = SubResource("mesh_mouth")
+
+[node name="Mouth" type="Marker3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -0.55)
