@@ -377,6 +377,30 @@ func apply_knockback(impulse: Vector3, duration: float) -> void:
 	_knockback_timer = maxf(_knockback_timer, duration)
 
 
+## Fling the player along `impulse` while LEAVING THEM IN CONTROL — for bounce
+## pads and other traversal boosts. The counterpart to apply_knockback(), and the
+## difference is the point: a knockback suppresses input so the hit reads, which
+## would be miserable on a launch you are supposed to steer out of.
+##
+## Existing motion along the launch axis is cancelled first, so the height you get
+## is the height the pad promises. Without that, landing on a pad fast enough
+## (falling at -20 into a +14 pad) would subtract into no launch at all — the
+## harder you fell, the less it would do.
+##
+## A launch also clears any active knockback: hitting a pad should hand control
+## back, not leave you coasting through a bounce you can't steer.
+func launch(impulse: Vector3) -> void:
+	# A scripted move (a Power Dive) owns our transform outright; a pad must not
+	# fight the curve it is flying.
+	if _scripted_move:
+		return
+	var axis := impulse.normalized()
+	if axis.length_squared() > 0.0001:
+		velocity -= axis * velocity.dot(axis)
+	velocity += impulse
+	_knockback_timer = 0.0
+
+
 ## Restore energy (a PowerDrop, on pickup). Called duck-typed. Clamped to max.
 func restore_energy(amount: float) -> void:
 	energy = minf(energy + amount, max_energy)

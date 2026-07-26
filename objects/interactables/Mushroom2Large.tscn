@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://dv6np2xkhr9wm"]
+
+[ext_resource type="PackedScene" uid="uid://dp4hs7xnkw2vq" path="res://objects/interactables/Mushroom2.tscn" id="1_base"]
+
+[node name="Mushroom2Large" instance=ExtResource("1_base")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 0, 0, 0)
+
+[node name="BouncePad" parent="." index="3"]
+launch_speed = 14.0

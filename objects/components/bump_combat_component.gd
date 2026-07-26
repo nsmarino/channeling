@@ -58,17 +58,6 @@ class_name BumpCombatComponent
 ## would fight the trajectory they're locked into.
 var airborne_mode: bool = false
 
-@export_group("Power Drops")
-## Physics pickup burst out of the enemy on a landed bump. Empty = no drops.
-@export var power_drop_scene: PackedScene
-## Odds a landed bump spawns a drop.
-@export_range(0.0, 1.0, 0.05) var drop_chance: float = 0.5
-## Upward speed of the pop.
-@export_range(0.0, 20.0, 0.5) var drop_launch_up: float = 5.0
-## Horizontal speed of the pop, fired in a random direction.
-@export_range(0.0, 20.0, 0.5) var drop_launch_spread: float = 3.0
-## Height above the enemy's origin the drop spawns at.
-@export_range(0.0, 4.0, 0.1) var drop_spawn_height: float = 1.0
 ## Print the damage/angle of each bump, for tuning by feel.
 @export var debug_log: bool = true
 
@@ -161,27 +150,17 @@ func _back_factor(enemy: Node3D) -> float:
 	return clampf((1.0 - dot) * 0.5, 0.0, 1.0)
 
 
-## Roll for a PowerDrop and burst it out of the enemy in a random direction.
-## Parented to the scene root, not the enemy, so it survives the enemy's death.
+## Ask the thing we just hit to shake a pickup loose.
+##
+## WHAT drops is the target's business, not ours — it owns a DropComponent with
+## its own odds and its own pickup. The player used to spawn the loot itself,
+## which forced every enemy and prop in the game to share one drop table.
+## Duck-typed, so a target with no DropComponent simply drops nothing.
 func _try_spawn_drop(enemy: Node3D) -> void:
-	if power_drop_scene == null or randf() > drop_chance:
-		return
-	var world: Node = get_tree().current_scene
-	if world == null:
-		return
-
-	var drop := power_drop_scene.instantiate() as Node3D
-	if drop == null:
-		return
-	world.add_child(drop)
-	drop.global_position = enemy.global_position + Vector3.UP * drop_spawn_height
-
-	var angle := randf() * TAU
-	var impulse := Vector3(
-		cos(angle) * drop_launch_spread, drop_launch_up, sin(angle) * drop_launch_spread
-	)
-	if drop.has_method("launch"):
-		drop.call("launch", impulse)
+	for child in enemy.get_children():
+		if child.has_method("shake_loose"):
+			child.call("shake_loose")
+			return
 
 
 ## Bounce the player back along the reverse of the attack vector.

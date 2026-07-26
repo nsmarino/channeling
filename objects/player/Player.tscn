@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://cplayrgd0fps1" path="res://objects/player/player.gd" id="1_player"]
 [ext_resource type="Script" uid="uid://dqp4ncqc8v4gb" path="res://objects/components/lock_on_component.gd" id="2_lockon"]
 [ext_resource type="Script" uid="uid://copeff2v7xmtw" path="res://objects/components/bump_combat_component.gd" id="3_bump"]
-[ext_resource type="PackedScene" path="res://objects/pickups/PowerDrop.tscn" id="4_drop"]
 [ext_resource type="Script" uid="uid://cn8rbspth3d0a" path="res://addons/nurbs_path/nurbs_path_3d.gd" id="5_h7ooo"]
 [ext_resource type="Script" uid="uid://ijktbaavdm6b" path="res://objects/components/power_slam_component.gd" id="6_slam"]
 [ext_resource type="Script" uid="uid://bh7xn2react0c" path="res://objects/components/hit_react_component.gd" id="7_hitreact"]
@@ -75,7 +74,6 @@ collision_layer = 0
 collision_mask = 4
 script = ExtResource("3_bump")
 energy_cost = 30.0
-power_drop_scene = ExtResource("4_drop")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BumpCombat" unique_id=1500000022]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)

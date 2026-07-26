@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://c2hxq8vwmr4dn"]
+
+[ext_resource type="Script" uid="uid://bq7wm4zknx3vd" path="res://objects/breakables/breakable.gd" id="1_base"]
+[ext_resource type="Script" uid="uid://bfi6wh5e0kftv" path="res://objects/components/hit_box.gd" id="2_hitbox"]
+[ext_resource type="Script" uid="uid://cf9tj2xhrp6ws" path="res://objects/components/drop_component.gd" id="3_drop"]
+[ext_resource type="Script" uid="uid://cml4apnpvgahd" path="res://objects/components/sfx_emitter.gd" id="4_sfx"]
+[ext_resource type="AudioStream" uid="uid://5cm2xw8assov" path="res://assets/sounds/hard-splash.wav" id="5_hit"]
+[ext_resource type="AudioStream" uid="uid://ct1sv14b1hb2v" path="res://assets/sounds/doom-sound-fx-secret.wav" id="6_death"]
+[ext_resource type="Script" uid="uid://bh7xn2react0c" path="res://objects/components/hit_react_component.gd" id="7_hitreact"]
+[ext_resource type="PackedScene" uid="uid://b4h1ep7qebmuu" path="res://vfx/particles/blast.tscn" id="8_burst"]
+[ext_resource type="PackedScene" path="res://objects/pickups/PowerDrop.tscn" id="9_drop_scene"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
+radius = 0.7
+
+[node name="Breakable" type="CharacterBody3D" groups=["breakable"]]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_base")
+max_hp = 5
+
+[node name="HitBox" type="Area3D" parent="."]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("2_hitbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("SphereShape3D_hit")
+
+[node name="DropComponent" type="Node" parent="."]
+script = ExtResource("3_drop")
+drop_scene = ExtResource("9_drop_scene")
+death_min = 2
+death_max = 3
+
+[node name="SfxEmitter" type="Node3D" parent="."]
+script = ExtResource("4_sfx")
+
+[node name="hit" type="AudioStreamPlayer3D" parent="SfxEmitter"]
+stream = ExtResource("5_hit")
+
+[node name="death" type="AudioStreamPlayer3D" parent="SfxEmitter"]
+stream = ExtResource("6_death")
+
+[node name="HitReactComponent" type="Node" parent="."]
+script = ExtResource("7_hitreact")
+death_burst = ExtResource("8_burst")
