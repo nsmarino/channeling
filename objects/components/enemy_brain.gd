@@ -35,6 +35,11 @@ enum State { WANDER, CHASE, COMBAT }
 @export_group("Speeds")
 ## Speed while closing on the player. Per-action speeds live on the actions.
 @export var chase_speed: float = 4.0
+## Whether this creature closes distance at all. Turn OFF for a stationary one —
+## a turret, a rooted mushroom, a blob wedged in a doorway. With it off the brain
+## goes straight from WANDER to COMBAT when alerted and never drives the body
+## toward the player; the actions' own range bands then decide everything.
+@export var can_chase: bool = true
 
 @export_group("Navigation")
 ## How far off the navmesh a projected step may land before it counts as blocked.
@@ -70,6 +75,8 @@ var _coordinator: Node = null  # EnemyCoordinator (duck-typed, optional)
 ## nested follow-ups) used for cooldown ticking and abort.
 var _actions: Array[EnemyAction] = []
 var _all_actions: Array[EnemyAction] = []
+## TriggerRegions referenced by those actions. Occupancy alerts this creature.
+var _regions: Array[Node] = []
 
 var _state: State = State.WANDER
 var _current: EnemyAction = null
@@ -114,6 +121,7 @@ func _setup() -> void:
 func _gather_actions() -> void:
 	_actions.clear()
 	_all_actions.clear()
+	_regions.clear()
 	var container: Node = get_node_or_null(actions_path)
 	if container == null:
 		if debug_log:
@@ -136,9 +144,13 @@ func _gather_actions() -> void:
 			_collect(action)
 
 
-## Flatten an action and its nested follow-ups into `_all_actions`.
+## Flatten an action and its nested follow-ups into `_all_actions`, and pick up any
+## TriggerRegion they are gated on.
 func _collect(action: EnemyAction) -> void:
 	_all_actions.append(action)
+	var region: Node = action.get_region()
+	if region != null and not _regions.has(region):
+		_regions.append(region)
 	for child in action.get_children():
 		if child is EnemyAction:
 			_collect(child as EnemyAction)
@@ -246,16 +258,38 @@ func _resolve_player() -> Node3D:
 	return get_tree().get_first_node_in_group("player") as Node3D
 
 
-## Alerted if I personally see the player, OR a groupmate has a fresh sighting
-## (shared perception recruits the whole group off one member's eyes).
+## Alerted if I personally see the player, OR the player is standing in a region
+## one of my actions cares about, OR a groupmate has a fresh sighting (shared
+## perception recruits the whole group off one member's eyes).
+##
+## The REGION clause is what makes a bombardment encounter possible at all.
+## Perception needs line of sight, so a creature lobbing bombs over a wall would
+## otherwise never notice the player and never fire a shot. Occupancy of a region
+## it can act on counts as knowing you are there — which is exactly the fiction:
+## it knows roughly where you are, it just cannot see you.
 func _is_alerted() -> bool:
 	if not is_instance_valid(_player):
 		return false
 	if _sees_player():
 		return true
+	if _region_occupied():
+		return true
 	if _coordinator and bool(_coordinator.call("has_fresh_sighting")):
 		return true
 	return false
+
+
+func _region_occupied() -> bool:
+	for region in _regions:
+		if is_instance_valid(region) and bool(region.call("is_occupied")):
+			return true
+	return false
+
+
+## Is there a clear line to the player? Read by actions with a `los_requirement`.
+func has_line_of_sight() -> bool:
+	return _perception != null and _perception.has_method("has_line_of_sight") \
+		and bool(_perception.call("has_line_of_sight"))
 
 
 func _sees_player() -> bool:
@@ -300,6 +334,13 @@ func _update_state() -> void:
 	if not _is_alerted():
 		if _state != State.WANDER:
 			_enter_state(State.WANDER)
+		return
+
+	# A stationary creature has no CHASE: it engages where it stands and lets its
+	# actions' range bands decide what, if anything, it can do from there.
+	if not can_chase:
+		if _state != State.COMBAT:
+			_enter_state(State.COMBAT)
 		return
 
 	var dist: float = _flat_distance_to_player()

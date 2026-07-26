@@ -59,11 +59,31 @@ class_name EnemyAction
 ## behaviour while playing.
 @export var enabled: bool = true
 
+## Line-of-sight condition for an action to be picked.
+##   ANY       — don't care.
+##   REQUIRED  — only with a clear view of the player (a direct shot, a charge).
+##   FORBIDDEN — only WITHOUT a clear view. This is the lob-over-a-wall case: the
+##               creature knows where you are because you are in its region, but
+##               cannot see you, so it arcs something over instead of firing flat.
+enum Sight { ANY, REQUIRED, FORBIDDEN }
+
 @export_group("Range")
 ## Nearest distance to the player at which this may be picked.
 @export var min_range: float = 0.0
 ## Furthest distance at which this may be picked. 0 = no limit.
 @export var max_range: float = 0.0
+
+@export_group("Conditions")
+## A TriggerRegion the player must be inside for this action to be picked. Empty =
+## no region condition.
+##
+## This is how a bombardment zone is expressed: the dangerous SPACE is authored in
+## the level, independent of where the creature stands, so the two need not even be
+## in sight of each other. Referring to a region here also makes the creature alert
+## while that region is occupied — see EnemyBrain.
+@export var required_region: NodePath
+## Whether this action needs, forbids, or ignores line of sight to the player.
+@export var los_requirement: Sight = Sight.ANY
 
 @export_group("Rules")
 ## Seconds this action is off the table after it runs.
@@ -141,8 +161,8 @@ func on_abort() -> void:
 		anim.speed_scale = 1.0
 
 
-## Can the brain pick this right now? Override to add conditions (line of sight,
-## the host's HP, a resource cost).
+## Can the brain pick this right now? Override to add conditions (the host's HP, a
+## resource cost); call super() to keep the standard ones.
 func is_eligible(distance_to_player: float) -> bool:
 	if not enabled or _cooldown_left > 0.0:
 		return false
@@ -150,7 +170,32 @@ func is_eligible(distance_to_player: float) -> bool:
 		return false
 	if max_range > 0.0 and distance_to_player > max_range:
 		return false
+	if not _region_satisfied():
+		return false
+	if not _sight_satisfied():
+		return false
 	return true
+
+
+func _region_satisfied() -> bool:
+	var region: Node = get_region()
+	return region == null or bool(region.call("is_occupied"))
+
+
+func _sight_satisfied() -> bool:
+	if los_requirement == Sight.ANY:
+		return true
+	var clear: bool = brain != null and bool(brain.call("has_line_of_sight"))
+	return clear if los_requirement == Sight.REQUIRED else not clear
+
+
+## The TriggerRegion this action is gated on, or null. Resolved against the SCENE,
+## not this node, because a region is level geometry that lives outside the
+## creature — often nowhere near it.
+func get_region() -> Node:
+	if required_region == NodePath():
+		return null
+	return get_node_or_null(required_region)
 
 
 func is_on_cooldown() -> bool:

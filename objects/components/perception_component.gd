@@ -120,6 +120,16 @@ func _can_see(dist: float) -> bool:
 	return not require_line_of_sight or _has_line_of_sight()
 
 
+## Is there a clear line to the player right now? Independent of the vision cone
+## and of `_alerted` — a creature can know exactly where you are (because you are
+## standing in its trigger region) while having no view of you, which is what an
+## action with `los_requirement = FORBIDDEN` keys off to arc something over a wall.
+func has_line_of_sight() -> bool:
+	if not is_instance_valid(_player) or _body == null:
+		return false
+	return _has_line_of_sight()
+
+
 func _has_line_of_sight() -> bool:
 	var space := _body.get_world_3d().direct_space_state
 	var from: Vector3 = _body.global_position + Vector3.UP * eye_height

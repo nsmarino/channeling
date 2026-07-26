@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://dv6np2xkhr9wm"]
+[gd_scene format=3 uid="uid://dv6np2xkhsawm"]
 
 [ext_resource type="PackedScene" uid="uid://dp4hs7xnkw2vq" path="res://objects/interactables/Mushroom2.tscn" id="1_base"]
 

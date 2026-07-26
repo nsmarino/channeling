@@ -15,6 +15,14 @@ class_name MovementComponent
 @export var face_player: bool = false
 ## How fast the body turns to face travel (higher = snappier).
 @export var turn_lerp: float = 6.0
+## Constant Y spin in degrees/sec. 0 = off.
+##
+## Lives here rather than in an action because this component is the single writer
+## of rotation, and because an idle spin is a permanent property of a creature, not
+## something it decides to do — as an action it would occupy the one action slot
+## forever and starve everything else. An explicit aim (drive/face_toward/
+## set_facing) still wins for the frames it is requested.
+@export var spin_speed_deg: float = 0.0
 ## How fast an external knockback impulse bleeds off (units/sec²).
 @export var knockback_damping: float = 14.0
 
@@ -199,8 +207,19 @@ func _update_facing(delta: float) -> void:
 	elif face_travel_direction:
 		var flat: Vector3 = Vector3(_body.velocity.x, 0.0, _body.velocity.z)
 		if flat.length_squared() <= 0.04:
+			_apply_spin(delta)
 			return
 		target_yaw = atan2(-flat.x, -flat.z)
 	else:
+		_apply_spin(delta)
 		return
 	_body.rotation.y = lerp_angle(_body.rotation.y, target_yaw, clampf(turn_lerp * delta, 0.0, 1.0))
+
+
+## Constant idle spin, applied only on frames where nothing else claimed facing.
+func _apply_spin(delta: float) -> void:
+	if is_zero_approx(spin_speed_deg):
+		return
+	_body.rotation.y = wrapf(
+		_body.rotation.y + deg_to_rad(spin_speed_deg) * delta, -PI, PI
+	)
