@@ -132,6 +132,9 @@ enum Action { NONE, ORBIT_LEFT, ORBIT_RIGHT, ATTACK }
 @export var attack_box_path: NodePath = ^"../AttackBox"
 ## AnimationPlayer for the attack clip. Empty = auto-find under the host.
 @export var animation_player_path: NodePath
+## Optional shared blackboard for group coordination. Empty = look one up in the
+## "enemy_coordinator" group; none found = solo behaviour (no coordination).
+@export var coordinator_path: NodePath
 
 @export var debug_log: bool = true
 
@@ -143,6 +146,7 @@ var _player: Node3D = null
 
 var _hitbox: Node = null  # MeleeHitbox on the AttackBox (duck-typed)
 var _ap: AnimationPlayer = null
+var _coordinator: Node = null  # EnemyCoordinator (duck-typed, optional)
 
 var _state: State = State.WANDER
 var _action: Action = Action.NONE
@@ -171,6 +175,9 @@ func _setup() -> void:
 	_agent = get_node_or_null(agent_path) as NavigationAgent3D
 	_perception = get_node_or_null(perception_path)
 	_hitbox = get_node_or_null(attack_box_path)
+	_coordinator = get_node_or_null(coordinator_path)
+	if _coordinator == null:
+		_coordinator = get_tree().get_first_node_in_group("enemy_coordinator")
 	if animation_player_path != NodePath() and has_node(animation_player_path):
 		_ap = get_node(animation_player_path) as AnimationPlayer
 	else:
@@ -212,6 +219,7 @@ func _abort_actions() -> void:
 	_committed = false
 	_action = Action.NONE
 	_close_hitbox()
+	_release_attack_slot()
 	if _ap:
 		# The twirl parks speed_scale at 0 to freeze its pose — restore it, or every
 		# later animation would play frozen.
@@ -236,6 +244,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_player = _resolve_player()
+	_report_sighting()
 	_update_state()
 
 	match _state:
@@ -253,10 +262,36 @@ func _resolve_player() -> Node3D:
 	return get_tree().get_first_node_in_group("player") as Node3D
 
 
+## Alerted if I personally see the player, OR a groupmate has a fresh sighting
+## (shared perception recruits the whole group off one member's eyes).
 func _is_alerted() -> bool:
-	if _perception == null or not _perception.has_method("is_alerted"):
+	if not is_instance_valid(_player):
 		return false
-	return bool(_perception.call("is_alerted")) and is_instance_valid(_player)
+	if _sees_player():
+		return true
+	if _coordinator and bool(_coordinator.call("has_fresh_sighting")):
+		return true
+	return false
+
+
+func _sees_player() -> bool:
+	return _perception != null and _perception.has_method("is_alerted") \
+		and bool(_perception.call("is_alerted"))
+
+
+## Post my own sighting to the group blackboard so allies can join in.
+func _report_sighting() -> void:
+	if _coordinator and is_instance_valid(_player) and _sees_player():
+		_coordinator.call("report_player_seen", _player.global_position)
+
+
+func _claim_attack_slot() -> bool:
+	return _coordinator == null or bool(_coordinator.call("claim_attack_slot", host))
+
+
+func _release_attack_slot() -> void:
+	if _coordinator:
+		_coordinator.call("release_attack_slot", host)
 
 
 ## Mode transitions. Distance is flattened — height shouldn't decide reach.
@@ -292,6 +327,13 @@ func _enter_state(next: State) -> void:
 	# Leaving the mode invalidates whatever action was mid-flight.
 	_abort_actions()
 
+	# Claim/drop a ring slot with the group so engaged enemies spread out.
+	if _coordinator:
+		if next == State.WANDER:
+			_coordinator.call("disengage", host)
+		else:
+			_coordinator.call("engage", host)
+
 	# Handing the body back to the wander pattern: clear the chase destination so
 	# the pattern sees "arrived" and immediately rolls a fresh wander target,
 	# instead of first walking to wherever the player last was.
@@ -313,15 +355,26 @@ func _flat_distance_to_player() -> float:
 # --- Modes -----------------------------------------------------------------
 
 ## Path to the player through the navmesh, so walls and ledges are respected.
+## With a coordinator, each enemy heads for its own slot on the ring around the
+## player instead of the player's exact feet — so they converge spread out rather
+## than piling onto one point.
 func _run_chase() -> void:
 	if _agent == null or not is_instance_valid(_player):
 		return
-	_agent.target_position = _player.global_position
+	_agent.target_position = _chase_target()
 	var to_next: Vector3 = _agent.get_next_path_position() - _body.global_position
 	to_next.y = 0.0
 	if to_next.length_squared() < 0.0001:
 		return
 	_move.call("drive", to_next.normalized() * chase_speed)
+
+
+func _chase_target() -> Vector3:
+	var pos: Vector3 = _player.global_position
+	if _coordinator:
+		var a: float = _coordinator.call("get_ring_angle", host)
+		pos += Vector3(sin(a), 0.0, cos(a)) * combat_range
+	return pos
 
 
 func _run_combat(delta: float) -> void:
@@ -342,7 +395,10 @@ func _pick_action() -> void:
 	_orbit_travelled = 0.0
 	_orbit_flipped = false
 
-	if randf() < attack_chance:
+	# Attacking needs a group attack slot: only `max_attackers` may swing at once,
+	# so the rest keep pressure by orbiting instead of all piling in. Solo enemies
+	# (no coordinator) always get the slot.
+	if randf() < attack_chance and _claim_attack_slot():
 		_action = Action.ATTACK
 		_busy = true
 		if debug_log:
@@ -474,6 +530,7 @@ func _finish_action(token: int) -> void:
 	_committed = false
 	_action = Action.NONE
 	_close_hitbox()
+	_release_attack_slot()
 
 
 ## Plant the feet for one frame. Needed rather than simply not steering: drive()

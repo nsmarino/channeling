@@ -4,15 +4,16 @@
 [ext_resource type="PackedScene" uid="uid://dhduxwhj7qg5f" path="res://assets/models/test/manicoppo-for-export.glb" id="2_e4ut0"]
 [ext_resource type="Resource" uid="uid://c64act80aspnn" path="res://objects/enemy/movement/manicoppo_wander.tres" id="3_wander"]
 [ext_resource type="Script" uid="uid://b6dufwgxijh37" path="res://objects/components/locomotion_animator.gd" id="4_locomotion"]
-[ext_resource type="Script" path="res://objects/components/perception_component.gd" id="5_perception"]
-[ext_resource type="Script" path="res://objects/components/enemy_brain.gd" id="6_brain"]
-[ext_resource type="Script" path="res://objects/components/melee_hitbox.gd" id="7_melee"]
+[ext_resource type="Script" uid="uid://cq1s4ni4vuv57" path="res://objects/components/perception_component.gd" id="5_perception"]
+[ext_resource type="Script" uid="uid://blrfvn2cmr7y5" path="res://objects/components/enemy_brain.gd" id="6_brain"]
+[ext_resource type="Script" uid="uid://bvd8awcuiibx1" path="res://objects/components/melee_hitbox.gd" id="7_melee"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_e4ut0"]
 height = 1.5
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_rdbjv"]
-height = 1.5
+radius = 0.65000004
+height = 2.25
 
 [node name="Enemy" unique_id=1726509542 instance=ExtResource("1_7nm3q")]
 
@@ -30,7 +31,7 @@ pattern = ExtResource("3_wander")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 
 [node name="manicoppo-for-export" parent="." index="7" unique_id=516075957 instance=ExtResource("2_e4ut0")]
-transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 0, 0)
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 0, -0.2)
 
 [node name="Skeleton3D" parent="manicoppo-for-export/CharacterArmature" parent_id_path=PackedInt32Array(516075957, 1655222848) index="0" unique_id=52580403]
 bones/0/position = Vector3(0, 0, -0.00080306357)
@@ -144,14 +145,18 @@ collision_mask = 2
 monitoring = false
 script = ExtResource("7_melee")
 
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackBox" index="0" unique_id=801815201]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.5, -0.9250001)
+shape = SubResource("CapsuleShape3D_rdbjv")
+
 [node name="PerceptionComponent" type="Node" parent="." index="11" unique_id=1500000051]
 script = ExtResource("5_perception")
 
 [node name="EnemyBrain" type="Node" parent="." index="12" unique_id=1500000052]
 script = ExtResource("6_brain")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackBox" index="0" unique_id=801815201]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.5, -0.5500001)
-shape = SubResource("CapsuleShape3D_rdbjv")
+attack_chance = 0.55
+orbit_arc_units = 3.0
+zigzag_chance = 0.7
+zigzag_speed = 6.0
 
 [editable path="manicoppo-for-export"]

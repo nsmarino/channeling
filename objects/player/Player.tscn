@@ -26,16 +26,18 @@ radius = 0.9
 _data = [Vector2(0, 0), 0.0, 0.17514817, 0, 0, Vector2(1, 1), 3.014817, 0.0, 0, 0]
 point_count = 2
 
-[sub_resource type="Curve3D" id="Curve3D_lalkq"]
+[sub_resource type="Curve3D" id="Curve3D_t2uaq"]
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 3, -0.16666667, 0, 0, 0, 0, 0, 1.5, 0, 0, -1.4999999, 0, 6, -1.8333334, 0, 3, 2.8333335, 0, 0, 0, 0, 0, -9),
-"tilts": PackedFloat32Array(0, 0, 0)
+"points": PackedVector3Array(0, 0, 0, 0.6666667, 1.6666666, 0.6666667, 0, 0, 0, 0.33333337, -0.83333325, 0.16666675, -0.3333333, 0.8333335, -0.16666663, 1, 4.1666665, 1.1666666, 0.3333333, 0.8333335, 2.3333333, -0.33333337, -0.83333325, -2.3333333, -1, 4.1666665, -2.3333333, -0.6666667, 1.6666666, 3.666667, 0, 0, 0, 0, 0, -12),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
 }
-point_count = 3
+point_count = 4
 
 [node name="Player" type="CharacterBody3D" unique_id=1382951870 groups=["player"]]
 collision_layer = 2
 script = ExtResource("1_player")
+energy_regen = 15.0
+jump_energy_cost = 12.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2668393]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
@@ -72,6 +74,7 @@ script = ExtResource("2_lockon")
 collision_layer = 0
 collision_mask = 4
 script = ExtResource("3_bump")
+energy_cost = 30.0
 power_drop_scene = ExtResource("4_drop")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BumpCombat" unique_id=1500000022]
@@ -82,14 +85,14 @@ shape = SubResource("SphereShape3D_bump")
 
 [node name="PowerSlamComponent" type="Node" parent="." unique_id=1500000041]
 script = ExtResource("6_slam")
-free_cast = true
+energy_cost = 40.0
 duration = 1.0
 time_curve = SubResource("Curve_t2uaq")
 
 [node name="NurbsPath3D" type="Path3D" parent="." unique_id=290428690]
-curve = SubResource("Curve3D_lalkq")
+curve = SubResource("Curve3D_t2uaq")
 script = ExtResource("5_h7ooo")
-control_points = Array[Vector3]([Vector3(0, 0, 0), Vector3(0, 9, -0.5), Vector3(0, 0, -9)])
+control_points = Array[Vector3]([Vector3(0, 0, 0), Vector3(2, 5, 2), Vector3(-2, 5, -1), Vector3(0, 0, -12)])
 metadata/_custom_type_script = "uid://cn8rbspth3d0a"
 
 [node name="HitReactComponent" type="Node" parent="." unique_id=1500000061]

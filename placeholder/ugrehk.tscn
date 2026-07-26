@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://cmpkllofau3bi"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_rdbjv"]
+top_radius = 0.3
+height = 0.3
+radial_segments = 16
+rings = 2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_wsp3h"]
+top_radius = 0.19999999
+bottom_radius = 0.19999999
+
+[node name="Node3D" type="Node3D" unique_id=454237276]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1584445814]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95000005, 0)
+mesh = SubResource("CylinderMesh_rdbjv")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=355711247]
+mesh = SubResource("CylinderMesh_wsp3h")

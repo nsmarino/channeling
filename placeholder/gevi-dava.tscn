@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://cwb01q3dpylpp"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_rdbjv"]
+radius = 0.25
+height = 1.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_rdbjv"]
+top_radius = 0.05
+bottom_radius = 0.08
+height = 1.0
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_wsp3h"]
+radius = 0.15
+height = 0.5
+
+[node name="Node3D" type="Node3D" unique_id=623394683]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=106488929]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.90000004, 0)
+mesh = SubResource("CapsuleMesh_rdbjv")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=1475619078]
+transform = Transform3D(1, 0, 0, 0, 0.9848077, 0.17364818, 0, -0.17364818, 0.9848077, 0, 1.3000001, -0.4)
+mesh = SubResource("CylinderMesh_rdbjv")
+
+[node name="MeshInstance3D4" type="MeshInstance3D" parent="." unique_id=717572831]
+transform = Transform3D(1, 0, 0, 0, 0.9848077, 0.17364818, 0, -0.17364818, 0.9848077, 0, 0.50000006, 0)
+mesh = SubResource("CylinderMesh_rdbjv")
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="." unique_id=1450185897]
+transform = Transform3D(1, 0, 0, 0, 0.49999997, -0.86602545, 0, 0.86602545, 0.49999997, 0, 1.7, -0.6)
+mesh = SubResource("CapsuleMesh_wsp3h")
