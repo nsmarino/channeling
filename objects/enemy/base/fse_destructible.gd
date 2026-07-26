@@ -24,13 +24,13 @@ enum State { INACTIVE, ACTIVE, DYING }
 @export var max_hp: int = 100
 ## Seconds the death VFX/SFX play before the body is freed.
 @export var death_duration: float = 1.2
-## Whether the player's homing system can lock onto this destructible. Set
-## false for harmless props you don't want stealing the lock.
-@export var homing_eligible: bool = true
 ## When true, this destructible ignores all non-blast damage — it can ONLY be
 ## destroyed by a blast (the "green" category). Normal hits play a cue but deal
 ## no damage; a BlastComponent's blast passes is_blast=true and gets through.
 @export var blast_only: bool = false
+## Print each hit and the death line. Off by default: a level dressed with dozens
+## of bump-destructible props would otherwise flood the console.
+@export var debug_log: bool = false
 
 # Resolved component children (optional — missing ones are simply skipped).
 @onready var _vfx: VfxEmitter = get_node_or_null("VfxEmitter")
@@ -62,12 +62,12 @@ func take_damage(amount: int, is_blast: bool = false) -> void:
 		return
 	var prev: int = hp
 	hp = maxi(0, hp - amount)
-	print("[%s] Took %d damage. HP: %d -> %d / %d" % [_label(), amount, prev, hp, max_hp])
+	if debug_log:
+		print("[%s] Took %d damage. HP: %d -> %d / %d" % [_label(), amount, prev, hp, max_hp])
 
 	if _sfx:
 		_sfx.play("hit")
-	Events.enemy_damaged.emit(amount)
-	Events.enemy_hp_changed.emit(hp, max_hp)
+	_report_damage(amount)
 	hit.emit(amount)
 
 	if hp <= 0:
@@ -87,12 +87,11 @@ func _die() -> void:
 	state = State.DYING
 	_dispatch_active(false)
 	velocity = Vector3.ZERO
-	print("[%s] %s" % [_label(), _death_message()])
+	if debug_log:
+		print("[%s] %s" % [_label(), _death_message()])
 
 	# Hide the body but keep the node alive briefly so detached VFX/SFX play.
-	for child in get_children():
-		if child is MeshInstance3D:
-			(child as MeshInstance3D).visible = false
+	_hide_meshes(self)
 
 	if _vfx:
 		_vfx.emit("death", true)
@@ -101,6 +100,24 @@ func _die() -> void:
 
 	died.emit()
 	get_tree().create_timer(death_duration).timeout.connect(queue_free)
+
+
+## Hide every mesh in the subtree so the corpse vanishes while the node lingers
+## for its detached VFX/SFX.
+##
+## Recursive on purpose: an imported .glb parks its MeshInstance3Ds several levels
+## down (under the model root and its Skeleton3D), so the old top-level-only scan
+## missed them entirely and modelled enemies stayed fully visible until the
+## death_duration timer freed them.
+##
+## VfxEmitter is skipped — its subtree is the death burst we're about to play.
+func _hide_meshes(node: Node) -> void:
+	for child in node.get_children():
+		if child is VfxEmitter:
+			continue
+		if child is MeshInstance3D:
+			(child as MeshInstance3D).visible = false
+		_hide_meshes(child)
 
 
 ## Iterate component children with a `set_active(bool)` method and call them.
@@ -123,8 +140,16 @@ func is_defeated() -> bool:
 
 # --- Virtual hooks ---------------------------------------------------------
 #
-# Subclasses override these to customize log lines without overriding the
-# whole _die/take_damage flow.
+# Subclasses override these to customize reporting and log lines without
+# overriding the whole _die/take_damage flow.
+
+## Broadcast a landed hit to the rest of the game. A bare Destructible reports
+## nothing: a bump-destructible mushroom is scenery, and it has no business
+## driving the enemy HUD channel. `Enemy` overrides this to emit the
+## Events.enemy_* signals.
+func _report_damage(_amount: int) -> void:
+	pass
+
 
 ## Used in console logs as "[<label>] ...". Override to use a display_name etc.
 func _label() -> String:

@@ -41,7 +41,8 @@ func _ready() -> void:
 	if _weapon:
 		_weapon.setup(_player)
 
-	print("[%s] Spawned (HP %d/%d), waiting to activate within %.0fu." % [_label(), hp, max_hp, activation_distance])
+	if debug_log:
+		print("[%s] Spawned (HP %d/%d), waiting to activate within %.0fu." % [_label(), hp, max_hp, activation_distance])
 
 
 func _physics_process(_delta: float) -> void:
@@ -59,10 +60,17 @@ func _physics_process(_delta: float) -> void:
 func _activate() -> void:
 	state = State.ACTIVE
 	_dispatch_active(true)
-	print("[%s] Activated." % _label())
+	if debug_log:
+		print("[%s] Activated." % _label())
 
 
-# --- Log overrides ---------------------------------------------------------
+# --- Overrides -------------------------------------------------------------
+
+## Enemies (unlike bare Destructibles) feed the enemy hit-feedback channel.
+func _report_damage(amount: int) -> void:
+	Events.enemy_damaged.emit(amount)
+	Events.enemy_hp_changed.emit(hp, max_hp)
+
 
 func _label() -> String:
 	var dn: String = String(enemy_data.display_name) if enemy_data else String(name)

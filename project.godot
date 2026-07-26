@@ -22,6 +22,8 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+
+
 Events="*res://autoloads/events.gd"
 GameManager="*res://autoloads/game_manager.gd"
 Cinematic="*res://autoloads/cinematic.gd"
@@ -132,7 +134,7 @@ power_slam={
 
 3d_physics/layer_1="environment"
 3d_physics/layer_2="player"
-3d_physics/layer_3="enemy"
+3d_physics/layer_3="hurtbox"
 3d_physics/layer_4="player_projectile"
 3d_physics/layer_5="enemy_projectile"
 3d_physics/layer_6="pickup"
