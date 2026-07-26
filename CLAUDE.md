@@ -4,467 +4,266 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Project Overview
 
-**starter-4.7** is a clean **3D character-controller starter template** for Godot 4
-(Forward+ renderer), carved out of an earlier rail-shooter prototype. The goal is a
-small, legible base you can clone for new 3D game prototypes and hit the ground
-running: a working third-person player (with a SpringArm camera and Dark
-Souls-style lock-on), a reusable component system, a restart loop, and a
-curved-path authoring tool — without the prototype-specific cruft.
+**channeling** is a 3D action game in Godot 4 (Forward+), built on a
+character-controller foundation. The current phase is **encounter prototyping**: a
+CSG blockout level dressed with enemies, breakables and interactables, tuned by
+playing, ahead of any mise-en-scène work (textures, lighting, Blender models).
 
-Assume games built from this template are **3D and character-controller based**.
+Combat is **bump-based** — you damage things by running into them — not shooting.
+A player rifle/weapon system still exists in the tree but is not the direction;
+treat it as legacy unless asked.
 
-Main scene: `main.tscn` (project root) — a third-person player on a ground plane.
-The project ships a Godot MCP server (`mcp__godot__*`) for AI-assisted iteration —
-prefer MCP tools (`run_project`, `game_eval`, `game_screenshot`) for verification
-over raw shell work.
+Main scene: `main.tscn` (project root). The project ships a Godot MCP server
+(`mcp__godot__*`); prefer it (`run_project`, `game_eval`, `game_screenshot`) over
+raw shell work for verification.
+
+**For building new enemies, read [`docs/enemy-prototyping.md`](docs/enemy-prototyping.md).**
+It covers the action system, the component map, testing practice and the traps.
 
 ## Project layout
 
-- **`main.tscn`** — the playable starter scene, at the **project root**: a
-  `WorldEnvironment`, a ground plane (`StaticBody3D` + collision + mesh), the
-  player, the HUD, and empty `Enemies` / `Obstacles` containers under `Level`.
-- **`levels/`** — `main.gd` (scene controller; registers the player + level with
-  `GameManager`) and `overworld/` scene scaffolding.
-- **`objects/`** — game objects:
-  - `objects/player/` — the **third-person player** (`player.gd` + `Player.tscn`).
-  - `objects/components/` — shared behavior components + the base `Component` class.
-  - `objects/enemy/` — `Destructible` / `Enemy` bases, concrete enemies, the blast
-    system (`enemy/blast/`), movement patterns, and `*Data` resources.
-  - `objects/obstacles/` — `Obstacle` base + concrete obstacles.
-  - `objects/weapons/` — data-driven weapon / projectile bases + variants.
-- **`autoloads/`** — `Events` (signal bus) and `GameManager` (scene refs + restart).
-  `mcp_interaction_server.gd` also lives here and is loaded by the MCP tool at runtime.
-- **`resources/`** — shared `Resource` data types (e.g. `WeaponData`).
-- **`vfx/`** — `vfx/shaders/` (e.g. `blink.gdshader`) and `vfx/particles/` (e.g.
-  the `blast.tscn` burst).
-- **`ui/`** — the HUD (`CombatUI.tscn` / `combat_ui.gd`): a center crosshair +
-  health readout.
-- **`assets/`** — imported content (`models/`, `sounds/`, `sprites/`, `fonts/`,
-  `hdr/`, vendored texture/vfx packs).
-- **`addons/`** — editor plugins: `nurbs_path/` (curved-path authoring gizmo),
-  `view_overlay_toggle/`, `GPUTrail/`, `brackeys_particle_controls/`.
-- **`explores/`** — standalone R&D sandboxes (`explore-shaders/`, `explore-vfx/`,
-  `explore-animation/`); not loaded by `main.tscn`.
-
-Rule of thumb: new content assets go under `assets/`; new game logic/scenes under
-`objects/`; shaders/particles under `vfx/`; editor plugins under `addons/`.
+- **`main.tscn`** — the playable scene: player, HUD, a `Path3D`/CSG blockout, a
+  `NavigationRegion3D` containing the placeholder channel scenes, an
+  `EnemyCoordinator`, and three Manicoppos.
+- **`levels/`** — `main.gd` (registers player + level with `GameManager`),
+  `overworld/`, `dungeon/`.
+- **`placeholder/`** — untextured blockout geometry: the channel/room scenes used
+  in `main.tscn`, plus placeholder creature models.
+- **`objects/`**
+  - `player/` — third-person player (`player.gd` + `Player.tscn`).
+  - `components/` — reusable behaviour components + the `Component` base.
+  - `enemy/` — `Destructible` / `Enemy` bases, `actions/` (the AI action library),
+    concrete enemies, the blast system, movement patterns.
+  - `breakables/` — `Breakable` base + Mushroom 1.
+  - `interactables/` — bounce mushrooms (no base class; see below).
+  - `level/` — `TriggerRegion`, level-authoring pieces.
+  - `pickups/`, `weapons/`, `cutscene/`.
+- **`autoloads/`** — `Events`, `GameManager`, `Cinematic`.
+  `mcp_interaction_server.gd` is injected per-run by the MCP tool, not a project
+  autoload; **treat its warnings as noise** when triaging.
+- **`vfx/`**, **`ui/`**, **`assets/`**, **`addons/`**, **`explores/`** — as named.
 
 ## Running & Tooling
 
-- **Open in editor**: launch Godot 4, or `mcp__godot__launch_editor`. Run with
-  `mcp__godot__run_project`.
-- **Godot version**: developed against Godot 4.6/4.7 (Forward+). GDScript with
-  **typed declarations throughout** — untyped is treated as a warning.
-- Verify with MCP: `run_project` then `game_eval` in **separate turns** (the MCP
-  server takes a moment to connect after launch — eval calls batched with
-  `run_project` fail with "Not connected").
-- The debugger break-on-error is enabled; a single parse error in eval-injected
-  GDScript pauses the running game. Keep eval snippets short, **explicitly typed**
-  (untyped `:=` on a dynamic member trips a parser break), and avoid mixing
-  tabs/spaces.
+- **Run**: `mcp__godot__run_project`. **Editor**: `mcp__godot__launch_editor`.
+- **Godot 4.6/4.7, Forward+.** GDScript with **typed declarations throughout**;
+  untyped is a warning.
+- `run_project` then `game_eval` in **separate turns** — the MCP server needs a
+  moment to connect, so calls batched with `run_project` fail with "Not connected".
+- Break-on-error is on; a parse error in eval-injected GDScript pauses the game.
+  Keep eval snippets short and explicitly typed.
 
 ### Class-cache / `.uid` gotcha (read before adding a `class_name`)
 
-A freshly-written `.gd` with a new `class_name` (or a renamed one) won't register
-in Godot's global class cache from a bare `run_project` — `extends NewClass` then
-fails at a debugger break with *"Could not find base class"*. Fixes:
-- Write the script's `.uid` directly (`uid://<unique-token>`, check for collisions).
-- Force a one-shot rescan that rebuilds `.godot/global_script_class_cache.cfg`:
-  `Godot --headless --editor --quit-after 300 --path .` (this also refreshes UIDs).
-- Duck-typing a reference (`var x: Node` + `.call()/.set()`) sidesteps the lag when
-  you can't rescan.
+A freshly written `.gd` with a new `class_name` will **not** register from a bare
+`run_project` — `extends NewClass` fails with *"Could not find base class"*. Fix:
+
+```bash
+/Applications/Godot_4.7.app/Contents/MacOS/Godot --headless --editor --quit-after 400 --path .
+```
+
+This rebuilds `.godot/global_script_class_cache.cfg` and runs fine alongside an
+open editor. Also write the script's `.uid` by hand (`uid://<token>`, checked for
+collisions) so scenes can reference it stably.
 
 ## Architecture
 
 ### Autoloads
-- **`Events`** (`autoloads/events.gd`) — central signal bus. Holds `player_killed`,
-  the cutscene bracket (`cutscene_started` / `cutscene_finished`), and the
-  enemy/hit feedback signals (`enemy_hp_changed`, `enemy_damaged`, `attack_hit`).
-  Cross-system communication should go through here.
-- **`GameManager`** (`autoloads/game_manager.gd`) — holds runtime refs (the player
-  `navigator`, the level root) **and owns level restart** (see below).
-- **`McpInteractionServer`** — TCP server for the Godot MCP tool. Lives at
-  `autoloads/mcp_interaction_server.gd` and is injected as an autoload by the MCP
-  `run_project` tool per-run (it is not a persistent project autoload). Many style
-  warnings emanate from this file; **treat its warnings as noise** when triaging.
 
-### Player (`objects/player/`) — third-person controller + lock-on
+- **`Events`** — signal bus: `player_killed`, the cutscene bracket,
+  `enemy_hp_changed` / `enemy_damaged` / `attack_hit`.
+- **`GameManager`** — runtime refs + **level restart** (deferred
+  `reload_current_scene()` behind a re-entrancy guard). Triggers: player death,
+  falling below `fall_limit_y`, and the `restart` action.
+- **`Cinematic`** — brackets cutscenes with the `Events` signals.
 
-A **third-person `CharacterBody3D`** (`player.gd` + `Player.tscn`) that works with
-**mouse/keyboard and gamepad interchangeably**. The body never rotates: look lives
-on a `CameraPivot`, facing on a `Model` child. Scene rig:
-`Player → CameraPivot → SpringArm3D → Camera3D` (the spring arm pulls the camera
-in on walls) plus a visible `Model` (capsule + front indicator) and the
-`LockOnComponent`. The capsule renders slightly left of center via the camera's
-**`h_offset`** (not a transform offset — the SpringArm overwrites its child's
-transform each frame; `camera_h_offset` / `locked_h_offset` are `@export` knobs).
+### Player (`objects/player/`)
 
-**Free (unlocked)** — camera-relative:
-- **Look** — mouse motion or the right stick (`look_*`) orbits the pivot (yaw +
-  clamped pitch).
-- **Move** — `WASD`/`IJKL` or the left stick (`move_*`), relative to the camera's
-  facing; the `Model` turns toward the direction of travel.
-- **Jump** — `Space` or the gamepad A button (`jump`).
-- **Escape** toggles mouse capture (so you can reach the editor / OS).
+Third-person `CharacterBody3D`, mouse/keyboard and gamepad interchangeable. The
+body never rotates: look lives on a `CameraPivot`, facing on a `Model` child.
+Rig: `Player → CameraPivot → SpringArm3D → Camera3D`, plus `Model`, `BumpCombat`,
+`PowerSlamComponent`, `LockOnComponent`.
 
-**Locked** (LockOnComponent reports a target) — Dark Souls-style: free look is
-suppressed and the camera auto-frames the target (FOV punches in to `locked_fov`);
-forward/back approaches/retreats along the player→target line, left/right strafes
-tangentially to orbit, and the `Model` faces the target the whole time.
+**Three distinct ways to move the player from outside** — pick deliberately:
 
-**Weapon** — a `weapon_scene` (`@export`, default `PlayerRifle.tscn`) is instanced
-under a `WeaponSocket` (a child of `Model`, so it swings with the body's facing) on
-ready, with `owner_character` set to the player so its hitscan excludes us. The
-`attack` action fires it, **but only while locked on** — you shoot the thing you're
-locked to, and aim runs straight from the muzzle to the lock target. The weapon's
-own `should_fire_for_input()` decides semi vs auto from its `WeaponData`.
+| Method | Overrides velocity | Suppresses input | Use for |
+|---|---|---|---|
+| `apply_knockback(impulse, duration)` | yes | **yes** | being hit; the impact must read |
+| `launch(impulse)` | along the impulse axis only | no | bounce pads, traversal boosts |
+| `apply_external_velocity(delta_v)` | adds only | no | sustained pull/push you can fight |
 
-It registers into the **`player`** group, exposes `hp` (read by the HUD), and on
-death calls `Events.player_killed.emit()` (which `GameManager` turns into a
-restart). Tuning lives in Inspector `@export` blocks (Movement / Look / Lock-On /
-Weapon / Health / Energy / References), matching the iterate-by-playing workflow.
+`launch()` cancels existing motion along its axis first, so height is what the pad
+promises rather than a function of how hard you fell.
+`begin_scripted_move()` / `end_scripted_move()` hand the transform over entirely
+(Power Dive, being swallowed) — **anything that starts one is responsible for
+ending it**, including on abort, or the player is frozen until a restart.
 
-### Player energy & abilities
+Also: `hp`, `energy` (regenerates every frame), `spend_energy()` (all-or-nothing),
+`restore_energy()`, `take_damage()`.
 
-The player owns an **`energy`** pool (a float, like `hp` — a core stat on
-`player.gd`, not a component) that abilities spend and that **regenerates every
-frame** (`energy_regen`, in `_physics_process` before any state gate, so it ticks
-even during cutscenes / scripted moves — this is what guarantees traversal moves
-are always eventually available). The interface is duck-typed so components need
-no reference to the player type: **`spend_energy(amount) -> bool`** (all-or-nothing;
-returns false and spends nothing if unaffordable, so callers gate on it) and
-**`restore_energy(amount)`** (clamped to `max_energy`). The HUD shows it as a bar.
+Useful constants when tuning forces against the player: `move_speed` 6.0,
+`ground_acceleration` 60.0, `air_acceleration` 6.0.
 
-Energy consumers / restorers:
-- **Jump** (`player.gd`) — costs `jump_energy_cost`; suppressed if unaffordable.
-- **Bump combat** (`BumpCombatComponent`, an `Area3D` on the player) — Ys-style:
-  running into an enemy's `HitBox` area damages it (scaled by where you hit — most
-  into their back, least head-on) and bounces the player back. Costs `energy_cost`
-  per landed bump; **too little energy = you bounce off but deal no damage / no
-  drop** (a stub for a planned knockdown state). Detects `HitBox` **areas**, not
-  bodies (enemy bodies are `collision_layer = 0`), and routes damage through
-  `HitBox.receive_hit`.
-- **Power Dive** (`PowerSlamComponent`, `power_slam` action) — spends `energy_cost`
-  to arc into the air and slam down where the **camera** is aimed, damaging (and
-  knocking back) destructibles in the landing zone. The trajectory is **sampled
-  from a `NurbsPath3D` child of the player** (the editor-authored curve is the
-  in-engine "root-motion bake" — drag its control points to retune). During flight
-  the player hands its transform over via `begin_scripted_move()` /
-  `end_scripted_move()`, and moves by the curve **delta** through `move_and_slide`
-  (so walls still stop it); mid-flight bumps switch `BumpCombatComponent` into
-  `airborne_mode` (flat chip damage, no bounce, no energy). `free_cast` is a testing
-  toggle that skips the cost.
-- **PowerDrops** (`objects/pickups/`, `PowerDrop.tscn`) — small `RigidBody3D`
-  pickups a bump has a `drop_chance` of bursting out of the enemy; they bounce/roll
-  on the `environment` layer, settle, and are collected by walking into them
-  (a `PickupArea` polls the `player` layer), calling `restore_energy`.
+### Destructible family
 
-Enemy knockback (from a Power Dive impact) routes through
-`MovementComponent.apply_knockback` — **not** written onto the body directly,
-because the movement pattern reassigns velocity every frame. When the shove ends it
-**snaps the body back onto the navmesh** (`map_get_closest_point`), so knocking a
-navmesh-wandering enemy can't strand it off-mesh.
+```
+Destructible (CharacterBody3D)        group: destructible
+├── Enemy      — activation + brain    group: enemy
+└── Breakable  — HP, no brain          group: breakable
+TurretProjectile extends Destructible directly
+```
 
-### Lock-on (`objects/components/lock_on_component.gd`, `lock_on_target.gd`)
+**`Destructible`** (`objects/enemy/base/fse_destructible.gd`) — lifecycle
+`{INACTIVE, ACTIVE, DYING}`, HP, `take_damage(amount, is_blast)`, `destroy()`,
+`blast_only`, `hit`/`died` signals, `debug_log`, and the duck-typed
+`_dispatch_active(bool)` broadcast to any child exposing `set_active(bool)`.
+Virtuals: `_report_damage()` (base is a no-op; `Enemy` emits the `Events` signals,
+so a breakable prop doesn't drive the enemy HUD channel), `_label()`,
+`_death_message()`.
 
-A `LockOnComponent` (`extends Component`) attached under the player owns
-**targeting only** — it never touches the camera rig (player.gd reads it
-duck-typed via `is_locked()` / `get_target()` / `get_eligible_targets()` so the
-pivot stays single-writer). Eligible entities are **opt-in by group**: add a
-`LockOnTargetComponent` (`lock_on_target.gd`, a `Node3D`) as a child at the aim
-point (e.g. chest height) — it registers itself in the **`lockable`** group (toggle
-via its `enabled` flag / `set_lockable()`); its `global_position` is the aim point
-and `get_parent()` is the entity. `BaseEnemy.tscn` ships with one, so every enemy is
-lockable out of the box. Each
-frame the component gathers markers that are alive, within `max_lock_distance`, in
-front of the camera, and inside the inner `inner_viewport_fraction` of the
-viewport. Pressing `lock_on` locks the most-centered one; pressing again drops it;
-a look flick (right stick / mouse) switches targets; the lock also drops when the
-target dies (`is_defeated()`), is freed, or leaves range. The HUD draws a reticle
-on the active target and soft markers on the rest (see below).
+**`Enemy`** (`base_enemy.gd`) — `enemy_data`, `activation_mode`
+(`DISTANCE` / `BUMP` / `MANUAL`), public `activate()`, and the `_on_activated()`
+virtual for what waking up looks like. In `BUMP` mode the first hit wakes the
+creature and **deals no damage** — that is what lets something disguise itself.
 
-### Restart system (`GameManager`)
+**`Breakable`** (`objects/breakables/breakable.gd`) — deliberately almost empty.
+Its job is to exist as a *type* so a level can ask for breakables without also
+getting enemies. Bump-destructible for free via its `hurtbox`-layer `HitBox`.
 
-`GameManager.restart_level()` reloads the current scene (a **deferred**
-`reload_current_scene()`) behind a re-entrancy guard, so multiple triggers in one
-frame collapse to one reload. Deferring matters: death often fires from inside a
-physics callback (a projectile's `body_entered`), and a synchronous reload there
-errors on removing collider nodes mid-callback. It survives the reload because it's
-an autoload; the fresh scene re-registers its player via `register_navigator`.
-Three triggers are wired:
-- **Player death** — connected to `Events.player_killed` in `_ready`.
-- **Fall off map** — `_process` watches the registered navigator's `global_position.y`
-  against `fall_limit_y` (default −50), toggleable via `fall_check_enabled`. It is
-  controller-agnostic (it watches the navigator, not a specific script).
-- **Input** — the `restart` action (R / gamepad Back), handled in `_unhandled_input`.
+> **Naming note:** a few filenames still carry an old `Fse*` prefix
+> (`fse_destructible.gd`, `fse_turret_projectile.gd`); class names don't.
 
-### HUD (`ui/CombatUI.tscn`, `ui/combat_ui.gd`)
+### Enemy AI
 
-A `CanvasLayer` with a **center-anchored crosshair** (it stays put on its own
-anchors; the script just keeps it visible) and a `HEALTH: ###` label polled from
-the player's `hp` each frame. It also drives the **lock-on overlay**: it finds the
-player's `LockOnComponent` (duck-typed) and each frame `unproject_position`s the
-targets — repurposing the `LockOn` square as the **active reticle** and pooling
-soft `◇` markers (`EligibleMarkers`) on every other eligible target.
+`BaseEnemy.tscn` ships the whole stack — `PerceptionComponent`, `EnemyBrain`, an
+empty `Actions` container, `NavigationAgent3D`, `AttackBox`, `DropComponent` — so
+a new enemy inherits a working brain and only fills in its actions.
+**`WeaponComponent` is deliberately NOT on the base**: ranged fire is one enemy's
+choice, not a property of enemies.
 
-### Components (`objects/components/`)
+Three ideas hold it together:
 
-Small Nodes you attach to a host body (enemy, obstacle, player) to add one slice of
-behavior. The host coordinates them through **`set_active(bool)`**: `Destructible`
-broadcasts its lifecycle (`ACTIVE` / `DYING`) to every child exposing
-that method (duck-typed dispatch — the host needs no per-component knowledge).
+1. **Single-writer movement.** `MovementComponent` is the only thing that writes
+   velocity/rotation and calls `move_and_slide`. Everything else routes intent
+   through one-frame latches — `drive()`, `face_toward()`, `set_facing()` — plus
+   `apply_knockback()`. Call them every frame you want control; *stop* calling to
+   hand the body back. Precedence: `knockback > drive > pattern`.
+2. **Perception** — vision cone with sticky loss (grace + hysteresis).
+3. **Brain as scheduler** — a small FSM (`WANDER` / `CHASE` / `COMBAT`) that owns
+   no behaviour. Behaviours are `EnemyAction` nodes it gathers, weighted-picks and
+   awaits. `can_chase = false` for stationary creatures. **An empty `Actions`
+   container keeps the brain in WANDER**, so the AI rides on the base without
+   changing anything that doesn't opt in.
 
-- **`Component`** (`component.gd`, `class_name Component`, `extends Node`) — the
-  base. Resolves `host` in `_ready` (the parent, or `host_path`), calls a `_setup()`
-  hook, and routes `set_active(bool)` through an `is_active` guard into
-  `on_activate()` / `on_deactivate()`. Two flavors both subclass it:
-  - **Lifecycle-driven** (`MovementComponent`, `WeaponComponent`, `TurretEmitter`,
-    `AnimationDriver`) — override `on_activate` / `on_deactivate` to start/stop
-    per-frame work.
-  - **Event-driven** (`HitReactComponent`, `BlastComponent`) — ignore activation
-    and connect to host signals (`hit` / `died`) in `_setup()`.
-- **Single-inheritance caveat**: components that must *be* a spatial node can't
-  extend the `Node`-based `Component` — `HitBox` and `ContactDamage` are `Area3D`;
-  `SfxEmitter` / `VfxEmitter` are `Node3D`. They implement the same `set_active`
-  contract by hand and are recognised through the same duck-typed dispatch.
+See [`docs/enemy-prototyping.md`](docs/enemy-prototyping.md) for the action
+contract, the cancellation rule and the full action library.
 
-Component roster: `HitBox` (routes `receive_hit` → host `take_damage`),
-`MovementComponent` (drives the body via a `MovementPattern`, and turns it to face
-travel or — with `face_player` — the player; a null pattern = a stationary sentry
-that still aims; also the **single writer of the body's velocity/rotation**, taking
-external `apply_knockback` and the AI steering seam `drive` / `face_toward` /
-`set_facing` — see Enemy AI), `LocomotionAnimator` (swaps an
-AnimationPlayer between idle/move clips by host speed, and backs off any clip it
-doesn't own so attack animations aren't stomped — pairs with, doesn't replace,
-a `MovementComponent`), `WeaponComponent`
-(fires a projectile on a cadence), `ContactDamage` (damages overlapping bodies on a
-per-body cooldown), `MeleeHitbox` (an `Area3D` a brain `open()`s for a hit window;
-owns detection + per-target cooldown + damage + knockback, emits `hit` — see Enemy
-AI), `AnimationDriver` (plays a keyframed `AnimationPlayer`),
-`TurretEmitter` (spawns curve-following projectiles), `HitReactComponent` (flash +
-shake + optional particle bursts; auto-connects to a host `hit` signal — the player
-emits one from `take_damage`, so it flashes red when hit just like enemies),
-`BlastComponent` (spawns a blast on death), `SfxEmitter` / `VfxEmitter` (keyed
-one-shot players), `LockOnComponent` (player-only; poll/input-driven targeting for
-the lock-on system — see the Player section), the player ability components
-`BumpCombatComponent` / `PowerSlamComponent` (see Player energy & abilities), and
-the enemy AI components `PerceptionComponent` / `EnemyBrain` (see Enemy AI).
+### Interactables
 
-### Destructibles: enemies, obstacles, turret-projectiles
+**There is no `Interactable` base class, on purpose.** Being interactable is a
+*capability* you bolt onto any body — so `BouncePadComponent` can sit on a
+mushroom today and a door or an enemy's head tomorrow, with no inheritance to
+negotiate. Interactables have no HP and are not destructibles.
 
-A **component-assembled** system. Everything shootable shares one base,
-`Destructible`, built as an **inherited scene** so the visible body is a real
-editor-visible child node.
+`BouncePadComponent` proves "the player arrived from above" with **geometry** (its
+volume sits above a solid cap) rather than by testing downward velocity — Godot
+reports area overlaps from the previous physics step, by which time
+`move_and_slide` has already zeroed the lander's velocity.
 
-> **Naming note:** the `class_name`s dropped the old `Fse*` prefix (now
-> `Destructible`, `Enemy`, `Obstacle`, `Blast`, `EnemyData`, `WeaponData`,
-> `BaseWeapon`, `BaseProjectile`, `HitscanWeapon`, `TurretProjectile`). A few
-> **filenames** still carry the old prefix (`fse_destructible.gd`,
-> `fse_obstacle.gd`, `fse_turret_projectile.gd`) — class names and file names
-> intentionally differ there for now.
+### Loot
 
-- **`Destructible`** (`objects/enemy/base/fse_destructible.gd`, extends
-  `CharacterBody3D`) — the shared spine: lifecycle states
-  `{ INACTIVE, ACTIVE, DYING }`, HP / `take_damage(amount, is_blast := false)`,
-  a public `destroy()`, a `blast_only` flag, `homing_eligible`, the `hit` / `died`
-  signals that `HitReactComponent` / `BlastComponent` hook, and the duck-typed
-  `_dispatch_active(bool)` broadcast. Registers into the **`destructible`** group.
-- **`Enemy`** (`objects/enemy/base/base_enemy.gd`) — adds `enemy_data`, distance
-  activation, and `setup(player)` wiring. Group `enemy`.
-- **`Obstacle`** (`objects/obstacles/base/fse_obstacle.gd`) — adds `is_destructible`
-  and optional proximity activation. Group `obstacle`.
-- **`TurretProjectile`** (`objects/weapons/enemy/fse_turret_projectile.gd`) — a
-  destructible projectile that follows a curve from its emitter.
+`DropComponent` lives on the thing being broken, not on the player. Two separate
+knobs because they're separate mechanics: **death loot** (`death_min`/`death_max`,
+auto-connected to `died`) and **shake-loose** (`bump_chance`, called duck-typed by
+`BumpCombatComponent` on a hit the target survived).
 
-Movement patterns (`objects/enemy/movement/`): `MovementPattern` base +
-`NavWanderMovement` (walks a `NavigationAgent3D` to random reachable navmesh points,
-re-rolling on arrival — stateless, so the `.tres` is shareable),
-`WeaveMovement`, `SwoopMovement`, `StrafeMovement`, `BobMovement`,
-`CurveFollowMovement`. Concrete enemies (`objects/enemy/enemies/`): **Weaver**,
-**Swooper**, **Turret** (a stationary sentry — no movement pattern, `face_player`
-on — that looks at and shoots the player), each with an `*.tres` `EnemyData`. Obstacles
-(`objects/obstacles/`): **BobBlock**, **AnimObstacle**, **StationaryTurret**.
+### Blast / explosions
 
-### Enemy AI (`PerceptionComponent`, `EnemyBrain`, `MeleeHitbox`)
+One `Blast` class serves enemy deaths and hostile ordnance. `damages_player` is
+**off by default** — the unification is in the code, but whether a given blast
+hurts the player stays per-blast, so enabling it globally can't silently change
+every existing encounter. Bombs and ground pounds set it true.
 
-Prototyped on the **Manicoppo** as the testbed for the eventual base-enemy AI (the
-other enemies still use bare movement patterns). Three ideas hold it together:
+### Trigger regions
 
-**Single-writer movement.** `MovementComponent` is the *only* thing that writes the
-body's velocity/rotation and calls `move_and_slide`. Everything else routes intent
-through one-frame latches — **`drive(velocity)`** (move this way this frame),
-**`face_toward(point)`** (smooth aim), **`set_facing(yaw)`** (exact aim, no
-smoothing) — plus `apply_knockback`. You call them every frame you want control and
-*stop calling* to hand the body back to its pattern; precedence is
-`knockback > drive > pattern`. This is the invariant that lets wander patterns,
-knockback and AI steering coexist instead of fighting over velocity.
-
-**PerceptionComponent** — a vision cone (distance + angle + optional line of sight)
-with **sticky loss** (grace time / lose-distance hysteresis) so the alert doesn't
-flicker at the cone edge. Exposes `is_alerted()` / `get_player()`.
-
-**EnemyBrain** — two layers:
-- A tiny **enum FSM** over modes: `WANDER` (hands off — the `MovementPattern`
-  drives), `CHASE` (nav-agent path to the player), `COMBAT` (pick an action, run
-  it, re-pick).
-- **Combat actions**: simple ones (orbit L/R) run per-frame; complex ones (the
-  attack combo) run as **`await` coroutines** so a multi-step sequence reads
-  top-to-bottom. The combo approaches, swings 1–3× (count locked at decision time,
-  facing locked at the first swing, aim lerped over the first half of the clip off
-  the *animation's own clock*, `MeleeHitbox` open only in the hit window), then
-  optionally a **ZigzagTwirl** (freeze `PracticeSwing` at 1.7s via `speed_scale = 0`,
-  spin blind, pool-ball bounce off the navmesh via `map_get_closest_point` normals,
-  fling the player), then a reposition.
-
-Coroutine safety rests on three flags: an **`_action_token`** (bumped by
-`_abort_actions()`; a coroutine captures it and bails after any `await` once it
-mismatches — nothing resumes half-finished), **`_busy`** (a coroutine owns the body;
-the per-frame dispatcher stays out), and **`_committed`** (a running combo suppresses
-range/perception transitions, since it's already bounded by its own timeouts — this
-is what stops a roaming twirl from range-transitioning itself mid-attack).
-
-**Adding an attack pattern** is one coroutine + one hookup: write
-`_my_action(token) -> bool` that loops `await get_tree().physics_frame`, checks
-`_still_running(token)` after every await, steers via `_move.drive/…`, opens the
-`MeleeHitbox` for its damage window, and returns when done — then either add it to
-the `Action` enum + `_pick_action`, or `await` it inside `_attack_combo` (its
-position there *is* the "only after a swing" rule). Expose the numbers as `@export`.
-
-Hit-detection lives entirely in **`MeleeHitbox`**: the brain calls
-`open(damage, knockback, up, duration, cooldown)` at a window's start and `close()`
-at its end; the hitbox polls overlaps, applies damage + knockback once per target
-per cooldown, and emits `hit`. One hitbox serves both the light swing (gentle
-knockback) and the twirl (a big fling) — the difference is just the `open()` args.
-
-The old node-per-state FSM (`objects/components/state/`) was **deleted** — it was
-dead code, and its wall-clock timing ignored `time_scale`/pausing. Deferred for
-later: moving these components onto `BaseEnemy`, a data-driven action set, and a
-shared blackboard once multiple Manicoppos coordinate.
-
-> These enemies/weapons/obstacles ship as a **reusable library** but are **not
-> instanced in `main.tscn`** — the starter scene is just the player + ground. Drop
-> them under `Level/Enemies` or `Level/Obstacles` to use them.
-
-### Weapons (`objects/weapons/`)
-
-- **`BaseWeapon`** (`base/BaseWeapon.gd`) — data-driven via a `WeaponData`
-  (`resources/WeaponData.gd`). `try_fire(aim_direction)`, plus an optional per-frame
-  `homing_target` passed to spawned projectiles.
-- **`BaseProjectile`** (`base/BaseProjectile.gd`) — straight-flying; dispatches
-  damage both via `area_entered` (enemy `HitBox.receive_hit`) and `body_entered`
-  (bodies exposing `take_damage` / `receive_attack` / `on_damage`).
-- **`HomingProjectile`** (`player/homing_projectile.gd`) — curves toward a target at
-  a capped turn rate. Enemy bolt variants live under `objects/weapons/enemy/`.
-- **`HitscanWeapon`** (`base/HitscanWeapon.gd`) — instant raycast instead of a
-  projectile; used by the player's `PlayerRifle.tscn`. To damage enemies it needs
-  `collide_with_areas = true` and a `hitscan_collision_mask` covering the `enemy`
-  layer, because the hurtbox is a `HitBox` **Area3D**, not a body. `_apply_damage`
-  routes through `receive_hit` → `take_damage` → `on_damage` (first match wins), so
-  it feeds the same `HitBox.receive_hit` path the projectiles use.
-
-### Blast radius & chain reactions (`objects/enemy/blast/`, `blast_component.gd`)
-
-Three blast categories: **Yellow** (destructible, no blast), **Red** (destructible
-+ spawns a blast on death via `BlastComponent`), **Green** (`blast_only = true`:
-immune to normal fire, dies only to a blast). `BlastComponent` spawns a transient
-**`Blast`** (`Blast.tscn` + `blast.gd`, `class_name Blast`) at the corpse; after a
-small delay it damages every `destructible` within `radius` via
-`take_damage(dmg, is_blast = true)`, cascading through reds/greens. Sizes scale
-together (small Ø3 / 10 dmg … large Ø12 / 90 dmg). Prototypes live in
-`objects/enemy/enemies/blast-radius/`.
+`TriggerRegion` is a level-authored volume, placed independently of any creature.
+It gates actions (`EnemyAction.required_region`) **and feeds alertness** — the
+latter is the part that's easy to miss: perception needs line of sight, so a
+creature shelling a courtyard from behind a wall would otherwise never notice the
+player. The brain collects regions from the actions that reference them.
 
 ### Input map (`project.godot`)
 
-A clean snake_case FPS action set, each bound for **keyboard and gamepad**:
+Keyboard + gamepad throughout. `move_*` (WASD **and** IJKL), `jump`, `look_*`,
+`lock_on` (O / R3), `attack` (LMB / R2), `power_slam` (`;` / X), `restart`
+(R / Back).
 
-| Action | Keyboard | Gamepad |
-|---|---|---|
-| `move_forward` / `move_back` | W / S (also I / K) | left stick Y |
-| `move_left` / `move_right` | A / D (also J / L) | left stick X |
-| `jump` | Space | A button |
-| `look_left/right/up/down` | (mouse motion, in code) | right stick |
-| `lock_on` | O | right-stick click (R3) |
-| `attack` | left mouse | R2 trigger |
-| `restart` | R | Back button |
-
-(Movement is dual-bound to WASD **and** the right-hand IJKL cluster for
-left-handed play; `lock_on` sits on `O` beside IJKL.)
-
-### Combat collision layers
+### Collision layers
 
 | # | Name | Used by |
 |---|---|---|
-| 1 | `environment` | static world / the ground plane |
+| 1 | `environment` | static world, **and solid enemies/interactables that block** |
 | 2 | `player` | the player body |
-| 3 | `enemy` | enemy `HitBox` areas |
-| 4 | `player_projectile` | player projectile areas (mask scans `enemy`) |
-| 5 | `enemy_projectile` | enemy projectile areas (mask scans `player`) |
+| 3 | `hurtbox` | `HitBox` areas on enemies **and breakables** |
+| 4 | `player_projectile` | player projectile areas |
+| 5 | `enemy_projectile` | enemy projectile areas |
+| 6 | `pickup` | PowerDrops |
+
+Layer 3 is `hurtbox`, not `enemy` — breakables and props need it too. Enemy
+*bodies* are `collision_layer = 0` (the player runs through them, which is what
+makes a bump land cleanly); set layer 1 only when something should physically
+block, like the Essurou.
 
 ### Curved-path authoring (`addons/nurbs_path/`)
 
-An in-editor `@tool` plugin for composing curved paths (e.g. patrol routes, camera
-rails, projectile arcs). Add a **`NurbsPath3D`** node (a `Path3D` subclass) and
-author its curve as a **control polygon** instead of hand-tuning Bézier tangents.
-It holds an `Array[Vector3] control_points` + a `closed` flag and rebuilds its own
-`Curve3D` as a **uniform cubic B-spline**, which converts *exactly* into the cubic
-Bézier `Curve3D` stores (no sampling error). Editing is a viewport gizmo (drag a
-handle per point, with undo/redo; **Shift+Left-click** appends a point). Open curves
-are clamped to start/end on the first/last point; `closed` wraps into a seamless
-loop. The plugin/gizmo reference the node **duck-typed** (matched by script
-resource, not `class_name`) to dodge class-cache lag.
+`NurbsPath3D` (a `Path3D` subclass) authored as a control polygon rather than
+Bézier tangents; rebuilds its `Curve3D` as a uniform cubic B-spline.
+Shift+Left-click appends a point. Used for the Power Dive trajectory.
 
-### Exploration prototypes (`explores/`)
+## Groups
 
-Standalone sandboxes, not loaded by `main.tscn`: `explore-shaders/`
-(`outline-posterize-color-dither.gdshader` — Sobel + posterize + Bayer dither;
-conflicts with Volumetric Fog unless `fog_disabled` is added to `render_mode`; plus
-`simple-water.gdshader`, `grass.gdshader`), `explore-vfx/`, `explore-animation/`.
+Registered in code (`_ready`) and looked up with
+`get_tree().get_first_node_in_group(...)` / `get_nodes_in_group(...)`:
 
-## Global groups
+`player`, `enemy`, `breakable`, `destructible`, `lockable`, `trigger_region`,
+`enemy_coordinator`.
 
-`"player"`, `"enemy"`, `"obstacle"`, `"destructible"`, `"level"`, `"lockable"` —
-registered automatically (player in its scene + `_ready`; `destructible` in
-`Destructible._ready`; `enemy`/`obstacle` in the respective subclass; `lockable`
-in `lock_on_target.gd._ready`). Lookups use
-`get_tree().get_first_node_in_group(...)` / `get_nodes_in_group(...)`.
+`project.godot` also declares `level` as a global group, but nothing joins it —
+`GameManager` holds the level by direct reference instead. Don't write lookups
+against it without registering it first.
 
 ## Conventions
 
-- GDScript with **static typing** throughout. Untyped declarations warn.
-- **Facing is Godot-standard `-Z` forward**, everywhere — the player, enemies
-  (`MovementComponent` aims with `atan2(-x, -z)`), and weapons (which fire along
-  `-basis.z`). "In front of me" markers like `Muzzle` therefore sit at **negative
-  Z**. Don't reintroduce a `+Z`-forward node; rotate the *model* child instead if
-  imported art faces the wrong way.
-- Cross-system signals go through `Events` rather than direct node-to-node connections.
-- Components attach by `script` on a child node and resolve `host`/siblings in
-  `_setup()`; the `Destructible` parent coordinates them via the duck-typed
-  `set_active(bool)` broadcast — a new lifecycle driver only needs `on_activate` /
-  `on_deactivate` (or, for an event-driven one, host-signal connections in `_setup`).
-- Imported content lives under `assets/`; editor plugins under `addons/`.
+- **Static typing throughout.** Untyped declarations warn.
+- **Facing is Godot-standard `-Z` forward**, everywhere. Markers like `Muzzle` sit
+  at negative Z. Rotate the *model* child if imported art faces wrong.
+- Cross-system signals go through `Events`.
+- Components attach by `script` on a child node, resolve siblings in `_setup()`,
+  and are coordinated by the duck-typed `set_active(bool)` broadcast.
+- Components that must *be* a spatial node (`HitBox`, `MeleeHitbox`,
+  `ContactDamage`, `BouncePadComponent`, `BumpCombatComponent`, the emitters)
+  can't extend the `Node`-based `Component`; they implement the same contract by
+  hand.
+- Avoid concurrent edits to the same file in one batch — the second one's "file has
+  been modified" error can leave half-applied changes.
 
 ## Working style notes
 
 - Tuning happens in the **Inspector**, not in code — keep `@export` knobs
-  front-and-center for new behavior. The user iterates by playing, tweaking, replaying.
-- The user prefers **small, reviewable changes** over big batches. Show a diff
-  before committing when in doubt.
-- **Never commit without explicit permission.** The user reviews changes manually.
-- **Git remote:** `origin` is `https://github.com/nsmarino/starter-4.7.git` (this
-  template's own repo). `main` tracks `origin/main`.
-- Avoid concurrent edits to the same file in one batch — they race and the second
-  one's "file has been modified since read" error can leave half-applied changes.
+  front-and-center. The user iterates by playing, tweaking, replaying.
+- Prefer **small, reviewable changes**. Show a diff before committing when in doubt.
+- **Never commit without explicit permission.**
+- **Git remote:** `origin` is `https://github.com/nsmarino/channeling.git`.
+  `main` tracks `origin/main`.
+- Deleting superseded prototype content is welcome — verify nothing references it
+  first, keep the reusable *scripts*, delete the scenes and their tuning `.tres`.
 
 ## Current direction
 
-This repo is being shaped into a **clean starter template**. Landed so far: the
-`Fse*` → unprefixed class renames, a sturdy `GameManager` restart loop (death /
-fall / `restart` input), the legacy dialogue + trigger systems removed, a base
-`Component` class with the components migrated onto it, the rail-shooter mecha
-player replaced by a **third-person SpringArm controller**, and a **Dark
-Souls-style lock-on** (`LockOnComponent` + `lockable` markers + HUD reticle).
+Landed: the bump-combat + energy loop, Power Dive, the node-based `EnemyAction`
+system, the AI stack on `BaseEnemy`, the Enemy / Breakable / Interactable split,
+trigger regions, and four prototype creatures (Manicoppo, Gevi-Dava, Ugrehk,
+Essurou).
 
-Possible next steps (unordered): rename the lingering `fse_*` filenames + the
-`CombatUI` scene; decide whether to keep the enemy/weapon/blast library or split it
-into an optional module; flesh out the empty `Level` containers with example
-content.
+Next: **tuning the creatures by playing**, wiring `TriggerRegion`s into real
+encounters, filling the CSG blockout, and only then mise-en-scène in Blender.
