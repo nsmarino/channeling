@@ -1,0 +1,59 @@
+[gd_scene load_steps=9 format=3 uid="uid://ct5wq2xnhr8vm"]
+
+[ext_resource type="PackedScene" uid="uid://t8fvwynvct2" path="res://objects/enemy/base/BaseEnemy.tscn" id="1_base"]
+[ext_resource type="PackedScene" uid="uid://cwb01q3dpylpp" path="res://placeholder/gevi-dava.tscn" id="2_model"]
+[ext_resource type="Script" uid="uid://dh7mr4xkvp9wn" path="res://objects/enemy/actions/launch_bomb_action.gd" id="3_launch"]
+[ext_resource type="Script" uid="uid://cn5wq8zhtx2vj" path="res://objects/enemy/actions/erratic_run_action.gd" id="4_panic"]
+[ext_resource type="Script" uid="uid://bk2vt9nxwq5hm" path="res://objects/enemy/actions/ground_pound_action.gd" id="5_pound"]
+[ext_resource type="PackedScene" uid="uid://cq8wn3xvmr7tk" path="res://objects/weapons/enemy/BouncingBomb.tscn" id="6_bomb"]
+[ext_resource type="PackedScene" path="res://objects/enemy/blast/Blast.tscn" id="7_blast"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hit"]
+radius = 0.45
+height = 1.8
+
+[node name="GeviDava" instance=ExtResource("1_base")]
+
+[node name="HitBox" parent="." index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+
+[node name="CollisionShape3D" parent="HitBox" index="0"]
+shape = SubResource("CapsuleShape3D_hit")
+
+[node name="EnemyBrain" parent="." index="4"]
+combat_range = 30.0
+can_chase = false
+
+[node name="LaunchBomb" type="Node3D" parent="Actions"]
+script = ExtResource("3_launch")
+min_range = 6.0
+max_range = 32.0
+timeout = 12.0
+bomb_scene = ExtResource("6_bomb")
+bomb_count = 2
+
+[node name="Muzzle" type="Marker3D" parent="Actions/LaunchBomb"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -0.5)
+
+[node name="PanicRun" type="Node3D" parent="Actions"]
+script = ExtResource("4_panic")
+max_range = 8.0
+timeout = 6.0
+duration = 2.2
+speed = 6.5
+reroll_interval = 0.3
+
+[node name="GroundPound" type="Node3D" parent="Actions"]
+script = ExtResource("5_pound")
+weight = 0.5
+max_range = 8.0
+cooldown = 5.0
+committed = true
+timeout = 6.0
+blast_scene = ExtResource("7_blast")
+bomb_scene = ExtResource("6_bomb")
+
+[node name="LockOnTargetComponent" parent="." index="10"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+
+[node name="gevi-dava" parent="." index="11" instance=ExtResource("2_model")]

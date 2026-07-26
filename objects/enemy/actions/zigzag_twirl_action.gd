@@ -1,8 +1,13 @@
-extends EnemyAction
+extends ErraticRunAction
 class_name ZigzagTwirlAction
 
 ## Freeze on an arms-out pose, then careen around the navmesh spinning, flinging
 ## whoever it catches.
+##
+## The roaming itself is ErraticRunAction; this adds the three things that make it
+## a Manicoppo attack rather than a panic: the frozen pose, the body spin, and a
+## live strike window for the whole run. `duration`, `speed`, `reroll_interval` and
+## `min_turn_deg` are inherited.
 ##
 ## The spin is BLIND — it never aims at the player. Getting hit is about being in
 ## the wrong place, not about being targeted, which is what makes it feel like
@@ -20,18 +25,9 @@ class_name ZigzagTwirlAction
 ## Hold on the frozen pose before spinning up.
 @export var windup: float = 0.25
 
-@export_group("Motion")
-## How long the twirl roams.
-@export var duration: float = 2.5
+@export_group("Spin")
 ## Body spin speed about Y, degrees/sec. High = frantic.
 @export var spin_speed_deg: float = 540.0
-## Travel speed while zigzagging.
-@export var speed: float = 5.0
-## Seconds between heading changes — the "zig". Short = choppier.
-@export var reroll_interval: float = 0.4
-## Minimum turn (degrees) on each reroll, for strong chaotic angles rather than
-## lazy drift.
-@export_range(0.0, 180.0, 5.0) var min_turn_deg: float = 100.0
 
 @export_group("Damage")
 ## Damage on a twirl hit. 0 = pure knockback.
@@ -46,10 +42,9 @@ class_name ZigzagTwirlAction
 @export var hit_cooldown: float = 0.5
 
 var _yaw: float = 0.0
-var _heading: Vector3 = Vector3.FORWARD
 
 
-func run(token: int) -> bool:
+func _begin(token: int) -> bool:
 	# speed_scale = 0 (not pause) holds the pose while still reading as "playing",
 	# so LocomotionAnimator keeps its hands off — pause() would blank
 	# current_animation and let the idle clip stomp it.
@@ -60,61 +55,18 @@ func run(token: int) -> bool:
 
 	# A held windup on the pose before the spin — plant, don't drift.
 	if not await wait_still(windup, token):
-		_cleanup()
 		return false
 
 	_yaw = body.rotation.y
-	_heading = random_heading()
 	# The sweeping "hands": the hitbox flings whoever it catches on its own
 	# per-target cooldown, so a spin is a series of impacts, not a per-frame barrage.
 	open_hitbox(damage, fling_force, fling_up, fling_duration, hit_cooldown)
-
-	var elapsed: float = 0.0
-	var reroll: float = 0.0
-	var delta: float = get_physics_process_delta_time()
-
-	while elapsed < duration:
-		if not still_running(token):
-			_cleanup()
-			return false
-
-		_yaw = wrapf(_yaw + deg_to_rad(spin_speed_deg) * delta, -PI, PI)
-		set_facing(_yaw)
-
-		# Zig: snap to a sharply different heading every so often.
-		reroll -= delta
-		if reroll <= 0.0:
-			_heading = strong_turn(_heading, min_turn_deg)
-			reroll = reroll_interval
-		_move_step(delta)
-
-		elapsed += delta
-		await get_tree().physics_frame
-
-	_cleanup()
-	return still_running(token)
+	return true
 
 
-## Move along the current heading, bouncing off the navmesh edge like a pool ball.
-func _move_step(delta: float) -> void:
-	var step: Vector3 = _heading * speed * delta
-	if is_navigable(body.global_position + step):
-		drive(_heading * speed)
-		return
-
-	# Blocked: reflect the heading across the mesh edge's inward normal.
-	var normal: Vector3 = navmesh_normal(body.global_position + step)
-	if normal.length_squared() > 0.0001:
-		_heading = _heading.bounce(normal).normalized()
-	else:
-		_heading = -_heading  # degenerate corner: just reverse.
-
-	# Only commit the bounced heading if it actually frees us; otherwise hold this
-	# frame so we can't tunnel off the mesh.
-	if is_navigable(body.global_position + _heading * speed * delta):
-		drive(_heading * speed)
-	else:
-		drive(Vector3.ZERO)
+func _step(delta: float) -> void:
+	_yaw = wrapf(_yaw + deg_to_rad(spin_speed_deg) * delta, -PI, PI)
+	set_facing(_yaw)
 
 
 func _cleanup() -> void:

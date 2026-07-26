@@ -217,8 +217,19 @@ func start_cooldown() -> void:
 
 ## The check that must follow every single await. False = we no longer own the
 ## body; return immediately without touching shared state.
+##
+## The is_inside_tree() guard is what makes this survive a LEVEL RESTART. A reload
+## removes nodes from the tree before freeing them, so for a window of one frame
+## is_instance_valid() still says yes while global_position and get_tree() are
+## already unusable — and a coroutine suspended across that window would resume and
+## dereference them. Death by an enemy's own attack is exactly when that window is
+## most likely to be open, since the restart happens mid-action.
 func still_running(token: int) -> bool:
-	return brain != null and bool(brain.call("is_action_current", token))
+	if not is_inside_tree():
+		return false
+	if not is_instance_valid(brain):
+		return false
+	return bool(brain.call("is_action_current", token))
 
 
 # --- Steering ----------------------------------------------------------------
@@ -287,10 +298,19 @@ func wait_still(seconds: float, token: int) -> bool:
 
 # --- Queries -----------------------------------------------------------------
 
+## The player, or null if there isn't a usable one right now.
+##
+## "Usable" includes being INSIDE THE TREE, not merely un-freed: during a level
+## reload the player is detached a frame before being freed, and reading
+## global_position off a detached Node3D errors. Filtering here means every action
+## that aims at the player is protected by one check rather than each remembering.
 func get_player() -> Node3D:
-	if brain == null:
+	if not is_instance_valid(brain):
 		return null
-	return brain.call("get_player") as Node3D
+	var target: Node3D = brain.call("get_player") as Node3D
+	if not is_instance_valid(target) or not target.is_inside_tree():
+		return null
+	return target
 
 
 ## Flattened — height shouldn't decide reach.

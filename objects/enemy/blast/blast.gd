@@ -24,6 +24,25 @@ class_name Blast
 ## freeing (covers fade-out / trailing particles).
 @export var cleanup_margin: float = 0.3
 
+@export_group("Player")
+## Whether this blast also hurts the PLAYER, not just destructibles.
+##
+## Off by default on purpose. One explosion class now serves both enemy deaths and
+## hostile ordnance, but flipping this globally would silently change every
+## existing encounter — killing a red enemy at melee range would start hurting you.
+## So the unification is in the CODE, and whether a given blast is dangerous to the
+## player stays a per-blast decision. A Gevi-Dava bomb sets it true; an enemy's
+## death blast can opt in whenever you want to tune that.
+@export var damages_player: bool = false
+## Damage to the player. 0 = use `damage`.
+@export var player_damage: int = 0
+## Horizontal shove away from the blast centre. 0 = no knockback.
+@export var knockback_force: float = 0.0
+## Upward pop added to the shove.
+@export var knockback_up: float = 0.0
+## Seconds the shove suppresses the player's input.
+@export var knockback_duration: float = 0.25
+
 var _detonated: bool = false
 # Every GPUParticles3D in the burst, held quiet until detonation.
 var _burst: Array[GPUParticles3D] = []
@@ -70,6 +89,32 @@ func _apply_damage() -> void:
 			continue
 		if target.has_method("take_damage"):
 			target.take_damage(damage, true)
+
+	_apply_player_damage(origin)
+
+
+## Catch the player in the blast, if this one is hostile to them. Separate from the
+## destructible loop because the player is not a destructible: their take_damage()
+## takes no is_blast flag, and they get knocked back rather than simply damaged.
+func _apply_player_damage(origin: Vector3) -> void:
+	if not damages_player:
+		return
+	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
+	if not is_instance_valid(player):
+		return
+	if origin.distance_to(player.global_position) > radius:
+		return
+
+	if player.has_method("take_damage"):
+		player.call("take_damage", player_damage if player_damage > 0 else damage)
+
+	if knockback_force > 0.0 and player.has_method("apply_knockback"):
+		var away: Vector3 = player.global_position - origin
+		away.y = 0.0
+		var dir: Vector3 = away.normalized() if away.length_squared() > 0.0001 \
+			else Vector3(randf() - 0.5, 0.0, randf() - 0.5).normalized()
+		player.call("apply_knockback",
+			dir * knockback_force + Vector3.UP * knockback_up, knockback_duration)
 
 
 ## Fire every burst emitter one-shot, then free once the longest one finishes.

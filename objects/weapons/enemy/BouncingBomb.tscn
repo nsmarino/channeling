@@ -1,0 +1,47 @@
+[gd_scene load_steps=6 format=3 uid="uid://cq8wn3xvmr7tk"]
+
+[ext_resource type="Script" uid="uid://by9kt3xrmw7vq" path="res://objects/weapons/enemy/bouncing_bomb.gd" id="1_bomb"]
+[ext_resource type="PackedScene" path="res://objects/enemy/blast/Blast.tscn" id="2_blast"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_bomb"]
+friction = 0.3
+bounce = 0.75
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_body"]
+radius = 0.25
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bomb"]
+albedo_color = Color(0.16, 0.14, 0.18, 1)
+metallic = 0.5
+roughness = 0.35
+emission_enabled = true
+emission = Color(0.9, 0.25, 0.1, 1)
+emission_energy_multiplier = 1.6
+
+[sub_resource type="SphereMesh" id="SphereMesh_bomb"]
+material = SubResource("StandardMaterial3D_bomb")
+radius = 0.25
+height = 0.5
+radial_segments = 14
+rings = 7
+
+[node name="BouncingBomb" type="RigidBody3D"]
+collision_layer = 0
+collision_mask = 1
+physics_material_override = SubResource("PhysicsMaterial_bomb")
+continuous_cd = true
+script = ExtResource("1_bomb")
+blast_scene = ExtResource("2_blast")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_body")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_bomb")
+
+[node name="PlayerSensor" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerSensor"]
+shape = SubResource("SphereShape3D_body")
