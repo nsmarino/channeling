@@ -4,12 +4,18 @@ extends EditorPlugin
 ## Run the scene with the player spawned wherever you point — Unreal's
 ## "Play From Here".
 ##
-## **Ctrl+Shift+Right-click** anywhere in the 3D viewport. The plugin raycasts
-## under the cursor, writes the hit point to a one-shot file, and plays the current
+## **Hold J and left-click** anywhere in the 3D viewport. The plugin raycasts under
+## the cursor, writes the hit point to a one-shot file, and plays the current
 ## scene; `GameManager` reads that file on startup and drops the player there.
 ##
-## Why a modifier rather than a plain right-click: bare RMB is freelook in Godot's
-## 3D viewport, and stealing it would break camera navigation.
+## Why a held key rather than a plain right-click: bare RMB is freelook in Godot's
+## 3D viewport, and stealing it would break camera navigation. The held key is read
+## straight from `Input` at click time rather than tracked across key events, so
+## there is no way for it to get stuck held — alt-tabbing away mid-press can't
+## leave the tool armed.
+##
+## To rebind, change `TRIGGER_KEY` below. It is a PHYSICAL key, so it stays in the
+## same place on non-QWERTY layouts.
 ##
 ## Why it REFUSES when the ray hits nothing: spawning in the void would put the
 ## player below `fall_limit_y`, and GameManager would restart the level instantly
@@ -19,6 +25,10 @@ extends EditorPlugin
 ## The point survives death. GameManager keeps it for the whole session, so dying
 ## respawns you at the spot you were testing instead of dumping you back at the
 ## level start — which is the entire reason the tool is worth having.
+
+## Held while left-clicking to place the spawn. Physical, so it is the same
+## physical key regardless of keyboard layout.
+const TRIGGER_KEY: Key = KEY_J
 
 ## Shared with GameManager, which reads and deletes it. `user://` because both the
 ## editor and the game resolve it to the same place, and it must not end up in the
@@ -48,13 +58,15 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 	if not (event is InputEventMouseButton):
 		return EditorPlugin.AFTER_GUI_INPUT_PASS
 	var click := event as InputEventMouseButton
-	if click.button_index != MOUSE_BUTTON_RIGHT or not click.pressed:
+	if click.button_index != MOUSE_BUTTON_LEFT or not click.pressed:
 		return EditorPlugin.AFTER_GUI_INPUT_PASS
-	if not (click.ctrl_pressed and click.shift_pressed):
+	# Asked at click time rather than tracked from key events — nothing to leave
+	# stale if the key-up is missed.
+	if not Input.is_physical_key_pressed(TRIGGER_KEY):
 		return EditorPlugin.AFTER_GUI_INPUT_PASS
 
 	_play_from(viewport_camera, click.position)
-	# Swallow it so the viewport doesn't also start a freelook drag.
+	# Swallow it, or the click also re-selects whatever is under the cursor.
 	return EditorPlugin.AFTER_GUI_INPUT_STOP
 
 
