@@ -1,0 +1,186 @@
+[gd_scene format=3 uid="uid://cn8vr3xkwq5tm"]
+
+[ext_resource type="PackedScene" uid="uid://t8fvwynvct2" path="res://objects/enemy/base/BaseEnemy.tscn" id="1_base"]
+[ext_resource type="Script" uid="uid://cb6vh2xnwr4km" path="res://objects/enemy/actions/strike_action.gd" id="2_strike"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_body"]
+radius = 1.1
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_eye"]
+radius = 0.42
+
+[sub_resource type="StandardMaterial3D" id="mat_blob"]
+albedo_color = Color(0.35, 0.24, 0.42, 1)
+roughness = 0.55
+
+[sub_resource type="SphereMesh" id="mesh_blob"]
+material = SubResource("mat_blob")
+radius = 1.15
+height = 2.3
+radial_segments = 24
+rings = 12
+
+[sub_resource type="StandardMaterial3D" id="mat_sclera"]
+albedo_color = Color(0.94, 0.93, 0.9, 1)
+roughness = 0.25
+
+[sub_resource type="SphereMesh" id="mesh_eye"]
+material = SubResource("mat_sclera")
+radius = 0.3
+height = 0.6
+radial_segments = 14
+rings = 7
+
+[sub_resource type="StandardMaterial3D" id="mat_pupil"]
+albedo_color = Color(0.05, 0.04, 0.08, 1)
+roughness = 0.15
+
+[sub_resource type="SphereMesh" id="mesh_pupil"]
+material = SubResource("mat_pupil")
+radius = 0.14
+height = 0.28
+radial_segments = 10
+rings = 5
+
+[sub_resource type="StandardMaterial3D" id="mat_weak"]
+albedo_color = Color(1, 0.78, 0.15, 1)
+roughness = 0.2
+emission_enabled = true
+emission = Color(1, 0.6, 0.05, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="SphereMesh" id="mesh_weak"]
+material = SubResource("mat_weak")
+radius = 0.4
+height = 0.8
+radial_segments = 16
+rings = 8
+
+[sub_resource type="StandardMaterial3D" id="mat_tentacle"]
+albedo_color = Color(0.29, 0.19, 0.35, 1)
+roughness = 0.6
+
+[sub_resource type="CapsuleMesh" id="mesh_tentacle"]
+material = SubResource("mat_tentacle")
+radius = 0.13
+height = 1.5
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_jab"]
+radius = 0.5
+height = 2.6
+
+[node name="Essurou" instance=ExtResource("1_base")]
+collision_layer = 1
+max_hp = 30
+
+[node name="HitBox" parent="." index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.05, 1.2, 0)
+override_damage = 10
+
+[node name="CollisionShape3D" parent="HitBox" index="0"]
+shape = SubResource("SphereShape3D_eye")
+
+[node name="MovementComponent" parent="." index="1"]
+face_travel_direction = false
+spin_speed_deg = 22.0
+
+[node name="EnemyBrain" parent="." index="4"]
+combat_range = 14.0
+can_chase = false
+
+[node name="CollisionShape3D" parent="AttackBox" index="0"]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 1.2, -1.35)
+shape = SubResource("CapsuleShape3D_jab")
+
+[node name="QuickJab" type="Node3D" parent="Actions"]
+script = ExtResource("2_strike")
+weight = 1.0
+max_range = 3.4
+cooldown = 0.9
+timeout = 5.0
+windup = 0.35
+hit_window = 0.18
+recover = 0.45
+track_during_windup = false
+damage = 9
+knockback_force = 8.0
+
+[node name="HeavyJab" type="Node3D" parent="Actions"]
+script = ExtResource("2_strike")
+weight = 0.55
+max_range = 3.4
+cooldown = 3.0
+timeout = 6.0
+windup = 0.8
+hit_window = 0.26
+recover = 1.0
+track_during_windup = false
+damage = 18
+knockback_force = 15.0
+knockback_up = 5.0
+knockback_duration = 0.3
+
+[node name="LockOnTargetComponent" parent="." index="10"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+
+[node name="BodyCollision" type="CollisionShape3D" parent="." index="11"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0)
+shape = SubResource("SphereShape3D_body")
+
+[node name="Model" type="Node3D" parent="." index="12"]
+
+[node name="Blob" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0)
+mesh = SubResource("mesh_blob")
+
+[node name="WeakEye" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.05, 1.2, 0)
+mesh = SubResource("mesh_weak")
+
+[node name="WeakPupil" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.38, 1.2, 0)
+mesh = SubResource("mesh_pupil")
+
+[node name="Eye1" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 1.55, -0.95)
+mesh = SubResource("mesh_eye")
+
+[node name="Pupil1" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.44, 1.6, -1.19)
+mesh = SubResource("mesh_pupil")
+
+[node name="Eye2" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0, 1.05, 0.45)
+mesh = SubResource("mesh_eye")
+
+[node name="Pupil2" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25, 1.02, 0.56)
+mesh = SubResource("mesh_pupil")
+
+[node name="Eye3" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 1.95, 0.5)
+mesh = SubResource("mesh_eye")
+
+[node name="Pupil3" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 2.16, 0.6)
+mesh = SubResource("mesh_pupil")
+
+[node name="Eye4" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.75, -0.85)
+mesh = SubResource("mesh_eye")
+
+[node name="Pupil4" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.68, 0.66, -1.06)
+mesh = SubResource("mesh_pupil")
+
+[node name="Tentacle1" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 0.5, -0.866, 0, 0.866, 0.5, 0, 0.85, -1.4)
+mesh = SubResource("mesh_tentacle")
+
+[node name="Tentacle2" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(0.5, 0, 0.866, -0.75, 0.5, 0.433, -0.433, -0.866, 0.25, -0.75, 0.7, -1.05)
+mesh = SubResource("mesh_tentacle")
+
+[node name="Tentacle3" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(0.5, 0, -0.866, 0.75, 0.5, 0.433, 0.433, -0.866, 0.25, 0.8, 0.7, -1.0)
+mesh = SubResource("mesh_tentacle")
