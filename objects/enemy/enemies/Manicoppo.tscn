@@ -4,9 +4,6 @@
 [ext_resource type="PackedScene" uid="uid://dhduxwhj7qg5f" path="res://assets/models/test/manicoppo-for-export.glb" id="2_e4ut0"]
 [ext_resource type="Resource" uid="uid://c64act80aspnn" path="res://objects/enemy/movement/manicoppo_wander.tres" id="3_wander"]
 [ext_resource type="Script" uid="uid://b6dufwgxijh37" path="res://objects/components/locomotion_animator.gd" id="4_locomotion"]
-[ext_resource type="Script" uid="uid://cq1s4ni4vuv57" path="res://objects/components/perception_component.gd" id="5_perception"]
-[ext_resource type="Script" uid="uid://blrfvn2cmr7y5" path="res://objects/components/enemy_brain.gd" id="6_brain"]
-[ext_resource type="Script" uid="uid://bvd8awcuiibx1" path="res://objects/components/melee_hitbox.gd" id="7_melee"]
 [ext_resource type="Script" uid="uid://dyw7kr3msfq1n" path="res://objects/enemy/actions/orbit_action.gd" id="8_orbit"]
 [ext_resource type="Script" uid="uid://bk8zpv5rtn9wc" path="res://objects/enemy/actions/attack_combo_action.gd" id="9_combo"]
 [ext_resource type="Script" uid="uid://c3xmq7hjdw2vb" path="res://objects/enemy/actions/zigzag_twirl_action.gd" id="10_twirl"]
@@ -14,10 +11,6 @@
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_e4ut0"]
 height = 1.5
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_rdbjv"]
-radius = 0.65000004
-height = 2.25
 
 [node name="Enemy" unique_id=1726509542 instance=ExtResource("1_7nm3q")]
 
@@ -31,10 +24,10 @@ shape = SubResource("CapsuleShape3D_e4ut0")
 [node name="MovementComponent" parent="." index="1" unique_id=1586329003]
 pattern = ExtResource("3_wander")
 
-[node name="LockOnTargetComponent" parent="." index="6" unique_id=2110957130]
+[node name="LockOnTargetComponent" parent="." index="9" unique_id=2110957130]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 
-[node name="manicoppo-for-export" parent="." index="7" unique_id=516075957 instance=ExtResource("2_e4ut0")]
+[node name="manicoppo-for-export" parent="." index="10" unique_id=516075957 instance=ExtResource("2_e4ut0")]
 transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 0, -0.2)
 
 [node name="Skeleton3D" parent="manicoppo-for-export/CharacterArmature" parent_id_path=PackedInt32Array(516075957, 1655222848) index="0" unique_id=52580403]
@@ -134,32 +127,10 @@ bones/88/rotation = Quaternion(1, -8.717e-11, 1.9473806e-07, -2.6083313e-09)
 [node name="AnimationPlayer" parent="manicoppo-for-export" index="1" unique_id=2133788793]
 autoplay = &"Idle1"
 
-[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." index="8" unique_id=1500000031]
-path_desired_distance = 0.6
-height = 1.5
-
-[node name="LocomotionAnimator" type="Node" parent="." index="9" unique_id=1500000032]
+[node name="LocomotionAnimator" type="Node" parent="." index="11" unique_id=1500000032]
 script = ExtResource("4_locomotion")
 move_animation = &"LeanForward"
 idle_animation = &"Idle1"
-
-[node name="AttackBox" type="Area3D" parent="." index="10" unique_id=138130728]
-collision_layer = 0
-collision_mask = 2
-monitoring = false
-script = ExtResource("7_melee")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackBox" index="0" unique_id=801815201]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.5, -0.9250001)
-shape = SubResource("CapsuleShape3D_rdbjv")
-
-[node name="PerceptionComponent" type="Node" parent="." index="11" unique_id=1500000051]
-script = ExtResource("5_perception")
-
-[node name="EnemyBrain" type="Node" parent="." index="12" unique_id=1500000052]
-script = ExtResource("6_brain")
-
-[node name="Actions" type="Node3D" parent="." index="13"]
 
 [node name="Orbit" type="Node3D" parent="Actions"]
 script = ExtResource("8_orbit")

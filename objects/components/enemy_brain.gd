@@ -288,6 +288,15 @@ func _update_state() -> void:
 	if _committed:
 		return
 
+	# An enemy with an empty Actions container has no repertoire, so there is
+	# nothing for chasing the player to lead to — stay hands-off and let the
+	# MovementPattern have the body. This is what lets the AI ride on the BASE
+	# enemy without changing anything that doesn't opt in by adding actions.
+	if _actions.is_empty():
+		if _state != State.WANDER:
+			_enter_state(State.WANDER)
+		return
+
 	if not _is_alerted():
 		if _state != State.WANDER:
 			_enter_state(State.WANDER)

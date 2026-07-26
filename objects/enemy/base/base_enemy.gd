@@ -3,13 +3,23 @@ class_name Enemy
 
 ## Enemy specialization of Destructible. Adds:
 ##   - Distance-based activation (INACTIVE → ACTIVE when the player gets close)
-##   - Component setup that passes the resolved player reference to
-##     MovementComponent and WeaponComponent
+##   - Component setup that passes the resolved player reference to the
+##     components that need one
 ##   - Enemy-flavored log labels (uses enemy_data.display_name) and a death
 ##     message that includes the score
 ##
 ## All HP/take_damage/death-VFX behavior lives in Destructible — this
 ## class only adds what is enemy-specific.
+##
+## BaseEnemy.tscn ships the AI stack — PerceptionComponent, EnemyBrain, an empty
+## `Actions` container, a NavigationAgent3D and an AttackBox — so a new enemy
+## gets a working brain for free and only has to fill in its own actions. An
+## enemy with no actions is unaffected: the brain stays in WANDER and leaves the
+## body to its MovementPattern.
+##
+## WeaponComponent is deliberately NOT on the base. Ranged fire is one enemy's
+## choice, not a property of enemies, so an enemy that shoots adds the component
+## itself — the lookup below stays so that still wires up when it does.
 
 @export var enemy_data: EnemyData
 ## Player must get this close (world units) before the enemy activates.
