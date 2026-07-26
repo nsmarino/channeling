@@ -4,11 +4,11 @@
 [ext_resource type="PackedScene" uid="uid://cplayrscn0fps" path="res://objects/player/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/CombatUI.tscn" id="3_hud"]
 [ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://assets/sounds/music/selection menu.mp3" id="4_music"]
-[ext_resource type="PackedScene" uid="uid://dgi7xys3gdr48" path="res://objects/enemy/enemies/Manicoppo.tscn" id="9_4c57u"]
 [ext_resource type="PackedScene" uid="uid://u7wel57v610e" path="res://placeholder/channel-coppo-cavern.tscn" id="9_ycdy4"]
 [ext_resource type="PackedScene" uid="uid://biiwjwehrot7f" path="res://placeholder/channel-sorrowful-pool.tscn" id="10_4c57u"]
 [ext_resource type="PackedScene" uid="uid://hu0tp0kc3upr" path="res://objects/cutscene/ExampleCutscene.tscn" id="10_cutscene"]
 [ext_resource type="Script" uid="uid://c23bju7icb7y1" path="res://objects/enemy/enemy_coordinator.gd" id="11_coord"]
+[ext_resource type="PackedScene" uid="uid://ct5wq2xnhr8vm" path="res://objects/enemy/enemies/GeviDava.tscn" id="12_dg77c"]
 [ext_resource type="PackedScene" uid="uid://djiw4peoiyk5o" path="res://placeholder/channel-thorn-thicket.tscn" id="16_2cqfq"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_jw1n3"]
@@ -72,7 +72,6 @@ light_energy = 3.0
 shadow_enabled = true
 
 [node name="Player" parent="." unique_id=1500000010 instance=ExtResource("2_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.71709, 1, 1.5157822)
 air_acceleration = 6.0
 jump_velocity = 6.0
 camera_h_offset = 1.16
@@ -110,15 +109,6 @@ smooth_faces = true
 script = ExtResource("11_coord")
 max_attackers = 2
 
-[node name="Manicoppo" parent="." unique_id=1726509542 instance=ExtResource("9_4c57u")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.127901, 0.48923847, -2.68125)
-
-[node name="Manicoppo2" parent="." unique_id=63538587 instance=ExtResource("9_4c57u")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.5, -13)
-
-[node name="Manicoppo3" parent="." unique_id=684611585 instance=ExtResource("9_4c57u")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.5, 1)
-
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=419014004]
 navigation_mesh = SubResource("NavigationMesh_rdbjv")
 
@@ -129,3 +119,6 @@ transform = Transform3D(-0.86602527, 0, -0.5, 0, 1, 0, 0.5, 0, -0.86602527, 38, 
 transform = Transform3D(-0.9659258, 0, 0.2588191, 0, 1, 0, -0.2588191, 0, -0.9659258, -28, 0, -58)
 
 [node name="SorrowfulPool" parent="NavigationRegion3D" unique_id=614418957 instance=ExtResource("10_4c57u")]
+
+[node name="GeviDava" parent="." unique_id=409168018 instance=ExtResource("12_dg77c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -7)

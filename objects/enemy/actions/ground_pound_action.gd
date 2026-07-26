@@ -30,6 +30,13 @@ class_name GroundPoundAction
 ## Seconds of recovery after landing, while it is vulnerable.
 @export var recover: float = 0.7
 
+@export_group("Ground")
+## Physics layers that count as ground for the landing probe. Defaults to
+## `environment` (layer 1), which is where CSG blockout collision lands.
+@export_flags_3d_physics var ground_mask: int = 1
+## How far below the creature to look for a floor.
+@export var ground_probe_depth: float = 40.0
+
 @export_group("Impact")
 ## Explosion spawned at the feet on landing.
 @export var blast_scene: PackedScene
@@ -50,6 +57,10 @@ class_name GroundPoundAction
 
 
 func run(token: int) -> bool:
+	# Remembered before leaving the ground, as the fallback landing height if the
+	# probe finds nothing to land on later.
+	var launch_y: float = body.global_position.y
+
 	if not await _hold(windup, token):
 		return false
 
@@ -67,19 +78,49 @@ func run(token: int) -> bool:
 	if not await _hold(hang_time, token):
 		return false
 
-	# Down, until it touches something or the safety timer trips.
+	# Down, until it reaches the floor we found or the safety timer trips.
+	var floor_y: float = _probe_ground(launch_y)
 	elapsed = 0.0
 	while elapsed < slam_timeout:
 		if not still_running(token):
 			return false
+		var step: float = slam_speed * get_physics_process_delta_time()
+		if body.global_position.y - step <= floor_y:
+			# Land exactly rather than overshooting by up to a frame of travel.
+			# Writing position directly is the same escape hatch MovementComponent
+			# uses in _snap_to_navmesh(): it is a one-off correction at the end of a
+			# scripted arc, not a per-frame velocity write, so the single-writer
+			# rule for velocity/rotation still holds.
+			body.global_position.y = floor_y
+			break
 		drive(Vector3.DOWN * slam_speed)
 		elapsed += get_physics_process_delta_time()
 		await get_tree().physics_frame
-		if body.is_on_floor():
-			break
 
 	_impact()
 	return await _hold(recover, token)
+
+
+## Height of the floor under the creature.
+##
+## Raycast rather than is_on_floor(), because enemy bodies carry NO collision
+## shape and `collision_mask = 0` — move_and_slide() collides with nothing, so
+## is_on_floor() is never true and the slam drove straight through the level until
+## the safety timer tripped, detonating underground. That collision setup is
+## deliberate (it is what lets the player run through an enemy so a bump lands
+## cleanly), so the fix belongs here rather than in giving every enemy a body
+## shape, which would change how all of them move and snag them on geometry.
+##
+## Falls back to the height it launched from, so a pound over a pit returns the
+## creature to where it jumped rather than dropping it out of the level.
+func _probe_ground(fallback_y: float) -> float:
+	var space: PhysicsDirectSpaceState3D = body.get_world_3d().direct_space_state
+	var from: Vector3 = body.global_position + Vector3.UP * 0.5
+	var query := PhysicsRayQueryParameters3D.create(from, from + Vector3.DOWN * ground_probe_depth)
+	query.collision_mask = ground_mask
+	query.exclude = [body.get_rid()]
+	var hit: Dictionary = space.intersect_ray(query)
+	return float((hit["position"] as Vector3).y) if hit.has("position") else fallback_y
 
 
 ## Plant the feet for `seconds` without drifting.
