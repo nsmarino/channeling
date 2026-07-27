@@ -114,6 +114,11 @@ var _knockback_timer: float = 0.0
 ## Distinct from _control_enabled: that still runs gravity and move_and_slide,
 ## which would fight a scripted trajectory. See begin/end_scripted_move().
 var _scripted_move: bool = false
+## Who currently owns our transform, and whether anyone does. Tracked separately
+## so "claimed by an anonymous caller" is distinguishable from "unclaimed" — see
+## begin_scripted_move().
+var _scripted_owner: Object = null
+var _scripted_claimed: bool = false
 
 var _pivot: Node3D = null
 var _model: Node3D = null
@@ -438,18 +443,46 @@ func spend_energy(amount: float) -> bool:
 	return true
 
 
-## Hand our transform to an ability (PowerSlamComponent). Movement, gravity and
-## input are all suspended until end_scripted_move().
-func begin_scripted_move() -> void:
+## Hand our transform to an ability or an enemy. Movement, gravity and input are
+## all suspended until the SAME claimant calls end_scripted_move().
+##
+## The claim is EXCLUSIVE and it is owned. With one claimant this looked like a
+## plain flag, but the moment there are two — a dash and a Power Dive, or a Power
+## Dive and an Ugrehk that swallowed you mid-flight — an unowned flag lets the
+## second claimant start driving the same transform, and lets whichever finishes
+## first hand control back while the other is still mid-move. Refusing the second
+## claim turns that from a silent fight into an ability that simply doesn't fire.
+##
+## Returns false if someone else already holds the claim; callers must respect it.
+## `who` should be the claiming node — passing null still works (it just claims
+## anonymously), so an existing caller that doesn't identify itself keeps working.
+func begin_scripted_move(who: Object = null) -> bool:
+	if _scripted_claimed and _scripted_owner != who:
+		return false
+	_scripted_claimed = true
+	_scripted_owner = who
 	_scripted_move = true
 	velocity = Vector3.ZERO
+	return true
 
 
 ## Return control after a scripted move, dropping any stale momentum.
-func end_scripted_move() -> void:
+##
+## Ignored if `who` is not the current claimant — you cannot release someone
+## else's hold on the player.
+func end_scripted_move(who: Object = null) -> void:
+	if _scripted_claimed and _scripted_owner != who:
+		return
+	_scripted_claimed = false
+	_scripted_owner = null
 	_scripted_move = false
 	velocity = Vector3.ZERO
 	_knockback_timer = 0.0
+
+
+## Is anything currently driving our transform?
+func is_scripted_move_claimed() -> bool:
+	return _scripted_claimed
 
 
 ## Apply damage; emit player_killed at 0 HP so GameManager restarts the level.

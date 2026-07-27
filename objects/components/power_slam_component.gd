@@ -1,4 +1,4 @@
-extends Component
+extends PlayerAbility
 class_name PowerSlamComponent
 
 ## Power move: spend collected PowerDrops to arc into the air and slam down in
@@ -17,12 +17,9 @@ class_name PowerSlamComponent
 ## While casting, the player hands its transform over via begin_scripted_move()
 ## so the controller's gravity and input steering don't fight the curve.
 
-## Energy spent per cast. The move won't fire if the player has less.
-@export var energy_cost: float = 35.0
-## Testing toggle: cast for free, ignoring (and never spending) energy.
-@export var free_cast: bool = false
-## Input action that triggers the slam.
-@export var action: StringName = &"power_slam"
+## Gating, the energy cost, `free_cast`, the cooldown and the input action are all
+## inherited from PlayerAbility — set `input_action` to `power_slam` in the scene.
+##
 ## Path3D whose curve defines the trajectory, relative to this component.
 @export var path_node: NodePath = ^"../NurbsPath3D"
 ## Camera whose horizontal heading aims the slam, relative to this component.
@@ -57,10 +54,7 @@ class_name PowerSlamComponent
 ## BumpCombatComponent switched into airborne mode for the flight, relative to
 ## this component. Leave empty to skip the handoff.
 @export var bump_component_node: NodePath = ^"../BumpCombat"
-## Print casts and impacts to the console.
-@export var debug_log: bool = true
 
-var _body: CharacterBody3D = null
 var _path: Path3D = null
 var _model: Node3D = null
 var _camera: Node3D = null
@@ -77,48 +71,59 @@ var _start_basis: Basis = Basis.IDENTITY
 
 
 func _setup() -> void:
-	_body = host as CharacterBody3D
+	super._setup()
 	_path = get_node_or_null(path_node) as Path3D
 	_model = get_node_or_null(model_node) as Node3D
 	_camera = get_node_or_null(camera_node) as Node3D
 	_bump = get_node_or_null(bump_component_node)
 	if _path == null or _path.curve == null:
 		push_warning("[PowerSlam] No Path3D curve at '%s' — the slam is disabled." % path_node)
-	set_physics_process(true)
 
 
-func _physics_process(delta: float) -> void:
+## Per-frame flight. The base owns _physics_process (cooldown + input); this is
+## the slice that belongs to the slam.
+func _tick(delta: float) -> void:
 	if _casting:
 		_advance(delta)
-	elif Input.is_action_just_pressed(action):
-		_try_cast()
 
 
-## Spend the energy and take over the player's transform. Bails without spending
-## if the player can't afford it (spend_energy is all-or-nothing).
-func _try_cast() -> void:
-	if _body == null or _path == null or _path.curve == null:
+func is_busy() -> bool:
+	return _casting
+
+
+## The flight drives the player's transform along the curve, so the slam needs the
+## body to itself. Declared here so the base refuses the cast — without spending —
+## when something else already holds it.
+func needs_body_claim() -> bool:
+	return true
+
+
+## No curve, no slam — checked before the cost is charged rather than after.
+func _can_activate() -> bool:
+	return _path != null and _path.curve != null
+
+
+## Take over the player's transform and launch. The cost is already paid by the
+## base; the one thing that can still refuse us is the body claim.
+func _activate() -> void:
+	if not claim_body():
+		# Something else owns the player — swallowed, or mid-dive already.
+		if debug_log:
+			print("[PowerSlam] Body already claimed; cast aborted.")
 		return
-	if not free_cast:
-		if not _body.has_method("spend_energy") or not bool(_body.call("spend_energy", energy_cost)):
-			return
 
 	_casting = true
 	_elapsed = 0.0
 	_travel = 0.0
-	_start_pos = _body.global_position
+	_start_pos = body.global_position
 	var yaw: float = _aim_yaw()
 	_start_basis = Basis(Vector3.UP, yaw)
 	# Snap the player around to face the way they're about to launch.
 	if _model:
 		_model.rotation.y = yaw
-	if _body.has_method("begin_scripted_move"):
-		_body.call("begin_scripted_move")
 	# Bumps during the flight are chip damage with no bounce — see BumpCombat.
 	if _bump:
 		_bump.set("airborne_mode", true)
-	if debug_log:
-		print("[PowerSlam] Cast (%s)" % ("free" if free_cast else "-%.0f energy" % energy_cost))
 
 
 ## Heading the slam launches along: the camera's forward, flattened to the ground
@@ -148,8 +153,8 @@ func _advance(delta: float) -> void:
 	# would build an ever-growing catch-up vector that eventually punches the
 	# player straight through whatever is in the way.
 	var step: Vector3 = _point_at(_travel) - _point_at(prev_travel)
-	_body.velocity = step / delta if delta > 0.0 else Vector3.ZERO
-	_body.move_and_slide()
+	body.velocity = step / delta if delta > 0.0 else Vector3.ZERO
+	body.move_and_slide()
 
 	if t >= 1.0:
 		_finish()
@@ -165,15 +170,25 @@ func _point_at(travel: float) -> Vector3:
 	return _start_pos + _start_basis * local
 
 
+## Cut short — death, a cutscene, anything that switches the component off
+## mid-flight. The base releases the body; the slam also has to put back the two
+## things it changed on the way out, or the player lands with bump combat still in
+## airborne mode and the ability convinced it is still casting.
+func on_deactivate() -> void:
+	_casting = false
+	if _bump:
+		_bump.set("airborne_mode", false)
+	super.on_deactivate()
+
+
 func _finish() -> void:
 	_casting = false
 	if _bump:
 		_bump.set("airborne_mode", false)
-	# Order matters: end_scripted_move() clears the knockback timer, so it has to
-	# run BEFORE the impact hands out a fresh bounce.
-	if _body.has_method("end_scripted_move"):
-		_body.call("end_scripted_move")
-	_impact(_body.global_position)
+	# Order matters: releasing clears the knockback timer, so it has to run BEFORE
+	# the impact hands out a fresh bounce.
+	release_body()
+	_impact(body.global_position)
 
 
 ## Damage every destructible in the landing zone. Mirrors Blast._apply_damage,
@@ -228,7 +243,7 @@ func _shove_enemy(target: Node3D, origin: Vector3) -> void:
 
 ## Bounce the player back off what they landed on, mirroring a ground bump.
 func _bounce_player_off(nearest: Node3D, origin: Vector3) -> void:
-	if not _body.has_method("apply_knockback"):
+	if not body.has_method("apply_knockback"):
 		return
 	var back := Vector3.ZERO
 	if nearest != null:
@@ -239,4 +254,4 @@ func _bounce_player_off(nearest: Node3D, origin: Vector3) -> void:
 		back = _start_basis * Vector3.BACK
 		back.y = 0.0
 	var impulse := back.normalized() * player_knockback_force + Vector3.UP * player_knockback_up
-	_body.call("apply_knockback", impulse, player_knockback_duration)
+	body.call("apply_knockback", impulse, player_knockback_duration)

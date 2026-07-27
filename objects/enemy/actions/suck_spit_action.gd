@@ -159,8 +159,13 @@ func _hold(token: int) -> bool:
 	if not is_instance_valid(target) or not target.has_method("begin_scripted_move"):
 		return still_running(token)
 
+	# The claim can be refused — the player may already be inside a Power Dive or
+	# another creature's mouth. Swallowing them anyway would mean two things
+	# driving one transform, and whichever released first would hand control back
+	# mid-move. A refused swallow is just a whiff.
+	if not bool(target.call("begin_scripted_move", self)):
+		return still_running(token)
 	_held = target
-	target.call("begin_scripted_move")
 
 	var elapsed: float = 0.0
 	while elapsed < hold_time:
@@ -204,7 +209,7 @@ func _release() -> void:
 	var victim: Node3D = _held
 	_held = null
 	if is_instance_valid(victim) and victim.has_method("end_scripted_move"):
-		victim.call("end_scripted_move")
+		victim.call("end_scripted_move", self)
 
 
 func _mouth_position() -> Vector3:

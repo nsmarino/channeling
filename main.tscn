@@ -74,8 +74,7 @@ shadow_enabled = true
 [node name="Player" parent="." unique_id=1500000010 instance=ExtResource("2_player")]
 air_acceleration = 6.0
 jump_velocity = 6.0
-camera_h_offset = 1.16
-locked_h_offset = 0.9
+camera_h_offset = 0.47
 locked_fov = 45.0
 
 [node name="Level" type="Node3D" parent="." unique_id=1041109988]
@@ -121,4 +120,4 @@ transform = Transform3D(-0.9659258, 0, 0.2588191, 0, 1, 0, -0.2588191, 0, -0.965
 [node name="SorrowfulPool" parent="NavigationRegion3D" unique_id=614418957 instance=ExtResource("10_4c57u")]
 
 [node name="GeviDava" parent="." unique_id=409168018 instance=ExtResource("12_dg77c")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -7)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -30)

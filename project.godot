@@ -22,6 +22,10 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+McpInteractionServer="*res://mcp_interaction_server.gd"
+
+
+
 Events="*res://autoloads/events.gd"
 GameManager="*res://autoloads/game_manager.gd"
 Cinematic="*res://autoloads/cinematic.gd"
