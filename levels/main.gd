@@ -2,7 +2,10 @@ extends Node3D
 
 ## Main scene controller — registers the player and level root with GameManager.
 
-@onready var level: Node3D = $Level
+## Optional. `get_node_or_null` rather than `$Level` because renaming or removing
+## this node in the scene should not take the whole boot down — GameManager only
+## stores the reference, nothing reads it.
+@onready var level: Node3D = get_node_or_null(^"Level") as Node3D
 
 
 func _ready() -> void:
@@ -19,5 +22,6 @@ func _register_with_game_manager() -> void:
 	var player: Node = get_tree().get_first_node_in_group("player")
 	if player is CharacterBody3D:
 		GameManager.register_navigator(player)
-	GameManager.register_overworld(level)
+	if level:
+		GameManager.register_overworld(level)
 	print("[Main] Registered player and level with GameManager")

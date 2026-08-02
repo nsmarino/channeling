@@ -56,6 +56,18 @@ signal activated
 ## Testing toggle: fire for free, ignoring and never spending energy.
 @export var free_cast: bool = false
 
+@export_group("Rules")
+## Whether it can be STARTED while airborne. Off = grounded only, and the ability
+## simply won't fire mid-jump — nothing is spent and no cooldown begins.
+##
+## Only the start is gated. An ability that leaves the ground as part of what it
+## does (the Power Dive does exactly that) keeps running once underway.
+##
+## Uses `is_on_floor()` with no coyote grace, matching how jump already reads the
+## ground in player.gd — so walking off a ledge takes a grounded ability away at
+## the same instant it takes the jump away.
+@export var usable_in_air: bool = true
+
 @export_group("Timing")
 ## Seconds before it can be used again, measured from ACTIVATION (not from the
 ## end), so a long ability with a short cooldown is usable again soon after it
@@ -131,13 +143,25 @@ func needs_body_claim() -> bool:
 
 
 ## Every standard gate, in the order that makes a refusal cheapest to diagnose.
+## All of them run before anything is spent.
 func can_activate() -> bool:
 	if not (unlocked and is_active and _cooldown_left <= 0.0 and not is_busy()):
+		return false
+	if not usable_in_air and not is_grounded():
 		return false
 	if needs_body_claim() and body != null and body.has_method("is_scripted_move_claimed") \
 			and bool(body.call("is_scripted_move_claimed")):
 		return false
 	return _can_activate()
+
+
+## Feet on the ground right now.
+##
+## `is_on_floor()` is only meaningful after a move_and_slide, and it is here: the
+## player's own _physics_process runs before its children's, so by the time an
+## ability polls this, the player has already moved this frame.
+func is_grounded() -> bool:
+	return body != null and body.is_on_floor()
 
 
 ## Try to use the ability. Also the entry point for anything triggering it from
