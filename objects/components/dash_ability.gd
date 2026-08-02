@@ -15,12 +15,19 @@ class_name DashAbility
 ##
 ## THE ATTACK RIDES ON BumpCombat's AIRBORNE PATH rather than a second damage
 ## system. A dash is fast enough to trip `min_bump_speed` on its own, so without
-## intervention dashing into a creature would fire an ordinary ground bump — which
-## charges energy AND knocks the player back, and that bounce would then be
-## swallowed anyway, because a claimed transform ignores knockback and
-## end_scripted_move() clears the timer. Flipping `airborne_mode` for the dash (the
-## same handoff the Power Dive uses) gives flat damage, no energy charge and no
-## bounce: the dash carries you through, and the only thing it costs is the dash.
+## intervention dashing into a creature would fire an ordinary ground bump, which
+## charges a second helping of energy on top of the dash's own. `airborne_mode`
+## (the same handoff the Power Dive uses) gives flat damage and no extra charge.
+##
+## THE REBOUND IS THE DASH'S OWN, and that is the point of doing it this way. A
+## bump's bounce is sized for walking into something; a dash arrives far faster and
+## should come off harder, so the knockback is a separate set of knobs that can be
+## tuned well past the ordinary bump without touching how walking into a creature
+## feels. On contact the dash cuts short, hands the body back, and bounces — in
+## that order, because a claimed transform ignores knockback and
+## end_scripted_move() clears the timer, so a bounce applied any earlier is thrown
+## away. Cutting short is what makes the rebound read as an impact rather than as
+## something that happens after you have already slid past.
 ##
 ## Movement is by frame DELTA through move_and_slide, never by teleporting to the
 ## end point, so walls and ledges stop it. Chasing an absolute target would build a
@@ -46,6 +53,23 @@ class_name DashAbility
 ## component. Empty = the dash does no damage at all (pure evasion).
 @export var bump_component_node: NodePath = ^"../BumpCombat"
 
+@export_group("Impact")
+## Bounce given to the PLAYER when the dash connects, back along the way it came.
+##
+## Deliberately its own knob rather than reusing the bump's. BumpCombat's ordinary
+## bounce (12 / 3 / 0.22 by default) is sized for walking into something; a dash
+## hits far faster, and overshooting those numbers is how that speed reads on
+## contact. Turn it down to the bump's values to make a dash-through feel the same
+## as a walk-in, or up for a hard ricochet.
+@export_range(0.0, 60.0, 0.5) var player_knockback_force: float = 20.0
+## Upward pop added to the rebound.
+@export_range(0.0, 30.0, 0.5) var player_knockback_up: float = 5.0
+## Seconds the rebound suppresses input. Longer = less able to cancel the bounce.
+@export_range(0.0, 1.0, 0.01) var player_knockback_duration: float = 0.28
+## End the dash the instant it connects. Off = carry through the full distance and
+## bounce only once the dash finishes.
+@export var stop_on_hit: bool = true
+
 @export_group("Aim")
 ## Camera the input direction is measured against.
 @export var camera_node: NodePath = ^"../CameraPivot/SpringArm3D/Camera3D"
@@ -63,6 +87,8 @@ var _travel: float = 0.0
 var _direction: Vector3 = Vector3.FORWARD
 ## BumpCombat's own airborne damage, restored when the dash ends.
 var _restore_bump_damage: int = 0
+## Whether this dash has struck anything, so the rebound only fires on a hit.
+var _connected: bool = false
 
 
 func _setup() -> void:
@@ -70,6 +96,19 @@ func _setup() -> void:
 	_camera = get_node_or_null(camera_node) as Node3D
 	_model = get_node_or_null(model_node) as Node3D
 	_bump = get_node_or_null(bump_component_node)
+	# Connected once and gated on `_dashing` rather than hooked up per dash —
+	# nothing to leave dangling if a dash ends by an unusual route.
+	Events.attack_hit.connect(_on_attack_hit)
+
+
+## BumpCombat landed a hit. Ours only if we are mid-dash and the attacker is us —
+## the same signal carries every other bump in the game.
+func _on_attack_hit(attacker: Node, _target: Node, _damage: int) -> void:
+	if not _dashing or attacker != body:
+		return
+	_connected = true
+	if stop_on_hit:
+		_finish()
 
 
 func needs_body_claim() -> bool:
@@ -88,6 +127,7 @@ func _activate() -> void:
 
 	_direction = _dash_direction()
 	_dashing = true
+	_connected = false
 	_elapsed = 0.0
 	_travel = 0.0
 
@@ -123,7 +163,24 @@ func _finish() -> void:
 	if _bump:
 		_bump.set("airborne_mode", false)
 		_bump.set("air_bump_damage", _restore_bump_damage)
+
+	# Release BEFORE bouncing. end_scripted_move() zeroes velocity and clears the
+	# knockback timer, so a rebound handed out any earlier is silently discarded —
+	# the same ordering trap the Power Dive's impact has to respect.
 	release_body()
+	if _connected:
+		_rebound()
+
+
+## Throw the player back along the way they came.
+func _rebound() -> void:
+	if player_knockback_force <= 0.0 and player_knockback_up <= 0.0:
+		return
+	if body == null or not body.has_method("apply_knockback"):
+		return
+	var impulse: Vector3 = -_direction * player_knockback_force \
+		+ Vector3.UP * player_knockback_up
+	body.call("apply_knockback", impulse, player_knockback_duration)
 
 
 ## Where the dash goes: the held movement direction mapped through the camera, or
@@ -157,10 +214,14 @@ func _dash_direction() -> Vector3:
 
 ## Cut short — death, a cutscene. Put BumpCombat back before letting go, or the
 ## player keeps dealing airborne chip damage with no bounce forever.
+## Deliberately does NOT rebound. Being cut short by death or a cutscene is not a
+## connection, and flinging the player as the world is being taken away from them
+## is the last thing anyone wants.
 func on_deactivate() -> void:
 	if _dashing:
 		_dashing = false
 		if _bump:
 			_bump.set("airborne_mode", false)
 			_bump.set("air_bump_damage", _restore_bump_damage)
+	_connected = false
 	super.on_deactivate()
