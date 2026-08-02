@@ -8,7 +8,6 @@
 
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="." unique_id=1320380355]
 material_override = ExtResource("1_bg4qn")
-use_collision = true
 
 [node name="Middle" type="CSGCombiner3D" parent="CSGCombiner3D" unique_id=2085613257]
 

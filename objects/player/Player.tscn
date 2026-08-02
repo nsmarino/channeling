@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://cn8rbspth3d0a" path="res://addons/nurbs_path/nurbs_path_3d.gd" id="5_h7ooo"]
 [ext_resource type="Script" uid="uid://ijktbaavdm6b" path="res://objects/components/power_slam_component.gd" id="6_slam"]
 [ext_resource type="Script" uid="uid://bh7xn2react0c" path="res://objects/components/hit_react_component.gd" id="7_hitreact"]
+[ext_resource type="Script" uid="uid://cx4mr9vkwt7bn" path="res://objects/components/dash_ability.gd" id="8_dash"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
@@ -87,6 +88,13 @@ input_action = &"power_slam"
 energy_cost = 40.0
 duration = 1.0
 time_curve = SubResource("Curve_t2uaq")
+
+[node name="DashAbility" type="Node" parent="."]
+script = ExtResource("8_dash")
+input_action = &"dash"
+energy_cost = 15.0
+usable_in_air = false
+cooldown = 0.4
 
 [node name="NurbsPath3D" type="Path3D" parent="." unique_id=290428690]
 curve = SubResource("Curve3D_lalkq")

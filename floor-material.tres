@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://c58clyh2d4y0j" path="res://assets/kenney_prototype-textures/PNG/Light/texture_06.png" id="1_wr514"]
 
 [resource]
-albedo_color = Color(2.2862106e-07, 0.18624485, 0.10924091, 1)
+albedo_color = Color(0.79, 0.7138967, 0.5214, 1)
 albedo_texture = ExtResource("1_wr514")
 metallic = 0.4
 roughness = 0.8
