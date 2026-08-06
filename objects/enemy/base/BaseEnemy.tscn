@@ -13,6 +13,7 @@
 [ext_resource type="Script" uid="uid://dglfsh64ac1f3" path="res://objects/components/lock_on_target.gd" id="10_yjxd1"]
 [ext_resource type="Script" uid="uid://bvd8awcuiibx1" path="res://objects/components/melee_hitbox.gd" id="11_melee"]
 [ext_resource type="Script" uid="uid://cf9tj2xhrp6ws" path="res://objects/components/drop_component.gd" id="12_drop"]
+[ext_resource type="Script" uid="uid://ct7wm2xkvnq5b" path="res://objects/components/floating_text_component.gd" id="14_floattext"]
 [ext_resource type="PackedScene" path="res://objects/pickups/PowerDrop.tscn" id="13_drop_scene"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
@@ -82,3 +83,6 @@ death_burst = ExtResource("10_burst")
 [node name="LockOnTargetComponent" type="Node3D" parent="." unique_id=2110957130]
 script = ExtResource("10_yjxd1")
 metadata/_custom_type_script = "uid://dglfsh64ac1f3"
+
+[node name="FloatingTextComponent" type="Node" parent="."]
+script = ExtResource("14_floattext")

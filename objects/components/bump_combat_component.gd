@@ -45,6 +45,21 @@ class_name BumpCombatComponent
 ## old continuous face→back falloff.
 @export_range(0.1, 4.0, 0.05) var facing_falloff: float = 1.0
 
+@export_group("Hit Callout")
+## Pop a floating FRONT/BACK label on the target. Requires a FloatingTextComponent
+## on it; without one this does nothing.
+##
+## The two-step rule is only worth learning if you can SEE which step you got —
+## the raw back-factor lives in the console, but the console is not where you are
+## looking while playing.
+@export var show_hit_callout: bool = true
+## Text popped for a back hit, and its colour. The caller picks the words because
+## the caller is what knows the distinction; the label component just renders.
+@export var back_callout: String = "BACK"
+@export var back_callout_color: Color = Color(1.0, 0.85, 0.25)
+@export var front_callout: String = "FRONT"
+@export var front_callout_color: Color = Color(0.75, 0.8, 0.9)
+
 @export_group("Knockback")
 ## Horizontal impulse pushing the player back along the reverse attack vector.
 @export_range(0.0, 40.0, 0.5) var knockback_force: float = 12.0
@@ -142,6 +157,7 @@ func _bump(hitbox: Area3D, enemy: Node3D) -> void:
 	hitbox.call("receive_hit", damage)
 	_apply_knockback(enemy)
 	_try_spawn_drop(enemy)
+	_show_callout(enemy, from_behind)
 	Events.attack_hit.emit(_host, enemy, damage)
 
 	if debug_log:
@@ -173,6 +189,23 @@ func _back_factor(enemy: Node3D) -> float:
 	# dot = +1 → they're looking right at us (worst), -1 → facing away (best).
 	var dot := facing.normalized().dot(to_player.normalized())
 	return clampf((1.0 - dot) * 0.5, 0.0, 1.0)
+
+
+## Ask the thing we just hit to say which side it was hit on.
+##
+## Found the same way the drop is — by scanning the target's children for the
+## method rather than by holding a reference. A target with no
+## FloatingTextComponent simply gets no callout, so props and breakables cost
+## nothing and nothing has to be wired per creature.
+func _show_callout(enemy: Node3D, from_behind: bool) -> void:
+	if not show_hit_callout:
+		return
+	for child in enemy.get_children():
+		if child.has_method("show_text"):
+			child.call("show_text",
+				back_callout if from_behind else front_callout,
+				back_callout_color if from_behind else front_callout_color)
+			return
 
 
 ## Ask the thing we just hit to shake a pickup loose.
