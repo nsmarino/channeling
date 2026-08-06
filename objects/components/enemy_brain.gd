@@ -55,9 +55,6 @@ enum State { WANDER, CHASE, COMBAT }
 @export var attack_box_path: NodePath = ^"../AttackBox"
 ## AnimationPlayer for action clips. Empty = auto-find under the host.
 @export var animation_player_path: NodePath
-## Optional shared blackboard for group coordination. Empty = look one up in the
-## "enemy_coordinator" group; none found = solo behaviour (no coordination).
-@export var coordinator_path: NodePath
 
 @export var debug_log: bool = true
 
@@ -102,9 +99,10 @@ func _setup() -> void:
 	_agent = get_node_or_null(agent_path) as NavigationAgent3D
 	_perception = get_node_or_null(perception_path)
 	_hitbox = get_node_or_null(attack_box_path)
-	_coordinator = get_node_or_null(coordinator_path)
-	if _coordinator == null:
-		_coordinator = get_tree().get_first_node_in_group("enemy_coordinator")
+	# Asked of the host, never searched for. A scene-wide lookup would silently
+	# merge every encounter in the level into one group — see Enemy.coordinator.
+	if host.has_method("get_coordinator"):
+		_coordinator = host.call("get_coordinator") as Node
 	if animation_player_path != NodePath() and has_node(animation_player_path):
 		_ap = get_node(animation_player_path) as AnimationPlayer
 	else:

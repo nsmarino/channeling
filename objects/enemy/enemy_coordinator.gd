@@ -4,9 +4,13 @@ class_name EnemyCoordinator
 ## Per-encounter blackboard + turn-taking for a group of enemies — the shared state
 ## individual EnemyBrains read and write so they coordinate instead of dogpiling.
 ##
-## Entirely OPTIONAL: a brain that finds no coordinator behaves exactly like a solo
-## enemy. Drop one node under the level; brains locate it via the
-## "enemy_coordinator" group. It provides three things:
+## Entirely OPTIONAL: an enemy with no coordinator behaves exactly like a solo
+## enemy. Drop one node under the level and assign it on each creature's
+## `coordinator` property — membership is STATED, not discovered, which is what
+## lets one level hold several independent encounters. A level with two of these
+## has two groups that never recruit or block each other.
+##
+## It provides three things:
 ##
 ##   - Attack slots — at most `max_attackers` group members may be mid-attack at
 ##     once; the rest keep pressure by orbiting. This is what stops three enemies
@@ -35,6 +39,9 @@ var _last_seen_msec: int = -100000
 
 
 func _ready() -> void:
+	# Kept for tooling and debugging — "list every group in this level" is a useful
+	# question. Nothing resolves membership through it any more; enemies are
+	# assigned a coordinator explicitly.
 	add_to_group("enemy_coordinator")
 
 
