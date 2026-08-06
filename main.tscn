@@ -287,12 +287,10 @@ material_override = SubResource("StandardMaterial3D_efxa6")
 [node name="manny1" parent="NavigationRegion3D/Enemies" unique_id=1726509542 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.43864134, 0, -0.8986622, 0, 1, 0, 0.8986622, 0, -0.43864134, 10.537022, 0, 4.730591)
 activation_mode = 1
-max_hp = 25
 
 [node name="manny2" parent="NavigationRegion3D/Enemies" unique_id=732733951 instance=ExtResource("9_kek77")]
 transform = Transform3D(-0.99871933, 0, -0.0505929, 0, 1, 0, 0.0505929, 0, -0.99871933, 4.522, 0, 4)
 activation_mode = 1
-max_hp = 25
 
 [node name="gavi1" parent="NavigationRegion3D/Enemies" unique_id=623394683 instance=ExtResource("11_ycdy4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 13.077148, -27.253662)

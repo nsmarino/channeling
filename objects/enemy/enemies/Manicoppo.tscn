@@ -5,7 +5,7 @@
 [ext_resource type="Resource" uid="uid://c64act80aspnn" path="res://objects/enemy/movement/manicoppo_wander.tres" id="3_wander"]
 [ext_resource type="Script" uid="uid://b6dufwgxijh37" path="res://objects/components/locomotion_animator.gd" id="4_locomotion"]
 [ext_resource type="Script" uid="uid://dyw7kr3msfq1n" path="res://objects/enemy/actions/orbit_action.gd" id="8_orbit"]
-[ext_resource type="Script" uid="uid://bk8zpv5rtn9wc" path="res://objects/enemy/actions/attack_combo_action.gd" id="9_combo"]
+[ext_resource type="Script" uid="uid://bk80pv5rtoawc" path="res://objects/enemy/actions/attack_combo_action.gd" id="9_combo"]
 [ext_resource type="Script" uid="uid://c3xmq7hjdw2vb" path="res://objects/enemy/actions/zigzag_twirl_action.gd" id="10_twirl"]
 [ext_resource type="Script" uid="uid://dr6ln8fys4kxe" path="res://objects/enemy/actions/retreat_action.gd" id="11_retreat"]
 
@@ -13,6 +13,7 @@
 height = 1.5
 
 [node name="Enemy" unique_id=1726509542 instance=ExtResource("1_7nm3q")]
+max_hp = 5
 
 [node name="HitBox" parent="." index="0" unique_id=220957451]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
@@ -24,8 +25,28 @@ shape = SubResource("CapsuleShape3D_e4ut0")
 [node name="MovementComponent" parent="." index="1" unique_id=1586329003]
 pattern = ExtResource("3_wander")
 
-[node name="LockOnTargetComponent" parent="." index="9" unique_id=2110957130]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+[node name="Orbit" type="Node3D" parent="Actions" index="0" unique_id=1474613559]
+script = ExtResource("8_orbit")
+arc_units = 3.0
+weight = 0.45
+timeout = 6.0
+
+[node name="AttackCombo" type="Node3D" parent="Actions" index="1" unique_id=2104198915]
+script = ExtResource("9_combo")
+damage = 1
+weight = 0.55
+committed = true
+requires_attack_slot = true
+timeout = 20.0
+
+[node name="ZigzagTwirl" type="Node3D" parent="Actions/AttackCombo" index="0" unique_id=588432485]
+script = ExtResource("10_twirl")
+damage = 1
+speed = 6.0
+chance = 0.7
+
+[node name="Retreat" type="Node3D" parent="Actions/AttackCombo" index="1" unique_id=492881008]
+script = ExtResource("11_retreat")
 
 [node name="manicoppo-for-export" parent="." index="10" unique_id=516075957 instance=ExtResource("2_e4ut0")]
 transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 0, -0.2)
@@ -132,25 +153,7 @@ script = ExtResource("4_locomotion")
 move_animation = &"LeanForward"
 idle_animation = &"Idle1"
 
-[node name="Orbit" type="Node3D" parent="Actions"]
-script = ExtResource("8_orbit")
-weight = 0.45
-timeout = 6.0
-arc_units = 3.0
-
-[node name="AttackCombo" type="Node3D" parent="Actions"]
-script = ExtResource("9_combo")
-weight = 0.55
-committed = true
-requires_attack_slot = true
-timeout = 20.0
-
-[node name="ZigzagTwirl" type="Node3D" parent="Actions/AttackCombo"]
-script = ExtResource("10_twirl")
-chance = 0.7
-speed = 6.0
-
-[node name="Retreat" type="Node3D" parent="Actions/AttackCombo"]
-script = ExtResource("11_retreat")
+[node name="LockOnTargetComponent" parent="." index="12" unique_id=2110957130]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 
 [editable path="manicoppo-for-export"]

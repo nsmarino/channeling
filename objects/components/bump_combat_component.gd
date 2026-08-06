@@ -3,11 +3,14 @@ class_name BumpCombatComponent
 
 ## Ys-style "bump combat" for the player: run into an enemy to damage it.
 ##
-## Damage scales with WHERE you hit them from — a bump into an enemy's back
-## (they're facing away) deals `max_damage`, a head-on bump into their face deals
-## `min_damage`, with a smooth falloff between. Every landed bump also kicks the
-## player back along the reverse of the attack vector, so you bounce off instead
-## of grinding into the body.
+## Damage depends on WHERE you hit them from, in two steps: a bump into an enemy's
+## back deals `max_damage`, a bump into their front deals `min_damage`, and
+## `back_threshold` is the line between. Two steps rather than a gradient because
+## creatures now have single-digit health — every intermediate value rounded to
+## one of the same two numbers regardless, so the curve bought nothing but made
+## the outcome harder to predict. Every landed bump also kicks the player back
+## along the reverse of the attack vector, so you bounce off instead of grinding
+## into the body.
 ##
 ## Attach as an Area3D child of the player with a CollisionShape3D covering the
 ## body, masking the `enemy` layer (3). Enemy *bodies* are collision_layer = 0 in
@@ -22,12 +25,24 @@ class_name BumpCombatComponent
 ## base (it must BE an Area3D) — same caveat as HitBox / ContactDamage.
 
 @export_group("Damage")
-## Damage for a bump straight into the enemy's back (facing fully away from you).
-@export_range(0, 200, 1) var max_damage: int = 30
-## Damage for a head-on bump (enemy facing straight at you).
-@export_range(0, 200, 1) var min_damage: int = 5
-## Shapes the face→back falloff. 1 = linear; >1 means you must get well behind
-## them to earn the bonus; <1 is more forgiving.
+## Damage for a bump into the enemy's BACK. The reward for manoeuvring behind
+## something rather than running at it.
+@export_range(0, 200, 1) var max_damage: int = 3
+## Damage for a bump into the enemy's FRONT.
+@export_range(0, 200, 1) var min_damage: int = 1
+## Where the back begins, as a fraction of the way around the enemy: 0 is nose-on,
+## 1 is directly behind, 0.5 is exactly beside them.
+##
+## The split is a STEP, not a curve. With a health pool of 5 there is no room for
+## gradations — every intermediate value rounds to one of two numbers anyway, so a
+## smooth falloff only made the same two outcomes harder to predict. A hard line
+## you can learn is worth more than a gradient you can't read.
+##
+## The comparison is strictly greater-than, so a hit exactly on the line counts as
+## the FRONT. Ambiguity should never hand out the bonus.
+@export_range(0.0, 1.0, 0.05) var back_threshold: float = 0.5
+## Unused by the current two-step rule; kept for now at your request. It shaped the
+## old continuous face→back falloff.
 @export_range(0.1, 4.0, 0.05) var facing_falloff: float = 1.0
 
 @export_group("Knockback")
@@ -121,18 +136,28 @@ func _bump(hitbox: Area3D, enemy: Node3D) -> void:
 		return
 
 	var back := _back_factor(enemy)
-	var damage := int(roundf(lerpf(float(min_damage), float(max_damage), pow(back, facing_falloff))))
+	# Strictly greater-than: a hit exactly on the line is a FRONT hit.
+	var from_behind := back > back_threshold
+	var damage := max_damage if from_behind else min_damage
 	hitbox.call("receive_hit", damage)
 	_apply_knockback(enemy)
 	_try_spawn_drop(enemy)
 	Events.attack_hit.emit(_host, enemy, damage)
 
 	if debug_log:
-		print("[BumpCombat] %s for %d (back factor %.2f)" % [String(enemy.name), damage, back])
+		# The raw factor stays in the log even though the damage is now a step —
+		# it's what tells you whether a hit was a clear one or right on the line
+		# when you're deciding where to put back_threshold.
+		print("[BumpCombat] %s for %d (%s, back factor %.2f)" % [
+			String(enemy.name), damage, "BACK" if from_behind else "front", back])
 
 
 ## How far behind the enemy we struck: 0 = straight into their face, 1 = straight
 ## into their back. Flattened to the ground plane so height doesn't skew it.
+##
+## Both degenerate cases — standing exactly on top of them, or a target with no
+## meaningful facing — return 0, the FRONT. That is the safe direction to fail in:
+## it withholds the bonus rather than awarding one nobody earned.
 func _back_factor(enemy: Node3D) -> float:
 	var to_player := _host.global_position - enemy.global_position
 	to_player.y = 0.0
