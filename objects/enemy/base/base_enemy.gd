@@ -33,9 +33,22 @@ enum Activation { DISTANCE, BUMP, MANUAL }
 
 @export var enemy_data: EnemyData
 @export var activation_mode: Activation = Activation.DISTANCE
-## Player must get this close (world units) before the enemy activates. DISTANCE
-## mode only.
+## HORIZONTAL reach at which the player wakes this enemy. DISTANCE mode only.
 @export var activation_distance: float = 45.0
+## Vertical half-height of that reach: the player must be within this many units
+## above OR below. DISTANCE mode only.
+##
+## Together these make the trigger a CYLINDER rather than a sphere, and the two
+## axes want completely different numbers. Horizontal reach is about how much of a
+## room a creature owns — tens of units. Vertical reach is about which FLOOR you
+## are on, which is a much shorter distance and is really a yes/no question.
+##
+## A sphere could not express that: one radius had to serve both, so a drop
+## between floors ate into the horizontal reach and the same number meant
+## different things depending on how vertical that part of the level was. Dropping
+## the height check entirely is worse still — it makes the trigger an infinite
+## column, so standing on a balcony wakes everything in the basement.
+@export var activation_height: float = 10.0
 
 ## The group this creature fights as part of — shared sighting, ring spacing and
 ## attack turn-taking. Empty = it fights alone, which is a complete and safe way
@@ -118,12 +131,13 @@ func _physics_process(_delta: float) -> void:
 	if not _player:
 		_player = _resolve_player()
 		return
-	# FLATTENED to the ground plane, matching how PerceptionComponent measures.
-	# True 3D distance counted a drop between floors against the radius, so a
-	# creature directly below you woke at a fraction of its stated range while one
-	# across open ground woke at all of it — the same number meaning two different
-	# things depending on the level's verticality.
+	# A CYLINDER: horizontal reach and vertical band tested separately, because
+	# "how far across the room" and "which floor" are different questions that want
+	# different numbers. Height first — it is the cheaper test and rejects the
+	# common case of a creature stacked above or below on another level.
 	var to_player: Vector3 = _player.global_position - global_position
+	if absf(to_player.y) > activation_height:
+		return
 	to_player.y = 0.0
 	if to_player.length() <= activation_distance:
 		activate()
