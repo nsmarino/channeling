@@ -12,8 +12,13 @@ class_name PowerDrop
 ##
 ## Collection routes through a duck-typed `restore_energy(amount)` on the player.
 
-## Energy restored to the player on pickup.
-@export var energy_restore: float = 25.0
+## Power granted to the player on pickup.
+##
+## Grants POWER, not energy. Energy refills on its own, so a pickup that topped it
+## up was only ever giving you back time you would have got anyway; power is the
+## resource that exists solely because you took it off something, which is what
+## makes a drop worth crossing a room for.
+@export var power_restore: int = 1
 ## Seconds before it despawns uncollected. This is the pickup window.
 @export var lifetime: float = 12.0
 ## Seconds after spawning before it can be collected — without this it would be
@@ -98,6 +103,6 @@ func _physics_process(_delta: float) -> void:
 
 func _collect(player: Node) -> void:
 	set_physics_process(false)
-	if player.has_method("restore_energy"):
-		player.call("restore_energy", energy_restore)
+	if player.has_method("add_power"):
+		player.call("add_power", power_restore)
 	queue_free()

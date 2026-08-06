@@ -52,15 +52,6 @@ volumetric_fog_density = 0.001
 volumetric_fog_emission = Color(0.5108681, 0.46803832, 0.7841822, 1)
 adjustment_enabled = true
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cegan"]
-albedo_color = Color(0.4525857, 0.4525857, 0.45258558, 1)
-emission_enabled = true
-emission = Color(0.09088685, 0.46404535, 0.81619525, 1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t2uaq"]
-emission_enabled = true
-emission = Color(0.6777143, 0.030194886, 0, 1)
-
 [sub_resource type="Curve3D" id="Curve3D_82xsv"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0.6666667, 1.6666666, 0.6666667, 0, 0, 0, 0.33333337, -0.83333325, 0.16666675, -0.3333333, 0.8333335, -0.16666663, 1, 4.1666665, 1.1666666, 0.3333333, 0.8333335, 2.3333333, -0.33333337, -0.83333325, -2.3333333, -1, 4.1666665, -2.3333333, -0.6666667, 1.6666666, 3.666667, 0, 0, 0, 0, 0, -12),
@@ -240,12 +231,8 @@ air_acceleration = 6.0
 jump_velocity = 6.0
 camera_h_offset = 0.47
 locked_fov = 45.0
-
-[node name="BodyMesh" parent="Player/Model" parent_id_path=PackedInt32Array(1500000010, 1371042896) index="1" unique_id=1171097817]
-material_override = SubResource("StandardMaterial3D_cegan")
-
-[node name="FrontIndicator" parent="Player/Model" parent_id_path=PackedInt32Array(1500000010, 1371042896) index="2" unique_id=1354955092]
-material_override = SubResource("StandardMaterial3D_t2uaq")
+energy_regen = 10.0
+jump_energy_cost = 20.0
 
 [node name="NurbsPath3D" parent="Player" index="8" unique_id=290428690]
 curve = SubResource("Curve3D_82xsv")
@@ -283,6 +270,10 @@ use_collision = false
 
 [node name="CSGBox3D2" parent="NavigationRegion3D/Blockout3-USE_SMALLER_CHUNKS/Building" index="5" unique_id=2132544336]
 visible = false
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="NavigationRegion3D/Blockout3-USE_SMALLER_CHUNKS/Building" index="7" unique_id=545423915]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.5, 6, -7.5)
+size = Vector3(1, 12, 13)
 
 [node name="LowerLevel" parent="NavigationRegion3D/Blockout3-USE_SMALLER_CHUNKS" index="1" unique_id=481367381]
 material_override = SubResource("StandardMaterial3D_ycdy4")
@@ -365,7 +356,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -9)
 transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0, -16.7, -9)
 
 [node name="support-with-arches" parent="NavigationRegion3D" unique_id=1663421253 instance=ExtResource("15_yaehf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -10)
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 7, 0, -10)
 
 [node name="SupportWithArchesTextured2" type="MeshInstance3D" parent="NavigationRegion3D/support-with-arches" unique_id=1203093392]
 transform = Transform3D(0.6226076, -0.699898, 0.35000327, -0.06774982, 0.397378, 0.91515046, -0.779596, -0.5934923, 0.19999272, -15.599999, -4.2000003, 24)

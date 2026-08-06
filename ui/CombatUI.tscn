@@ -16,12 +16,6 @@ border_width_right = 4
 border_width_bottom = 4
 border_color = Color(1, 0.85, 0.1, 1)
 
-[sub_resource type="LabelSettings" id="LabelSettings_health"]
-font_size = 28
-font_color = Color(1, 1, 1, 0.95)
-outline_size = 6
-outline_color = Color(0, 0, 0, 0.7)
-
 [sub_resource type="LabelSettings" id="LabelSettings_energy"]
 font_size = 16
 font_color = Color(0.6, 0.9, 1, 0.95)
@@ -99,30 +93,29 @@ layout_mode = 3
 anchors_preset = 0
 mouse_filter = 2
 
-[node name="Health" type="Label" parent="." unique_id=402530100]
+[node name="Resources" type="VBoxContainer" parent="." unique_id=402530100]
 offset_left = 24.0
 offset_top = 16.0
-offset_right = 320.0
-offset_bottom = 56.0
-text = "HEALTH: 100"
-label_settings = SubResource("LabelSettings_health")
+offset_right = 300.0
+offset_bottom = 110.0
+theme_override_constants/separation = 8
+mouse_filter = 2
 
-[node name="EnergyLabel" type="Label" parent="." unique_id=402530200]
-offset_left = 24.0
-offset_top = 60.0
-offset_right = 320.0
-offset_bottom = 80.0
-text = "ENERGY"
-label_settings = SubResource("LabelSettings_energy")
+[node name="PowerRow" type="HBoxContainer" parent="Resources"]
+layout_mode = 2
+mouse_filter = 2
 
-[node name="Energy" type="ProgressBar" parent="." unique_id=402530201]
-offset_left = 24.0
-offset_top = 82.0
-offset_right = 260.0
-offset_bottom = 100.0
+[node name="Energy" type="ProgressBar" parent="Resources" unique_id=402530201]
+custom_minimum_size = Vector2(236, 14)
+layout_mode = 2
+size_flags_horizontal = 0
 theme_override_styles/background = SubResource("StyleBoxFlat_energy_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_energy_fill")
 max_value = 100.0
 value = 100.0
 show_percentage = false
+mouse_filter = 2
+
+[node name="HealthRow" type="HBoxContainer" parent="Resources"]
+layout_mode = 2
 mouse_filter = 2

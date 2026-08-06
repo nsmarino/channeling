@@ -50,10 +50,12 @@ signal activated
 @export var input_action: StringName = &""
 
 @export_group("Cost")
-## Energy spent per use. All-or-nothing: too little and nothing is spent and the
-## ability doesn't fire.
+## Energy spent per use. Regenerates on its own, so this gates how OFTEN.
 @export var energy_cost: float = 0.0
-## Testing toggle: fire for free, ignoring and never spending energy.
+## Power spent per use. Only earned by fighting, so this gates WHAT YOU CAN
+## AFFORD — an ability with a power cost is paid for by the encounter itself.
+@export var power_cost: int = 0
+## Testing toggle: fire for free, ignoring and never spending anything.
 @export var free_cast: bool = false
 
 @export_group("Rules")
@@ -194,13 +196,48 @@ func is_on_cooldown() -> bool:
 	return _cooldown_left > 0.0
 
 
-## Pay the energy cost. All-or-nothing — false means nothing was spent.
+## Pay every cost, or none of them.
+##
+## CHECKS ALL BEFORE SPENDING ANY. With one resource this distinction didn't
+## exist; with two it is the whole thing. Spending energy and only then finding
+## the power is short would leave the player poorer with nothing to show, and the
+## press would read as the game swallowing an input — the exact bug the
+## all-or-nothing contract on spend_energy() was written to avoid, reintroduced
+## one level up.
 func try_spend() -> bool:
-	if free_cast or energy_cost <= 0.0:
+	if free_cast:
 		return true
-	if body == null or not body.has_method("spend_energy"):
+	if body == null:
 		return false
-	return bool(body.call("spend_energy", energy_cost))
+
+	if energy_cost > 0.0:
+		if not body.has_method("can_afford_energy") \
+				or not bool(body.call("can_afford_energy", energy_cost)):
+			return false
+	if power_cost > 0:
+		if not body.has_method("can_afford_power") \
+				or not bool(body.call("can_afford_power", power_cost)):
+			return false
+
+	# Both confirmed affordable — now commit.
+	if energy_cost > 0.0:
+		body.call("spend_energy", energy_cost)
+	if power_cost > 0:
+		body.call("spend_power", power_cost)
+	return true
+
+
+## Can every cost be paid right now? For UI and for gating without committing.
+func can_afford() -> bool:
+	if free_cast:
+		return true
+	if body == null:
+		return false
+	if energy_cost > 0.0 and not bool(body.call("can_afford_energy", energy_cost)):
+		return false
+	if power_cost > 0 and not bool(body.call("can_afford_power", power_cost)):
+		return false
+	return true
 
 
 # --- The body claim ----------------------------------------------------------

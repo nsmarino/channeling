@@ -77,7 +77,20 @@ signal hit(amount: int)
 @export var aim_distance: float = 50.0
 
 @export_category("Health")
-@export var max_hp: int = 100
+## Deliberately tiny. Health is now a countable row of pips rather than a bar, so
+## every point lost is legible at a glance and one hit is a real event.
+@export var max_hp: int = 6
+
+@export_category("Power")
+## Currency dropped by creatures and spent on the expensive things — the Power
+## Dive, and healing.
+##
+## The counterpart to energy, and the two are deliberately opposite in character:
+## energy REGENERATES on its own, so it gates how often you can act; power is only
+## earned by fighting, so it gates what you can afford to do with what you took
+## off the enemies in front of you. Starting at zero means an encounter opens with
+## nothing banked.
+@export var max_power: int = 10
 
 @export_category("Energy")
 ## Size of the energy pool. Abilities spend from it; it refills over time so
@@ -98,8 +111,11 @@ signal hit(amount: int)
 
 var hp: int = 0
 
+## Current power. Starts at 0, only ever granted by picking up a PowerDrop.
+var power: int = 0
+
 ## Current energy. Regenerates toward max_energy every frame; abilities and jumps
-## spend from it, and PowerDrops restore it.
+## spend from it.
 var energy: float = 0.0
 
 ## Cleared while a cutscene runs (Events.cutscene_started/finished). Input is
@@ -142,6 +158,7 @@ func _ready() -> void:
 	_gravity = gravity_override if gravity_override > 0.0 \
 		else float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
 	hp = max_hp
+	power = 0  # earned, never granted
 	energy = max_energy
 	if _pivot:
 		_yaw = _pivot.rotation.y
@@ -429,7 +446,7 @@ func apply_external_velocity(delta_v: Vector3) -> void:
 	velocity += delta_v
 
 
-## Restore energy (a PowerDrop, on pickup). Called duck-typed. Clamped to max.
+## Restore energy. Called duck-typed. Clamped to max.
 func restore_energy(amount: float) -> void:
 	energy = minf(energy + amount, max_energy)
 
@@ -437,10 +454,54 @@ func restore_energy(amount: float) -> void:
 ## Spend energy on a jump or ability. All-or-nothing: returns false and spends
 ## nothing if we can't afford it, so callers can gate on the return value.
 func spend_energy(amount: float) -> bool:
-	if energy < amount:
+	if not can_afford_energy(amount):
 		return false
 	energy -= amount
 	return true
+
+
+## Could we afford this, without spending it?
+##
+## Separate from spend_energy() so an ability that costs SEVERAL resources can ask
+## about all of them before committing to any — otherwise a Power Dive short on
+## power would still have taken the energy, and the input would read as the game
+## eating a button press and a chunk of your bar.
+func can_afford_energy(amount: float) -> bool:
+	return amount <= 0.0 or energy >= amount
+
+
+## Grant power (a PowerDrop, on pickup). Called duck-typed. Returns how much
+## actually landed, which is less than asked at the cap.
+func add_power(amount: int) -> int:
+	var before: int = power
+	power = clampi(power + amount, 0, max_power)
+	return power - before
+
+
+## Spend power. All-or-nothing, same contract as spend_energy().
+func spend_power(amount: int) -> bool:
+	if not can_afford_power(amount):
+		return false
+	power -= amount
+	return true
+
+
+func can_afford_power(amount: int) -> bool:
+	return amount <= 0 or power >= amount
+
+
+## Restore health, clamped to max_hp. Returns how much actually landed, so a heal
+## can refuse to pay when it would be wasted.
+func heal(amount: int) -> int:
+	if amount <= 0 or hp <= 0:
+		return 0
+	var before: int = hp
+	hp = mini(hp + amount, max_hp)
+	return hp - before
+
+
+func is_at_full_health() -> bool:
+	return hp >= max_hp
 
 
 ## Hand our transform to an ability or an enemy. Movement, gravity and input are

@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://ijktbaavdm6b" path="res://objects/components/power_slam_component.gd" id="6_slam"]
 [ext_resource type="Script" uid="uid://bh7xn2react0c" path="res://objects/components/hit_react_component.gd" id="7_hitreact"]
 [ext_resource type="Script" uid="uid://dn6kt2xwvq9mr" path="res://objects/components/model_sway_component.gd" id="9_sway"]
+[ext_resource type="Script" uid="uid://bh3wq7xmnvk4t" path="res://objects/components/heal_ability.gd" id="10_heal"]
 [ext_resource type="Script" uid="uid://cx4msavkwt7bn" path="res://objects/components/dash_ability.gd" id="8_dash"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
@@ -78,6 +79,7 @@ duration = 1.0
 time_curve = SubResource("Curve_t2uaq")
 input_action = &"power_slam"
 energy_cost = 40.0
+power_cost = 4
 usable_in_air = false
 
 [node name="DashAbility" type="Node" parent="." unique_id=1931096486]
@@ -99,3 +101,11 @@ mesh_root_path = NodePath("../Model")
 
 [node name="ModelSway" type="Node" parent="."]
 script = ExtResource("9_sway")
+
+[node name="HealAbility" type="Node" parent="."]
+script = ExtResource("10_heal")
+input_action = &"heal"
+power_cost = 10
+usable_in_air = false
+cooldown = 0.5
+heal_amount = 3
