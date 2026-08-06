@@ -79,13 +79,21 @@ class_name BumpCombatComponent
 @export_range(0.0, 10.0, 0.1) var min_bump_speed: float = 1.5
 ## Seconds before the same enemy can be bumped again.
 @export_range(0.0, 3.0, 0.05) var hit_cooldown: float = 0.45
-## Flat damage for a bump landed mid-air during a scripted move (a PowerSlam
-## flight). Facing is ignored — you're committed to an arc, not choosing an angle.
-@export_range(0, 200, 1) var air_bump_damage: int = 12
 
-## Set by PowerSlamComponent for the duration of a slam's flight. Bumps then deal
-## `air_bump_damage` and apply NO knockback, since bouncing the player mid-flight
-## would fight the trajectory they're locked into.
+## Set by an ability that owns the player's transform — the Power Dive's flight,
+## the dash's burst — for its duration.
+##
+## It waives the ENERGY COST and the PLAYER BOUNCE, and nothing else. Damage is
+## unaffected: a bump is a bump, and where you struck from is the only thing that
+## decides what it does.
+##
+## Both waivers exist because the move already paid, and because a bounce would be
+## thrown away regardless: a claimed transform ignores knockback, and releasing it
+## clears the timer. Charging energy per bump on top of a 40-energy dive is just a
+## second bill for one decision.
+##
+## (The name is a slight misnomer now — it means "mid-committed-move", not
+## "off the ground".)
 var airborne_mode: bool = false
 
 ## Print the damage/angle of each bump, for tuning by feel.
@@ -131,14 +139,24 @@ func _is_moving_fast_enough() -> bool:
 func _bump(hitbox: Area3D, enemy: Node3D) -> void:
 	_cooldown_by_enemy[enemy] = hit_cooldown
 
-	# Mid-dive bumps are part of the already-paid Power Dive: flat damage, no
-	# energy cost, no knockback (bouncing mid-flight fights the locked-in arc).
+	# WHERE you struck from is the only input to damage. Computed once, up front,
+	# so every path below lands on the same number — a bump mid-dive and a bump on
+	# foot hit for the same amount from the same angle, and the only thing being
+	# mid-move changes is what it COSTS you.
+	var back := _back_factor(enemy)
+	# Strictly greater-than: a hit exactly on the line is a FRONT hit.
+	var from_behind := back > back_threshold
+	var damage := max_damage if from_behind else min_damage
+
+	# Mid-committed-move: the ability already paid, so no energy and no bounce.
 	if airborne_mode:
-		hitbox.call("receive_hit", air_bump_damage)
+		hitbox.call("receive_hit", damage)
 		_try_spawn_drop(enemy)
-		Events.attack_hit.emit(_host, enemy, air_bump_damage)
+		_show_callout(enemy, from_behind)
+		Events.attack_hit.emit(_host, enemy, damage)
 		if debug_log:
-			print("[BumpCombat] %s for %d (air)" % [String(enemy.name), air_bump_damage])
+			print("[BumpCombat] %s for %d (%s, mid-move)" % [
+				String(enemy.name), damage, "BACK" if from_behind else "front"])
 		return
 
 	# A ground bump costs energy. Too little and it's a whiff — the player still
@@ -150,10 +168,6 @@ func _bump(hitbox: Area3D, enemy: Node3D) -> void:
 			print("[BumpCombat] %s — not enough energy, bounced off" % String(enemy.name))
 		return
 
-	var back := _back_factor(enemy)
-	# Strictly greater-than: a hit exactly on the line is a FRONT hit.
-	var from_behind := back > back_threshold
-	var damage := max_damage if from_behind else min_damage
 	hitbox.call("receive_hit", damage)
 	_apply_knockback(enemy)
 	_try_spawn_drop(enemy)

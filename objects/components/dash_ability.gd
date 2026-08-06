@@ -13,11 +13,13 @@ class_name DashAbility
 ## model's current facing when nothing is held — so a standing dash goes where you
 ## are looking and a held dash goes where you asked, including sideways.
 ##
-## THE ATTACK RIDES ON BumpCombat's AIRBORNE PATH rather than a second damage
-## system. A dash is fast enough to trip `min_bump_speed` on its own, so without
-## intervention dashing into a creature would fire an ordinary ground bump, which
-## charges a second helping of energy on top of the dash's own. `airborne_mode`
-## (the same handoff the Power Dive uses) gives flat damage and no extra charge.
+## THE ATTACK IS JUST A BUMP, and the dash has no damage number of its own. A dash
+## is fast enough to trip `min_bump_speed` by itself, so dashing through a creature
+## already lands an ordinary bump for ordinary front/back damage — you arrived
+## faster, not differently, and where you struck from is still the only thing that
+## decides what it did. `airborne_mode` (the same handoff the Power Dive uses)
+## waives the energy and the bounce so the move isn't billed twice; it does not
+## touch damage.
 ##
 ## THE REBOUND IS THE DASH'S OWN, and that is the point of doing it this way. A
 ## bump's bounce is sized for walking into something; a dash arrives far faster and
@@ -46,11 +48,12 @@ class_name DashAbility
 @export var face_dash_direction: bool = false
 
 @export_group("Attack")
-## Flat damage a dash-through deals. Applied by borrowing BumpCombat's airborne
-## damage for the duration and putting the old value back afterwards.
-@export var bump_damage: int = 12
-## BumpCombatComponent switched into airborne mode for the dash, relative to this
-## component. Empty = the dash does no damage at all (pure evasion).
+## BumpCombatComponent switched into mid-move mode for the dash, relative to this
+## component. Empty = a dash-through costs energy and bounces you like a walk-in.
+##
+## The dash has no damage number of its own: what a dash-through deals is decided
+## by the same front/back rule as any other bump, because it IS one — you arrived
+## faster, not differently.
 @export var bump_component_node: NodePath = ^"../BumpCombat"
 
 @export_group("Impact")
@@ -85,8 +88,6 @@ var _elapsed: float = 0.0
 ## Fraction of `distance` covered as of last frame.
 var _travel: float = 0.0
 var _direction: Vector3 = Vector3.FORWARD
-## BumpCombat's own airborne damage, restored when the dash ends.
-var _restore_bump_damage: int = 0
 ## Whether this dash has struck anything, so the rebound only fires on a hit.
 var _connected: bool = false
 
@@ -135,8 +136,6 @@ func _activate() -> void:
 		_model.rotation.y = atan2(-_direction.x, -_direction.z)
 
 	if _bump:
-		_restore_bump_damage = int(_bump.get("air_bump_damage"))
-		_bump.set("air_bump_damage", bump_damage)
 		_bump.set("airborne_mode", true)
 
 
@@ -162,7 +161,6 @@ func _finish() -> void:
 	_dashing = false
 	if _bump:
 		_bump.set("airborne_mode", false)
-		_bump.set("air_bump_damage", _restore_bump_damage)
 
 	# Release BEFORE bouncing. end_scripted_move() zeroes velocity and clears the
 	# knockback timer, so a rebound handed out any earlier is silently discarded —
@@ -222,6 +220,5 @@ func on_deactivate() -> void:
 		_dashing = false
 		if _bump:
 			_bump.set("airborne_mode", false)
-			_bump.set("air_bump_damage", _restore_bump_damage)
 	_connected = false
 	super.on_deactivate()
