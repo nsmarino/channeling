@@ -1,16 +1,22 @@
 extends CanvasLayer
 
-## Minimal HUD: a fixed center crosshair, a health readout polled from the player,
-## and the lock-on overlay. The overlay reads the player's LockOnComponent
-## (duck-typed) each frame and draws:
+## Minimal HUD: a fixed center crosshair, three resource rows polled from the
+## player (power pips, the energy bar, health pips), and the lock-on overlay.
+##
+## Everything is POLLED rather than signal-driven. The player owns its own numbers
+## and broadcasts nothing about them, so the HUD stays a pure reader — it can be
+## removed, duplicated or rebuilt without the player knowing it exists.
+##
+## The overlay reads the player's LockOnComponent (duck-typed) each frame and
+## draws:
 ##   - the bold `LockOn` reticle on the actively locked target, and
 ##   - soft `◇` markers on every other eligible target (pooled),
 ## both projected to screen space via the active 3D camera.
 
 @export_group("Resource Pips")
-## How many power pips to draw. NOTE: pips beyond the player's `max_power` can
-## never fill — keep this equal to it unless you want visible headroom.
-@export var power_pips: int = 12
+## How many power pips to draw. Keep equal to the player's `max_power` — any pip
+## past it can never fill and just reads as broken.
+@export var power_pips: int = 10
 ## How many health pips to draw. Should match the player's `max_hp`.
 @export var health_pips: int = 6
 ## Size of a single pip. Width > height gives the ellipse its squash.
