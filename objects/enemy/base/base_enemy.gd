@@ -118,7 +118,14 @@ func _physics_process(_delta: float) -> void:
 	if not _player:
 		_player = _resolve_player()
 		return
-	if global_position.distance_to(_player.global_position) <= activation_distance:
+	# FLATTENED to the ground plane, matching how PerceptionComponent measures.
+	# True 3D distance counted a drop between floors against the radius, so a
+	# creature directly below you woke at a fraction of its stated range while one
+	# across open ground woke at all of it — the same number meaning two different
+	# things depending on the level's verticality.
+	var to_player: Vector3 = _player.global_position - global_position
+	to_player.y = 0.0
+	if to_player.length() <= activation_distance:
 		activate()
 
 
