@@ -28,6 +28,11 @@ var _restart_pending: bool = false
 var _spawn_override: Vector3 = Vector3.ZERO
 var _has_spawn_override: bool = false
 
+## The location .tscn Play From Here was launched from ("" if none). Main loads it
+## in place of its `active_scene`. Held for the session like the spawn point, so a
+## restart reloads the location you were testing.
+var location_override: String = ""
+
 
 func _ready() -> void:
 	print("[GameManager] Initialized")
@@ -49,6 +54,7 @@ func _consume_spawn_override() -> void:
 	if cfg.load(PLAY_FROM_HERE_FILE) == OK:
 		_spawn_override = cfg.get_value("spawn", "position", Vector3.ZERO)
 		_has_spawn_override = true
+		location_override = cfg.get_value("spawn", "scene", "")
 		print("[GameManager] Play From Here: spawning at %s" % str(_spawn_override))
 
 	var dir := DirAccess.open("user://")

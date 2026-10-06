@@ -6,7 +6,11 @@ extends EditorPlugin
 ##
 ## **Hold J and left-click** anywhere in the 3D viewport. The plugin raycasts under
 ## the cursor, writes the hit point to a one-shot file, and plays the current
-## scene; `GameManager` reads that file on startup and drops the player there.
+## main scene; `GameManager` reads that file on startup and drops the player there.
+##
+## Works from a location .tscn as well as from main.tscn: the file also records
+## which scene you were editing, and Main loads that location in place of its
+## `active_scene`, so you get the player and HUD rather than a bare location.
 ##
 ## Why a held key rather than a plain right-click: bare RMB is freelook in Godot's
 ## 3D viewport, and stealing it would break camera navigation. The held key is read
@@ -82,7 +86,7 @@ func _play_from(camera: Camera3D, screen_pos: Vector2) -> void:
 		return
 
 	print("[PlayFromHere] Spawning player at %s" % str(spawn))
-	EditorInterface.play_current_scene()
+	EditorInterface.play_main_scene()
 
 
 ## World point under the cursor, or null if the ray hit nothing.
