@@ -13,7 +13,8 @@ Combat is **bump-based** — you damage things by running into them — not shoo
 A player rifle/weapon system still exists in the tree but is not the direction;
 treat it as legacy unless asked.
 
-Main scene: `main.tscn` (project root). The project ships a Godot MCP server
+Main scene: `main.tscn` (project root), which loads one location scene from
+`levels/` (see Locations). The project ships a Godot MCP server
 (`mcp__godot__*`); prefer it (`run_project`, `game_eval`, `game_screenshot`) over
 raw shell work for verification.
 
@@ -22,13 +23,13 @@ It covers the action system, the component map, testing practice and the traps.
 
 ## Project layout
 
-- **`main.tscn`** — the playable scene: player, HUD, a `Path3D`/CSG blockout, a
-  `NavigationRegion3D` containing the placeholder channel scenes, an
-  `EnemyCoordinator`, and three Manicoppos.
-- **`levels/`** — `main.gd` (registers player + level with `GameManager`),
+- **`main.tscn`** — the harness: player, HUD, `WorldEnvironment`, music. It holds
+  no level content; it instances a **location** scene at startup (see Locations).
+- **`levels/`** — `main.gd` (loads the location, registers player + location with
+  `GameManager`), `proto_scene.tscn` (the current prototype location),
   `overworld/`, `dungeon/`.
-- **`placeholder/`** — untextured blockout geometry: the channel/room scenes used
-  in `main.tscn`, plus placeholder creature models.
+- **`placeholder/`** — untextured blockout geometry and placeholder creature
+  models.
 - **`objects/`**
   - `player/` — third-person player (`player.gd` + `Player.tscn`).
   - `components/` — reusable behaviour components + the `Component` base.
@@ -74,8 +75,48 @@ collisions) so scenes can reference it stably.
   `enemy_hp_changed` / `enemy_damaged` / `attack_hit`.
 - **`GameManager`** — runtime refs + **level restart** (deferred
   `reload_current_scene()` behind a re-entrancy guard). Triggers: player death,
-  falling below `fall_limit_y`, and the `restart` action.
+  falling below `fall_limit_y`, and the `restart` action. Also holds the Play
+  From Here overrides (spawn point + `location_override`) for the whole session.
 - **`Cinematic`** — brackets cutscenes with the `Events` signals.
+
+### Locations (`levels/`)
+
+`main.tscn` is a harness; each playable place is its own `.tscn`. `Main`'s
+`active_scene` (`PackedScene`) names the location to play — swap it in the
+Inspector. At startup `main.gd` instances it as a child of Main, moves the player
+to its `PlayerSpawn` marker if it has one, and registers it with `GameManager`.
+Restart reloads `main.tscn`, which re-instances the same location.
+
+A location owns everything that belongs to the place, so nothing leaks between
+locations:
+
+```
+<Location> (Node3D root — required)
+├── PlayerSpawn (Marker3D)     optional; else the player's spot in main.tscn
+├── NavigationRegion3D         required if it has enemies — see below
+│   └── geometry, Enemies, Items, …
+├── EnemyCoordinator           optional; enemies opt in via coordinator_path
+└── lights, LightmapGI, Cutscenes, TriggerRegions
+```
+
+Shared things (player, HUD, environment, music) stay in `main.tscn`.
+
+**Enemies need a baked navmesh.** With no `NavigationRegion3D` the nav map is
+still valid and synced but empty, so `map_get_closest_point` returns the world
+origin: a knocked-back enemy is snapped to `(0,0,0)` by `MovementComponent`,
+`NavWanderMovement` herds wanderers there, `is_navigable()` reports everything
+off-mesh, and chase never moves. Breakables and interactables don't care.
+
+**Play From Here** (`addons/play_from_here/`, hold J + left-click in the 3D view)
+always launches `main.tscn`. It records the clicked point *and* the scene being
+edited; Main loads that scene in place of `active_scene`. So J-click inside a
+location file plays that location with the player and HUD — but J-clicking in a
+non-location scene (e.g. `Player.tscn`) would try to load it as a location.
+
+**LightmapGI bakes** write into the `LightmapGIData` already assigned. A location
+saved from an existing branch inherits that file (`proto_scene` still bakes into
+`main.lmbake`); clear `light_data` on a new location's LightmapGI before its first
+bake or it will overwrite another location's lightmap.
 
 ### Player (`objects/player/`)
 
