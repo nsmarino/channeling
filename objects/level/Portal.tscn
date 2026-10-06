@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://c6f4i3doc8guw"]
+
+[ext_resource type="Script" uid="uid://raly0wwniga6t" path="res://objects/level/portal.gd" id="1_portal"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_portal"]
+size = Vector3(2, 3, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_portal"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.55, 0.3, 1, 0.45)
+
+[sub_resource type="BoxMesh" id="BoxMesh_portal"]
+material = SubResource("StandardMaterial3D_portal")
+size = Vector3(2, 3, 0.1)
+
+[node name="Portal" type="Area3D"]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_portal")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("BoxShape3D_portal")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+cast_shadow = 0
+mesh = SubResource("BoxMesh_portal")
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4, 0)
+billboard = 1
+text = "→ ?"
+font_size = 48

@@ -28,10 +28,13 @@ var _restart_pending: bool = false
 var _spawn_override: Vector3 = Vector3.ZERO
 var _has_spawn_override: bool = false
 
-## The location .tscn Play From Here was launched from ("" if none). Main loads it
-## in place of its `active_scene`. Held for the session like the spawn point, so a
-## restart reloads the location you were testing.
+## The location Main should load in place of its `active_scene` ("" if none).
+## Set by Play From Here at launch and by every portal trip, and held for the
+## session, so a restart reloads the location you were last in.
 var location_override: String = ""
+## Spawn node to arrive at in `location_override` ("" = Main's default). Set by
+## portals, so dying after a trip puts you back at the door you came through.
+var spawn_name_override: StringName = &""
 
 
 func _ready() -> void:
@@ -96,6 +99,14 @@ func register_navigator(nav: CharacterBody3D) -> void:
 		nav.global_position = _spawn_override
 		nav.velocity = Vector3.ZERO
 	print("[GameManager] Navigator registered: %s" % nav.name)
+
+
+## Remember a portal trip so a restart returns to it. Supersedes any Play From
+## Here point: that point belongs to the location you just left.
+func record_travel(scene_path: String, spawn_name: StringName) -> void:
+	location_override = scene_path
+	spawn_name_override = spawn_name
+	_has_spawn_override = false
 
 
 func register_overworld(overworld: Node) -> void:

@@ -37,7 +37,7 @@ It covers the action system, the component map, testing practice and the traps.
     concrete enemies, the blast system, movement patterns.
   - `breakables/` — `Breakable` base + Mushroom 1.
   - `interactables/` — bounce mushrooms (no base class; see below).
-  - `level/` — `TriggerRegion`, level-authoring pieces.
+  - `level/` — `TriggerRegion`, `Portal`, level-authoring pieces.
   - `pickups/`, `weapons/`, `cutscene/`.
 - **`autoloads/`** — `Events`, `GameManager`, `Cinematic`.
   `mcp_interaction_server.gd` is injected per-run by the MCP tool, not a project
@@ -92,7 +92,7 @@ locations:
 
 ```
 <Location> (Node3D root — required)
-├── PlayerSpawn (Marker3D)     optional; else the player's spot in main.tscn
+├── PlayerSpawn (Marker3D)     optional default spawn; else the player's spot in main.tscn
 ├── NavigationRegion3D         required if it has enemies — see below
 │   └── geometry, Enemies, Items, …
 ├── EnemyCoordinator           optional; enemies opt in via coordinator_path
@@ -100,6 +100,32 @@ locations:
 ```
 
 Shared things (player, HUD, environment, music) stay in `main.tscn`.
+
+**Starting a new location:** duplicate `levels/template_scene.tscn` (the tree
+above, plus a 40×40 floor and a sun) with **Duplicate… in the FileSystem dock**,
+not Finder — Godot gives the copy a fresh scene UID, a Finder copy shares the
+template's and the two get confused. Then rename the root, bake the
+NavigationRegion3D, and point `active_scene` at it. The template's navmesh ships
+unbaked — every copy reshapes its geometry and must bake its own anyway. It is a
+copy, not an inherited scene: changing the template later does not touch
+locations already made from it.
+
+**Portals** (`objects/level/Portal.tscn`) link locations. Each has a
+`target_scene` (a file path — a `PackedScene` export would make two locations that
+link to each other load each other forever) and a `target_spawn`, the **name** of
+a node anywhere in the target location. So a location takes as many entry points
+as it needs: a Marker3D per door, named for where it leads from (`FromCave`), and
+the default `PlayerSpawn` for a fresh start. The spawn's -Z is the arrival facing;
+aim it away from the return portal.
+
+Walking in calls `Main.travel()`, which swaps the location in place — the player
+node survives, so HP and energy carry over (`Player.place_at()` sets position and
+facing). `GameManager.record_travel()` remembers the location and spawn, so dying
+after a trip restarts at the door you came through, and clears any Play From Here
+point (it belonged to the location you left). Guards: a portal ignores the player
+until it has seen them outside it, so arriving inside a return portal can't
+bounce; it won't fire during a scripted move, whose owner may be freed by the
+swap; a spawn name that doesn't exist warns and falls back to `PlayerSpawn`.
 
 **Enemies need a baked navmesh.** With no `NavigationRegion3D` the nav map is
 still valid and synced but empty, so `map_get_closest_point` returns the world

@@ -388,6 +388,24 @@ func _aim_direction(muzzle_pos: Vector3) -> Vector3:
 	return -global_transform.basis.z
 
 
+## Teleport to `xform` and face along its -Z — for spawns and portal arrivals.
+## Momentum and knockback are dropped so you don't arrive still sliding from the
+## run-up; the camera swings to the new facing, keeping its pitch.
+func place_at(xform: Transform3D) -> void:
+	global_position = xform.origin
+	velocity = Vector3.ZERO
+	_knockback_timer = 0.0
+	var forward: Vector3 = -xform.basis.z
+	forward.y = 0.0
+	if forward.length_squared() < 0.0001:
+		return
+	_yaw = atan2(-forward.x, -forward.z)
+	if _pivot:
+		_pivot.rotation.y = _yaw
+	if _model:
+		_model.rotation.y = _yaw
+
+
 ## Shove the player with an external impulse (BumpCombatComponent uses this on a
 ## landed bump). Movement input is suppressed for `duration` so the hit reads;
 ## overlapping calls keep the longest remaining window rather than cutting it short.
