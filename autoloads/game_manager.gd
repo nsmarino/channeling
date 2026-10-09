@@ -36,6 +36,11 @@ var location_override: String = ""
 ## portals, so dying after a trip puts you back at the door you came through.
 var spawn_name_override: StringName = &""
 
+## Story / world-state flags, set by interactions (EventStep) and read by anything
+## that cares ("talked_to_archivist"). Held for the session like the overrides
+## above, so a restart doesn't forget a conversation — but not saved to disk.
+var flags: Dictionary[StringName, bool] = {}
+
 
 func _ready() -> void:
 	print("[GameManager] Initialized")
@@ -107,6 +112,14 @@ func record_travel(scene_path: String, spawn_name: StringName) -> void:
 	location_override = scene_path
 	spawn_name_override = spawn_name
 	_has_spawn_override = false
+
+
+func set_flag(flag: StringName, value: bool = true) -> void:
+	flags[flag] = value
+
+
+func has_flag(flag: StringName) -> bool:
+	return flags.get(flag, false)
 
 
 func register_overworld(overworld: Node) -> void:

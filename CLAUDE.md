@@ -37,11 +37,13 @@ It covers the action system, the component map, testing practice and the traps.
     concrete enemies, the blast system, movement patterns.
   - `breakables/` — `Breakable` base + Mushroom 1.
   - `interactables/` — bounce mushrooms (no base class; see below).
+  - `interaction/` — `Interaction` + its step nodes (talk to NPCs; see below).
   - `level/` — `TriggerRegion`, `Portal`, level-authoring pieces.
   - `pickups/`, `weapons/`, `cutscene/`.
 - **`autoloads/`** — `Events`, `GameManager`, `Cinematic`.
   `mcp_interaction_server.gd` is injected per-run by the MCP tool, not a project
   autoload; **treat its warnings as noise** when triaging.
+- **`ui/dialogue/`** — `DialogueUI` (DialogueBox + PromptBox), instanced in Main's HUD.
 - **`vfx/`**, **`ui/`**, **`assets/`**, **`addons/`**, **`explores/`** — as named.
 
 ## Running & Tooling
@@ -237,6 +239,36 @@ volume sits above a solid cap) rather than by testing downward velocity — Godo
 reports area overlaps from the previous physics step, by which time
 `move_and_slide` has already zeroed the lander's velocity.
 
+### Interactions (`objects/interaction/`)
+
+Talking to an NPC, reading a sign. Ported from Nightbloom v1's DialogueTrigger. An
+`Interaction` (Area3D, mask 2) shows a prompt while the player is inside it;
+pressing `interact` emits `Events.interaction_started`, which freezes the player
+exactly like a cutscene, then runs its **`InteractionStep` children top to
+bottom**, awaiting each, closes the dialogue box, blends the camera back and emits
+`interaction_finished`. `ExampleNPC.tscn` shows a full one.
+
+Steps (`steps/`): `SayStep` (speaker, portrait, `lines` array — the DialogueBox
+types each out; press to reveal, press again to advance), `CameraStep` (blend to a
+Camera3D in the level, optional `look_at_target`), `SoundStep`, `AnimationStep`,
+`WaitStep`, `EventStep` (sets a GameManager flag and emits `fired` — connect it in
+the editor for any state change). New beat = extend `InteractionStep`, override
+`run()`, await inside it to hold the sequence.
+
+State: `GameManager.flags` (`set_flag` / `has_flag`) live for the session and
+survive restarts. `once_flag` makes an interaction happen once and sets the flag;
+`required_flag` gates one on it — pair two Interactions on one NPC for "first
+meeting" then "follow-up". `one_shot` only lasts until the location reloads.
+
+Details that matter: only one interaction holds the prompt at a time (static
+arbitration, first in range wins); the press that ends a conversation must be
+released before it can restart; an Interaction freed mid-run (restart, travel)
+still hands control back in `_exit_tree`. Player control is a **lock count**
+(`_lock_control` / `_unlock_control`), so a cutscene and an interaction can't
+release each other; `Player.is_control_enabled()` gates `PlayerAbility` and
+`LockOnComponent`, which read input themselves. Enemies are NOT paused during a
+conversation — place NPCs where nothing will attack.
+
 ### Loot
 
 `DropComponent` lives on the thing being broken, not on the player. Two separate
@@ -262,8 +294,8 @@ player. The brain collects regions from the actions that reference them.
 ### Input map (`project.godot`)
 
 Keyboard + gamepad throughout. `move_*` (WASD **and** IJKL), `jump`, `look_*`,
-`lock_on` (O / R3), `attack` (LMB / R2), `power_slam` (`;` / X), `restart`
-(R / Back).
+`lock_on` (O / R3), `attack` (LMB / R2), `power_slam` (`;` / X), `interact`
+(E / Y), `restart` (R / Back).
 
 ### Collision layers
 

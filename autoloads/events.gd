@@ -11,6 +11,14 @@ signal player_killed
 signal cutscene_started
 signal cutscene_finished
 
+# Interactions (talk to an NPC, read a sign). An Interaction owns the prompt while
+# the player is in range and runs its steps once triggered; the player suspends
+# its own control for the duration, exactly as for a cutscene.
+signal interaction_prompt_shown(text: String)
+signal interaction_prompt_hidden
+signal interaction_started(interaction: Node)
+signal interaction_finished(interaction: Node)
+
 # Enemy / hit feedback
 signal enemy_hp_changed(current: int, max_val: int)
 signal enemy_damaged(amount: int)

@@ -37,6 +37,12 @@ var _mouse_dx: float = 0.0
 var _switch_timer: float = 0.0
 
 
+## False while the player's control is suspended (cutscene, interaction).
+func _host_accepts_input() -> bool:
+	return host == null or not host.has_method("is_control_enabled") \
+		or bool(host.call("is_control_enabled"))
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	# Only accumulate while locked; the same look input drives target switching.
 	if _target != null and event is InputEventMouseMotion:
@@ -47,7 +53,7 @@ func _physics_process(delta: float) -> void:
 	_switch_timer = maxf(0.0, _switch_timer - delta)
 	_eligible = _gather_eligible()
 
-	if Input.is_action_just_pressed(lock_action):
+	if Input.is_action_just_pressed(lock_action) and _host_accepts_input():
 		if _target != null:
 			_target = null
 		else:

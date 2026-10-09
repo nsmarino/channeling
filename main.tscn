@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://b1esvavhc0ixb" path="res://levels/main.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://cplayrscn0fps" path="res://objects/player/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/CombatUI.tscn" id="3_hud"]
+[ext_resource type="PackedScene" uid="uid://ul386q7tp1k9p" path="res://ui/dialogue/DialogueUI.tscn" id="3_dialogue"]
 [ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://assets/sounds/music/selection menu.mp3" id="4_music"]
 [ext_resource type="PackedScene" uid="uid://dmc6ruhm3jp5w" path="res://levels/proto_scene.tscn" id="5_proto"]
 
@@ -54,6 +55,8 @@ environment = SubResource("Environment_qy63d")
 [node name="HUD" type="Node" parent="." unique_id=1494739639]
 
 [node name="CombatUI" parent="HUD" unique_id=1684459129 instance=ExtResource("3_hud")]
+
+[node name="DialogueUI" parent="HUD" unique_id=1366009035 instance=ExtResource("3_dialogue")]
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1852918013]
 stream = ExtResource("4_music")

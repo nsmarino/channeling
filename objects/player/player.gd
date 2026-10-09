@@ -121,6 +121,10 @@ var energy: float = 0.0
 ## Cleared while a cutscene runs (Events.cutscene_started/finished). Input is
 ## ignored and the body coasts to a stop; the camera is handed back on finish.
 var _control_enabled: bool = true
+# Things currently holding control away from the player (a cutscene, an
+# interaction). Counted rather than a bool so one ending can't hand control back
+# while the other is still running.
+var _control_locks: int = 0
 
 ## Seconds remaining in which an external impulse (bump combat) owns horizontal
 ## movement instead of input. See apply_knockback().
@@ -168,8 +172,10 @@ func _ready() -> void:
 		_camera.h_offset = camera_h_offset
 	_weapon_socket = get_node_or_null(weapon_socket_path) as Node3D
 	_spawn_weapon()
-	Events.cutscene_started.connect(_on_cutscene_started)
-	Events.cutscene_finished.connect(_on_cutscene_finished)
+	Events.cutscene_started.connect(_lock_control)
+	Events.cutscene_finished.connect(_unlock_control)
+	Events.interaction_started.connect(_on_interaction_started)
+	Events.interaction_finished.connect(_on_interaction_finished)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -210,15 +216,39 @@ func _process_frozen(delta: float) -> void:
 	move_and_slide()
 
 
-func _on_cutscene_started() -> void:
+func _lock_control() -> void:
+	_control_locks += 1
 	_control_enabled = false
 
 
-## Control returns to the player: reclaim the camera the cutscene borrowed.
-func _on_cutscene_finished() -> void:
+## Control returns to the player once nothing holds it: reclaim the camera the
+## cutscene or interaction borrowed.
+func _unlock_control() -> void:
+	_control_locks = maxi(_control_locks - 1, 0)
+	if _control_locks > 0:
+		return
 	_control_enabled = true
 	if _camera:
 		_camera.current = true
+
+
+func _on_interaction_started(_interaction: Node) -> void:
+	_lock_control()
+
+
+func _on_interaction_finished(_interaction: Node) -> void:
+	_unlock_control()
+
+
+## False while a cutscene or interaction owns control. Components that read input
+## themselves (abilities, lock-on) check this so they stay quiet too.
+func is_control_enabled() -> bool:
+	return _control_enabled
+
+
+## The camera the player normally sees through — interactions blend back to it.
+func get_camera() -> Camera3D:
+	return _camera
 
 
 ## Orbit the camera pivot: yaw around Y, pitch tilts the arm (clamped). Suppressed

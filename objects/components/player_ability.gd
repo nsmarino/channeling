@@ -103,8 +103,14 @@ func _physics_process(delta: float) -> void:
 
 	_tick(delta)
 
-	if input_action != &"" and Input.is_action_just_pressed(input_action):
+	if input_action != &"" and Input.is_action_just_pressed(input_action) and _host_accepts_input():
 		try_activate()
+
+
+## False while the player's control is suspended (cutscene, interaction).
+func _host_accepts_input() -> bool:
+	return host == null or not host.has_method("is_control_enabled") \
+		or bool(host.call("is_control_enabled"))
 
 
 ## Override for per-frame work while the ability runs. The base keeps
