@@ -1,0 +1,154 @@
+[gd_scene format=3 uid="uid://dusrite82uxx0"]
+
+[ext_resource type="Texture2D" uid="uid://c58clyh2d4y0j" path="res://assets/kenney_prototype-textures/PNG/Light/texture_06.png" id="1_ueccf"]
+[ext_resource type="PackedScene" uid="uid://dgi7xys3gdr48" path="res://objects/enemy/enemies/Manicoppo.tscn" id="2_3sbwu"]
+[ext_resource type="Script" uid="uid://c23bju7icb7y1" path="res://objects/enemy/enemy_coordinator.gd" id="2_7rvny"]
+[ext_resource type="Material" uid="uid://cudpdb74j4ur1" path="res://environs-material.tres" id="2_he67f"]
+[ext_resource type="Material" uid="uid://dxanrmok2oxe6" path="res://terrain-material.tres" id="4_c5cpi"]
+[ext_resource type="Material" uid="uid://bhyhxldh85j1q" path="res://water-material.tres" id="5_l21wu"]
+[ext_resource type="PackedScene" uid="uid://diyepnp2bueup" path="res://assets/models/household/steamer-pot.glb" id="5_rw2fw"]
+[ext_resource type="PackedScene" uid="uid://bbkfva1pg2hrx" path="res://objects/interaction/ExampleNPC.tscn" id="8_l21wu"]
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_tpl"]
+agent_max_climb = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.7914593, 0.54750776, 0.32213593, 1)
+albedo_texture = ExtResource("1_ueccf")
+roughness = 0.8
+uv1_scale = Vector3(0.125, 0.125, 0.125)
+uv1_triplanar = true
+
+[node name="TemplateScene" type="Node3D" unique_id=711727893]
+
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=174069565]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=485095318]
+navigation_mesh = SubResource("NavigationMesh_tpl")
+
+[node name="Rock" type="CSGBox3D" parent="NavigationRegion3D" unique_id=1119901853]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.461899, 1.3491516, 0.15893555)
+use_collision = true
+size = Vector3(3.7322693, 12.363037, 32.904785)
+material = ExtResource("2_he67f")
+
+[node name="Rock2" type="CSGBox3D" parent="NavigationRegion3D" unique_id=975821791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.140604, 1.3491516, 0.15893555)
+use_collision = true
+size = Vector3(3.7322693, 12.363037, 32.904785)
+material = ExtResource("2_he67f")
+
+[node name="Enemies" type="Node3D" parent="NavigationRegion3D" unique_id=250288495]
+
+[node name="Enemy" parent="NavigationRegion3D/Enemies" unique_id=1726509542 instance=ExtResource("2_3sbwu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.0050154, 0)
+
+[node name="Items" type="Node3D" parent="NavigationRegion3D" unique_id=2123690795]
+
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="NavigationRegion3D" unique_id=1445489035]
+use_collision = true
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=3905624]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2837524, -2.0992188, -1.3427124)
+size = Vector3(6, 1.7, 8)
+material = ExtResource("5_l21wu")
+
+[node name="Floor" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=1126404787]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.783752, -2.4492188, -0.8427124)
+use_collision = true
+size = Vector3(12.432495, 4.8984375, 30.314575)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="Floor6" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=749770316]
+transform = Transform3D(0.9817828, -0.19000658, 0, 0.19000658, 0.9817828, 0, 0, 0, 1, -9.07011, -2.4492188, 4.599986)
+use_collision = true
+size = Vector3(12.432495, 4.8984375, 5.255142)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="Floor7" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=873766310]
+transform = Transform3D(0.9817828, -0.19000658, 0, 0.19000658, 0.9817828, 0, 0, 0, 1, -9.07011, -2.4492188, -6.8390646)
+use_collision = true
+size = Vector3(12.432495, 4.8984375, 5.255142)
+material = ExtResource("4_c5cpi")
+
+[node name="Floor3" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=55218539]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.237518, -0.7704468, -1.1110153)
+use_collision = true
+size = Vector3(7.5249634, 8.255981, 8.515152)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="Floor4" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=1773043115]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.237518, -0.7704468, 7.268018)
+use_collision = true
+size = Vector3(7.5249634, 8.255981, 3.5628815)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="Floor5" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=689349115]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.237518, -0.7704468, -9.356761)
+use_collision = true
+size = Vector3(7.5249634, 8.255981, 3.5628815)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="Floor2" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=941230574]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6968384, -2.308899, -1.1412964)
+use_collision = true
+size = Vector3(33.393677, 1.9466553, 29.717407)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="CSGCylinder3D" type="CSGCylinder3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=853647846]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.10985, -4.0033827, -1.9926186)
+operation = 2
+radius = 8.717
+height = 10.597
+sides = 12
+
+[node name="CSGBox3D" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=1939469708]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7837524, -1.4492188, -4.8427124)
+size = Vector3(7, 1, 3)
+material = ExtResource("4_c5cpi")
+
+[node name="CSGBox3D5" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=1856061529]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2837524, -0.44921875, -1.3427124)
+size = Vector3(2, 3, 6)
+material = ExtResource("4_c5cpi")
+
+[node name="CSGBox3D3" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=553705134]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7837524, -1.4492188, 2.1572876)
+size = Vector3(7, 1, 3)
+material = ExtResource("4_c5cpi")
+
+[node name="CSGBox3D4" type="CSGBox3D" parent="NavigationRegion3D/CSGCombiner3D" unique_id=904344532]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2162476, -1.4492188, -1.3427124)
+size = Vector3(3, 1, 8)
+material = ExtResource("4_c5cpi")
+
+[node name="EnemyCoordinator" type="Node" parent="." unique_id=1575834191]
+script = ExtResource("2_7rvny")
+max_attackers = 2
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1971866417]
+transform = Transform3D(0.9258706, -0.24688895, 0.28602362, 0, 0.7569951, 0.65342057, -0.3778408, -0.6049829, 0.7008795, 0, 0, 0)
+light_color = Color(1, 0.84561145, 0.742742, 1)
+light_bake_mode = 1
+shadow_enabled = true
+
+[node name="LightmapGI" type="LightmapGI" parent="." unique_id=240514062]
+
+[node name="household" parent="." unique_id=447194588 instance=ExtResource("5_rw2fw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.568122, -1.3355715, -1.3413205)
+
+[node name="household2" parent="." unique_id=1369641314 instance=ExtResource("5_rw2fw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4012954, -1.3355715, -10.119123)
+
+[node name="household3" parent="." unique_id=1326330360 instance=ExtResource("5_rw2fw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8783162, -1.3355715, -11.924056)
+
+[node name="household4" parent="." unique_id=1174083679 instance=ExtResource("5_rw2fw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0761158, -1.3355715, -12.085387)
+
+[node name="household5" parent="." unique_id=1539942435 instance=ExtResource("5_rw2fw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7953341, -1.3355715, -12.195739)
+
+[node name="ExampleNPC" parent="." unique_id=980762563 instance=ExtResource("8_l21wu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 8, 3)

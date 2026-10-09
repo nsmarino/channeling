@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://dul4tue1au5t1"]
+[gd_scene format=3 uid="uid://dul4tue1au5t1"]
 
 [ext_resource type="Texture2D" uid="uid://c58clyh2d4y0j" path="res://assets/kenney_prototype-textures/PNG/Light/texture_06.png" id="1_tex"]
 [ext_resource type="Script" uid="uid://c23bju7icb7y1" path="res://objects/enemy/enemy_coordinator.gd" id="2_coord"]
@@ -24,7 +24,7 @@ navigation_mesh = SubResource("NavigationMesh_tpl")
 [node name="Floor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=1126404787]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 use_collision = true
-size = Vector3(40, 1, 40)
+size = Vector3(32, 1, 32)
 material = SubResource("StandardMaterial3D_floor")
 
 [node name="Enemies" type="Node3D" parent="NavigationRegion3D" unique_id=250288495]
