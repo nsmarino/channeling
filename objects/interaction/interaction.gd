@@ -24,6 +24,11 @@ class_name Interaction
 ## Only one interaction owns the prompt at a time; when several overlap, the one
 ## the player entered first keeps it until they leave.
 ##
+## CUTSCENES are Interactions too: `start_on_enter` starts on walking in (no
+## prompt, no button), `letterbox` slides the Cinematic bars in for the duration,
+## and a TimelineStep plays an AnimationPlayer clip for anything that needs exact
+## timing. See objects/cutscene/ExampleCutscene.tscn.
+##
 ## Polled rather than signal-driven, matching TriggerRegion and Portal.
 
 ## Emitted after the last step, once control is back with the player. Connect it
@@ -46,6 +51,15 @@ signal finished
 ## Group a body must belong to to use the interaction.
 @export var target_group: StringName = &"player"
 
+@export_group("Cutscene")
+## Start as soon as the player walks in — no prompt, no button. Re-arms only once
+## they've left, so a repeatable one doesn't loop while they stand there.
+@export var start_on_enter: bool = false
+## Slide the Cinematic letterbox bars in for the duration.
+@export var letterbox: bool = false
+## Bar height for this interaction (-1 = the Cinematic default).
+@export var letterbox_height: float = -1.0
+
 ## The interaction that currently shows the prompt, and the one running, if any.
 ## Static so overlapping interactions can arbitrate without a manager node.
 static var _focused: Interaction = null
@@ -55,6 +69,8 @@ var _has_run: bool = false
 # Wait for the interact button to be released before re-arming, so the press that
 # dismissed the last line can't immediately start the conversation again.
 var _await_release: bool = false
+# start_on_enter: the player must leave before it can start again.
+var _await_exit: bool = false
 # Cameras a CameraStep moved for a blend, with their authored transforms, so they
 # can be put back afterwards.
 var _moved_cameras: Dictionary[Camera3D, Transform3D] = {}
@@ -68,6 +84,9 @@ func _physics_process(_delta: float) -> void:
 	if _running == self:
 		return
 	var player: Node3D = _find_player()
+	if start_on_enter:
+		_poll_enter(player)
+		return
 	var available: bool = player != null and _is_available() and _player_controllable(player)
 
 	if not available:
@@ -88,6 +107,16 @@ func _physics_process(_delta: float) -> void:
 		start()
 
 
+func _poll_enter(player: Node3D) -> void:
+	if player == null:
+		_await_exit = false
+		return
+	if _await_exit or is_instance_valid(_running):
+		return
+	if _is_available() and _player_controllable(player):
+		start()
+
+
 ## Run the interaction now, regardless of range (also callable from code or from
 ## another node's signal).
 func start() -> void:
@@ -96,10 +125,14 @@ func start() -> void:
 	_running = self
 	_has_run = true
 	_await_release = true
-	if _focused == self:
-		_focused = null
+	_await_exit = start_on_enter
+	# Drop the prompt even if another interaction held it; it re-takes the prompt
+	# once this one ends and the player is still in its range.
+	_focused = null
 	Events.interaction_prompt_hidden.emit()
 	Events.interaction_started.emit(self)
+	if letterbox:
+		Cinematic.show_bars(letterbox_height)
 
 	for child: Node in get_children():
 		var step := child as InteractionStep
@@ -115,6 +148,8 @@ func start() -> void:
 	if box:
 		await box.close()
 	await _return_camera(camera_return_blend)
+	if letterbox:
+		await Cinematic.hide_bars().finished
 	if not once_flag.is_empty():
 		GameManager.set_flag(once_flag)
 	_end()
@@ -151,6 +186,10 @@ func _return_camera(duration: float) -> void:
 	var player_cam: Camera3D = _player_camera()
 	var current: Camera3D = get_viewport().get_camera_3d()
 	if player_cam and current and current != player_cam and duration > 0.0:
+		# A timeline may have cut to a camera no CameraStep touched — remember its
+		# pose too, so the blend doesn't leave it parked at the player's camera.
+		if not _moved_cameras.has(current):
+			_moved_cameras[current] = current.global_transform
 		var tween := create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		tween.tween_property(current, ^"global_transform", player_cam.global_transform, duration)
 		tween.tween_property(current, ^"fov", player_cam.fov, duration)
@@ -184,6 +223,8 @@ func _exit_tree() -> void:
 	var box: DialogueBox = get_dialogue_box()
 	if box:
 		box.close()
+	if letterbox:
+		Cinematic.hide_bars()
 	_end()
 
 

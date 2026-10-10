@@ -39,7 +39,8 @@ It covers the action system, the component map, testing practice and the traps.
   - `interactables/` — bounce mushrooms (no base class; see below).
   - `interaction/` — `Interaction` + its step nodes (talk to NPCs; see below).
   - `level/` — `TriggerRegion`, `Portal`, level-authoring pieces.
-  - `pickups/`, `weapons/`, `cutscene/`.
+  - `cutscene/` — `ExampleCutscene` (an Interaction; see below).
+  - `pickups/`, `weapons/`.
 - **`autoloads/`** — `Events`, `GameManager`, `Cinematic`.
   `mcp_interaction_server.gd` is injected per-run by the MCP tool, not a project
   autoload; **treat its warnings as noise** when triaging.
@@ -66,8 +67,13 @@ A freshly written `.gd` with a new `class_name` will **not** register from a bar
 ```
 
 This rebuilds `.godot/global_script_class_cache.cfg` and runs fine alongside an
-open editor. Also write the script's `.uid` by hand (`uid://<token>`, checked for
-collisions) so scenes can reference it stably.
+open editor. It also **writes the script's `.uid` file** — read the token from
+there when a hand-written scene needs to reference the script. **Don't invent
+UIDs by hand**: Godot only accepts ones it generated (a 64-bit id in its own
+base-35 spelling), so a made-up token is silently replaced in the editor's cache
+while the `.uid` file keeps the stale text, and references drift apart. The same
+goes for new `.tscn` headers — omit `uid=` and let the editor assign one, or run
+the rebuild and copy what it wrote.
 
 ## Architecture
 
@@ -79,7 +85,9 @@ collisions) so scenes can reference it stably.
   `reload_current_scene()` behind a re-entrancy guard). Triggers: player death,
   falling below `fall_limit_y`, and the `restart` action. Also holds the Play
   From Here overrides (spawn point + `location_override`) for the whole session.
-- **`Cinematic`** — brackets cutscenes with the `Events` signals.
+- **`Cinematic`** — the letterbox bars. `show_bars()` / `hide_bars()` move only
+  the bars (what interactions use); `begin()` / `end()` also emit the
+  `cutscene_started` / `cutscene_finished` freeze, for code that wants both.
 
 ### Locations (`levels/`)
 
@@ -252,8 +260,18 @@ Steps (`steps/`): `SayStep` (speaker, portrait, `lines` array — the DialogueBo
 types each out; press to reveal, press again to advance), `CameraStep` (blend to a
 Camera3D in the level, optional `look_at_target`), `SoundStep`, `AnimationStep`,
 `WaitStep`, `EventStep` (sets a GameManager flag and emits `fired` — connect it in
-the editor for any state change). New beat = extend `InteractionStep`, override
+the editor for any state change), `TimelineStep` (plays an AnimationPlayer clip
+and waits for it to end; optional camera aiming at a focus node). New beat = extend `InteractionStep`, override
 `run()`, await inside it to hold the sequence.
+
+**Cutscenes are Interactions.** `start_on_enter` starts on walking in (no prompt;
+re-arms only after the player leaves), `letterbox` slides the Cinematic bars in
+for the duration, and a `TimelineStep` carries anything that needs exact timing —
+camera cuts keyed on `current`, FOV pulls, audio tracks. The clip needs no
+"finish" key: the sequence moves on when it ends, then blends back to the player
+(any camera the timeline cut to is put back afterwards). Timed choreography goes
+in the timeline; anything that waits on the player (dialogue) goes in steps
+around it. See `objects/cutscene/ExampleCutscene.tscn`.
 
 State: `GameManager.flags` (`set_flag` / `has_flag`) live for the session and
 survive restarts. `once_flag` makes an interaction happen once and sets the flag;

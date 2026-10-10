@@ -9,9 +9,10 @@ extends CanvasLayer
 ##     freezes itself and hands over its camera) and `end()`, once the bars have
 ##     retracted, emits Events.cutscene_finished (control returns).
 ##
-## Typical flow (see objects/cutscene/): a trigger calls `Cinematic.begin()` then
-## plays a local AnimationPlayer timeline whose final Call-Method key calls
-## `Cinematic.end()`.
+## Cutscenes are Interactions now (`start_on_enter` + a TimelineStep, see
+## objects/cutscene/ExampleCutscene.tscn); they freeze the player themselves and
+## only borrow the bars here, via `show_bars()` / `hide_bars()`. `begin()` / `end()`
+## remain for code that wants the bars AND the cutscene freeze in one call.
 
 ## Height of each bar (px) at full letterbox.
 @export var bar_height: float = 90.0
@@ -33,17 +34,28 @@ func _ready() -> void:
 ## Start a cutscene: raise the letterbox and tell the world (the player suspends
 ## itself). Pass -1 to fall back to the exported defaults.
 func begin(height: float = -1.0, duration: float = -1.0) -> void:
-	var h: float = bar_height if height < 0.0 else height
-	var d: float = slide_duration if duration < 0.0 else duration
 	Events.cutscene_started.emit()
-	_slide(h, -h, d)
+	show_bars(height, duration)
 
 
 ## End a cutscene: drop the letterbox, and once it's gone return control.
 func end(duration: float = -1.0) -> void:
-	var d: float = slide_duration if duration < 0.0 else duration
-	var tw := _slide(0.0, 0.0, d)
+	var tw := hide_bars(duration)
 	tw.finished.connect(func() -> void: Events.cutscene_finished.emit(), CONNECT_ONE_SHOT)
+
+
+## Slide the bars in without touching player control. Await the returned tween
+## to wait for them. -1 = the exported defaults.
+func show_bars(height: float = -1.0, duration: float = -1.0) -> Tween:
+	var h: float = bar_height if height < 0.0 else height
+	var d: float = slide_duration if duration < 0.0 else duration
+	return _slide(h, -h, d)
+
+
+## Slide the bars out without touching player control.
+func hide_bars(duration: float = -1.0) -> Tween:
+	var d: float = slide_duration if duration < 0.0 else duration
+	return _slide(0.0, 0.0, d)
 
 
 ## Move the bars to their targets, replacing any in-flight slide. `top_target` is
