@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c6f4i3doc8guw"]
 
-[ext_resource type="Script" uid="uid://raly0wwniga6t" path="res://objects/level/portal.gd" id="1_portal"]
+[ext_resource type="Script" uid="uid://bsyino8m8mr5r" path="res://objects/level/portal.gd" id="1_portal"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_portal"]
 size = Vector3(2, 3, 0.8)

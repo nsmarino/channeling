@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://36hg5t6xiai8t"]
 
-[ext_resource type="Script" uid="uid://a36li23p1rn8e" path="res://ui/dialogue/dialogue_box.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://36li23p1rn8e" path="res://ui/dialogue/dialogue_box.gd" id="1_script"]
 
 [node name="DialogueBox" type="Control"]
 layout_mode = 3

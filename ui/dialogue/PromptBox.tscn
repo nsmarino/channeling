@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://jjenplu7xln8a"]
 
-[ext_resource type="Script" uid="uid://jp9xwt7x2krno" path="res://ui/dialogue/prompt_box.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://b0g7qqegw5045" path="res://ui/dialogue/prompt_box.gd" id="1_script"]
 
 [node name="PromptBox" type="Control"]
 layout_mode = 3
