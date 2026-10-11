@@ -15,7 +15,17 @@ extends Node3D
 ## Here still wins — GameManager applies its override after this.
 @export var spawn_marker_name: StringName = &"PlayerSpawn"
 
+@export_group("Portal transition")
+## Seconds to fade to black before a portal swaps the location (0 = cut).
+@export var travel_fade_out: float = 0.3
+## Seconds to hold on black after the swap — lets the new location settle.
+@export var travel_hold: float = 0.15
+## Seconds to fade back in on the new location.
+@export var travel_fade_in: float = 0.4
+
 var location: Node3D = null
+# A portal trip is in progress (fading / swapping). Ignores further travel calls.
+var _traveling: bool = false
 
 
 func _ready() -> void:
@@ -36,11 +46,23 @@ func travel(scene_path: String, spawn_name: StringName) -> void:
 	_travel.call_deferred(scene_path, spawn_name)
 
 
+## Fade to black, swap the location while the screen is dark, fade back in. The
+## player is held (a scripted move, so no input, gravity or drift) from the first
+## frame of the fade until the new location is showing, so it can't walk off or
+## fall while nothing is visible.
 func _travel(scene_path: String, spawn_name: StringName) -> void:
+	if _traveling:
+		return
 	var scene := load(scene_path) as PackedScene
 	if not scene:
 		push_error("[Main] Portal target %s is not a scene." % scene_path)
 		return
+	_traveling = true
+	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
+	var held: bool = player != null and bool(player.call("begin_scripted_move", self))
+
+	if travel_fade_out > 0.0:
+		await Cinematic.fade_out(travel_fade_out).finished
 	GameManager.record_travel(scene_path, spawn_name)
 
 	if location:
@@ -49,11 +71,27 @@ func _travel(scene_path: String, spawn_name: StringName) -> void:
 		location = null
 	_add_location(scene)
 
-	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
-	if player:
+	if is_instance_valid(player):
 		_place_at_spawn(player, spawn_name)
 	if location:
 		GameManager.register_overworld(location)
+
+	if travel_hold > 0.0:
+		await get_tree().create_timer(travel_hold).timeout
+	if held and is_instance_valid(player):
+		player.call("end_scripted_move", self)
+	if travel_fade_in > 0.0:
+		await Cinematic.fade_in(travel_fade_in).finished
+	else:
+		Cinematic.clear_fade()
+	_traveling = false
+
+
+## A restart mid-trip frees Main while the screen is black; Cinematic outlives it,
+## so clear the fade or the reloaded scene starts in darkness.
+func _exit_tree() -> void:
+	if _traveling:
+		Cinematic.clear_fade()
 
 
 func _add_location(scene: PackedScene) -> void:

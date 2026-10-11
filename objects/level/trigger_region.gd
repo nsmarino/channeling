@@ -34,9 +34,24 @@ signal player_exited
 var _occupied: bool = false
 
 
+## Collision layer the player body is on (project layer 2, "player").
+const PLAYER_LAYER_BIT: int = 1 << 1
+
+
+## Default to "detect the player, be detected by nothing". Area3D's own default
+## (layer 1, mask 1) never sees the player, so one made from a bare Area3D with
+## this script attached would silently never fire. Runs before the scene's saved
+## properties are applied, so a mask set in the Inspector still wins.
+func _init() -> void:
+	collision_layer = 0
+	collision_mask = PLAYER_LAYER_BIT
+
+
 func _ready() -> void:
 	add_to_group("trigger_region")
 	monitoring = true
+	if collision_mask & PLAYER_LAYER_BIT == 0:
+		push_warning("[TriggerRegion] %s: collision_mask doesn't include the player layer (2), so the player can never trigger it." % get_path())
 
 
 ## True while a member of `target_group` is inside.

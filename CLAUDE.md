@@ -129,7 +129,11 @@ as it needs: a Marker3D per door, named for where it leads from (`FromCave`), an
 the default `PlayerSpawn` for a fresh start. The spawn's -Z is the arrival facing;
 aim it away from the return portal.
 
-Walking in calls `Main.travel()`, which swaps the location in place — the player
+Walking in calls `Main.travel()`, which fades to black (`Cinematic`), swaps the
+location while the screen is dark, holds briefly and fades back in (Main ›
+Portal transition: `travel_fade_out` / `travel_hold` / `travel_fade_in`; the
+player is held by a scripted move until the fade-in starts, and a restart
+mid-trip clears the fade). The swap is in place — the player
 node survives, so HP and energy carry over (`Player.place_at()` sets position and
 facing). `GameManager.record_travel()` remembers the location and spawn, so dying
 after a trip restarts at the door you came through, and clears any Play From Here
@@ -445,6 +449,11 @@ against it without registering it first.
   `ContactDamage`, `BouncePadComponent`, `BumpCombatComponent`, the emitters)
   can't extend the `Node`-based `Component`; they implement the same contract by
   hand.
+- **Player-detecting areas set their own collision.** `Interaction`, `Portal` and
+  `TriggerRegion` default to layer 0 / mask 2 (player) in `_init()` and warn in
+  `_ready()` if the mask misses layer 2 — Area3D's own default (mask 1) never sees
+  the player, so a bare Area3D with one of these scripts attached would silently
+  never fire. Do the same in any new player-detecting Area3D script.
 - Avoid concurrent edits to the same file in one batch — the second one's "file has
   been modified" error can leave half-applied changes.
 
