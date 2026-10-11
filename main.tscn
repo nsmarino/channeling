@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://dm0ymt1k01748"]
 
 [ext_resource type="Script" uid="uid://b1esvavhc0ixb" path="res://levels/main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://bov64shegoc1y" path="res://levels/hamptons_scene.tscn" id="2_7mycd"]
 [ext_resource type="PackedScene" uid="uid://cplayrscn0fps" path="res://objects/player/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" uid="uid://ba2v8hmkv07hv" path="res://ui/dialogue/DialogueUI.tscn" id="3_dialogue"]
 [ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/CombatUI.tscn" id="3_hud"]
-[ext_resource type="PackedScene" uid="uid://ul386q7tp1k9p" path="res://ui/dialogue/DialogueUI.tscn" id="3_dialogue"]
 [ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://assets/sounds/music/selection menu.mp3" id="4_music"]
-[ext_resource type="PackedScene" uid="uid://dmc6ruhm3jp5w" path="res://levels/proto_scene.tscn" id="5_proto"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_jw1n3"]
 sky_top_color = Color(0.50419885, 0.55173254, 0.7033061, 1)
@@ -38,7 +38,7 @@ volumetric_fog_density = 0.001
 volumetric_fog_emission = Color(0.5108681, 0.46803832, 0.7841822, 1)
 adjustment_enabled = true
 
-[sub_resource type="Curve3D" id="Curve3D_7mycd"]
+[sub_resource type="Curve3D" id="Curve3D_272bh"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0.6666667, 1.6666666, 0.6666667, 0, 0, 0, 0.33333337, -0.83333325, 0.16666675, -0.3333333, 0.8333335, -0.16666663, 1, 4.1666665, 1.1666666, 0.3333333, 0.8333335, 2.3333333, -0.33333337, -0.83333325, -2.3333333, -1, 4.1666665, -2.3333333, -0.6666667, 1.6666666, 3.666667, 0, 0, 0, 0, 0, -12),
 "tilts": PackedFloat32Array(0, 0, 0, 0)
@@ -47,7 +47,7 @@ point_count = 4
 
 [node name="Main" type="Node3D" unique_id=1370251571]
 script = ExtResource("1_main")
-active_scene = ExtResource("5_proto")
+active_scene = ExtResource("2_7mycd")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2065183461]
 environment = SubResource("Environment_qy63d")
@@ -73,7 +73,7 @@ energy_regen = 10.0
 jump_energy_cost = 20.0
 
 [node name="NurbsPath3D" parent="Player" index="8" unique_id=290428690]
-curve = SubResource("Curve3D_7mycd")
+curve = SubResource("Curve3D_272bh")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="Player" unique_id=494559094]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5999999, 0.2)
