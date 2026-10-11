@@ -25,6 +25,14 @@ class_name MovementComponent
 @export var spin_speed_deg: float = 0.0
 ## How fast an external knockback impulse bleeds off (units/sec²).
 @export var knockback_damping: float = 14.0
+## Keep the body at the navmesh's height as it moves, so it walks up ramps and
+## stairs. Enemy bodies have no collision shape and every move here is
+## horizontal, so without this a creature stays at the height it was placed and
+## burrows into any slope. Off for a creature that should hold its height (one
+## that flies, or hovers over a pit).
+@export var follow_navmesh_height: bool = true
+## How quickly the height catches up with the navmesh (higher = tighter).
+@export var height_follow_speed: float = 12.0
 
 var _body: CharacterBody3D = null
 var _player: Node3D = null
@@ -38,6 +46,11 @@ var _face_point: Vector3 = Vector3.ZERO
 var _face_active: bool = false
 var _facing_yaw: float = 0.0
 var _facing_snap: bool = false
+var _agent: NavigationAgent3D = null
+# Height of the body above the navmesh where it was placed (the model's origin
+# needn't sit on the navmesh surface). Measured once the nav map is ready.
+var _nav_height_offset: float = 0.0
+var _nav_offset_known: bool = false
 
 
 func _setup() -> void:
@@ -45,6 +58,11 @@ func _setup() -> void:
 		_body = get_node(body_path) as CharacterBody3D
 	else:
 		_body = host as CharacterBody3D
+	if _body:
+		for child: Node in _body.get_children():
+			if child is NavigationAgent3D:
+				_agent = child as NavigationAgent3D
+				break
 	set_physics_process(false)
 
 
@@ -55,6 +73,9 @@ func setup(player: Node3D) -> void:
 func on_activate() -> void:
 	set_physics_process(true)
 	_time_active = 0.0
+	# Re-measured from wherever the body is when it wakes (a cutscene may have
+	# walked it somewhere first).
+	_nav_offset_known = false
 
 
 func on_deactivate() -> void:
@@ -66,7 +87,12 @@ func on_deactivate() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_active or not _body:
 		return
+	_move(delta)
+	if follow_navmesh_height:
+		_follow_navmesh_height(delta)
 
+
+func _move(delta: float) -> void:
 	_time_active += delta
 
 	# A knockback overrides the pattern while it lasts, then hands back cleanly.
@@ -161,18 +187,53 @@ func apply_knockback(impulse: Vector3, duration: float) -> void:
 ## always resumes from somewhere navigable; the NavigationAgent3D keeps its
 ## existing target and simply re-paths from the corrected position.
 func _snap_to_navmesh() -> void:
-	var agent: NavigationAgent3D = null
-	for child in _body.get_children():
-		if child is NavigationAgent3D:
-			agent = child as NavigationAgent3D
-			break
-	if agent == null:
-		return  # not a nav-driven enemy; leave it wherever it landed.
+	var map: RID = _nav_map()
+	if not map.is_valid():
+		return  # not nav-driven, or the map isn't ready; leave it where it landed.
+	var offset: float = _nav_height_offset if _ensure_nav_offset(map) else 0.0
+	_body.global_position = NavigationServer3D.map_get_closest_point(map, _body.global_position) \
+			+ Vector3.UP * offset
 
-	var map: RID = agent.get_navigation_map()
-	if not map.is_valid() or NavigationServer3D.map_get_iteration_id(map) == 0:
+
+## Ease the body's height toward the navmesh surface under it (plus its placed
+## offset). Horizontal motion is left alone — this only answers "how high is the
+## ground here", which is all a shapeless body moving sideways is missing.
+func _follow_navmesh_height(delta: float) -> void:
+	var map: RID = _nav_map()
+	if not map.is_valid() or not _ensure_nav_offset(map):
 		return
-	_body.global_position = NavigationServer3D.map_get_closest_point(map, _body.global_position)
+	var surface: Vector3 = NavigationServer3D.map_get_closest_point(map, _body.global_position)
+	var target_y: float = surface.y + _nav_height_offset
+	var weight: float = 1.0 - exp(-height_follow_speed * delta)
+	_body.global_position.y = lerpf(_body.global_position.y, target_y, weight)
+
+
+## Measure the placed offset once, and only against a real answer: for the first
+## frames after a location loads the map reports "synced" before its region has
+## registered, and every closest-point query returns the world origin. A surface
+## point that isn't horizontally beneath the body is that bogus answer (or the
+## body is genuinely off the mesh) — wait for a real one. Returns whether known.
+func _ensure_nav_offset(map: RID) -> bool:
+	if _nav_offset_known:
+		return true
+	var pos: Vector3 = _body.global_position
+	var surface: Vector3 = NavigationServer3D.map_get_closest_point(map, pos)
+	if Vector2(surface.x - pos.x, surface.z - pos.z).length() > 1.0:
+		return false
+	_nav_height_offset = pos.y - surface.y
+	_nav_offset_known = true
+	return true
+
+
+## The navigation map, or an invalid RID when there's no agent or the map hasn't
+## synced yet (until then every query answers the world origin).
+func _nav_map() -> RID:
+	if _agent == null:
+		return RID()
+	var map: RID = _agent.get_navigation_map()
+	if not map.is_valid() or NavigationServer3D.map_get_iteration_id(map) == 0:
+		return RID()
+	return map
 
 
 ## Turn the body toward the player (face_player) or along its travel direction.

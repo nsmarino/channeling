@@ -105,7 +105,7 @@ locations:
 <Location> (Node3D root — required)
 ├── PlayerSpawn (Marker3D)     optional default spawn; else the player's spot in main.tscn
 ├── NavigationRegion3D         required if it has enemies — see below
-│   └── geometry, Enemies, Items, …
+│   └── geometry (Enemies, Items may sit here too — see the bake note)
 ├── EnemyCoordinator           optional; enemies opt in via coordinator_path
 └── lights, LightmapGI, Cutscenes, TriggerRegions
 ```
@@ -137,6 +137,19 @@ point (it belonged to the location you left). Guards: a portal ignores the playe
 until it has seen them outside it, so arriving inside a return portal can't
 bounce; it won't fire during a scripted move, whose owner may be freed by the
 swap; a spawn name that doesn't exist warns and falls back to `PlayerSpawn`.
+
+**Where things sit vs. the navmesh.** A NavigationAgent3D uses the world's shared
+navigation map, which every NavigationRegion3D publishes into — an enemy does
+*not* need to be under a region to path on its navmesh (IntroCutscene's
+Manicoppo lives under `Cutscenes`). A region's children only matter as **bake
+input**. Bake from **Static Colliders on layer 1** (`geometry_parsed_geometry_type
+= 1`, `geometry_collision_mask = 1`; the template ships this way): the default,
+"Mesh Instances", treats every visible mesh under the region as an obstacle, so an
+enemy, prop or pickup placed there carves a permanent hole around its spawn
+point. With static colliders the navmesh is exactly what the player can stand on.
+The bake's `cell_size`/`cell_height` can be finer than the navigation map's
+(`navigation/3d/default_cell_size`, 0.25): harmless with one region per location,
+but match them if separately baked regions must connect.
 
 **Enemies need a baked navmesh.** With no `NavigationRegion3D` the nav map is
 still valid and synced but empty, so `map_get_closest_point` returns the world
@@ -226,6 +239,14 @@ Three ideas hold it together:
    through one-frame latches — `drive()`, `face_toward()`, `set_facing()` — plus
    `apply_knockback()`. Call them every frame you want control; *stop* calling to
    hand the body back. Precedence: `knockback > drive > pattern`.
+   Every move is horizontal and enemy bodies have no collision shape, so height
+   comes from the **navmesh**: after each move the body eases to the navmesh
+   surface under it, keeping the offset it was placed with
+   (`follow_navmesh_height`, on by default — turn off for fliers). That's what
+   lets creatures walk ramps and stairs; without it they keep their spawn height
+   and burrow into slopes. The offset is only measured once the nearest navmesh
+   point is actually beneath the body — for the first frames after a load the map
+   answers the world origin.
 2. **Perception** — vision cone with sticky loss (grace + hysteresis).
 3. **Brain as scheduler** — a small FSM (`WANDER` / `CHASE` / `COMBAT`) that owns
    no behaviour. Behaviours are `EnemyAction` nodes it gathers, weighted-picks and

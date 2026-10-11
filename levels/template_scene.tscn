@@ -4,6 +4,8 @@
 [ext_resource type="Script" uid="uid://c23bju7icb7y1" path="res://objects/enemy/enemy_coordinator.gd" id="2_coord"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_tpl"]
+geometry_parsed_geometry_type = 1
+geometry_collision_mask = 1
 agent_max_climb = 0.5
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
