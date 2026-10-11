@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://ul386q7tp1k9p"]
+[gd_scene format=3 uid="uid://ba2v8hmkv07hv"]
 
-[ext_resource type="PackedScene" uid="uid://36hg5t6xiai8t" path="res://ui/dialogue/DialogueBox.tscn" id="1_box"]
-[ext_resource type="PackedScene" uid="uid://jjenplu7xln8a" path="res://ui/dialogue/PromptBox.tscn" id="2_prompt"]
+[ext_resource type="PackedScene" uid="uid://b4md1gq6juexh" path="res://ui/dialogue/DialogueBox.tscn" id="1_box"]
+[ext_resource type="PackedScene" uid="uid://bskwjh1ps6wpq" path="res://ui/dialogue/PromptBox.tscn" id="2_prompt"]
 
 [node name="DialogueUI" type="CanvasLayer"]
 layer = 2
