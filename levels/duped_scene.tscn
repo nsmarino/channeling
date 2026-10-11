@@ -21,8 +21,8 @@ uv1_triplanar = true
 
 [node name="TemplateScene" type="Node3D" unique_id=711727893]
 
-[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=174069565]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+[node name="FromHamptons" type="Marker3D" parent="." unique_id=174069565]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, -1.2, 11)
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=485095318]
 navigation_mesh = SubResource("NavigationMesh_tpl")
