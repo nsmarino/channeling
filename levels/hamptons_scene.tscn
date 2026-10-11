@@ -1,7 +1,10 @@
 [gd_scene format=3 uid="uid://bov64shegoc1y"]
 
+[ext_resource type="PackedScene" uid="uid://dgi7xys3gdr48" path="res://objects/enemy/enemies/Manicoppo.tscn" id="1_0en22"]
 [ext_resource type="Texture2D" uid="uid://c58clyh2d4y0j" path="res://assets/kenney_prototype-textures/PNG/Light/texture_06.png" id="1_xw4mq"]
 [ext_resource type="Script" uid="uid://c23bju7icb7y1" path="res://objects/enemy/enemy_coordinator.gd" id="2_d1bev"]
+[ext_resource type="Material" uid="uid://cudpdb74j4ur1" path="res://environs-material.tres" id="2_n8pxx"]
+[ext_resource type="Material" uid="uid://dxanrmok2oxe6" path="res://terrain-material.tres" id="3_5tcrg"]
 [ext_resource type="Script" uid="uid://cihcinvebp1hl" path="res://objects/interaction/interaction.gd" id="3_d1bev"]
 [ext_resource type="Script" uid="uid://bfi0epqsf3rut" path="res://objects/interaction/steps/say_step.gd" id="4_76r1i"]
 [ext_resource type="Script" uid="uid://clr0waok1sbkk" path="res://objects/interaction/steps/camera_step.gd" id="4_caan0"]
@@ -9,10 +12,15 @@
 [ext_resource type="Script" uid="uid://ckm7ovbdbhek" path="res://objects/cutscene/look_at_target.gd" id="5_iat04"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_tpl"]
+vertices = PackedVector3Array(-4, 0.19999981, -13.5, -3.3999996, 0.19999981, -16.7, -3.5, 0.19999981, -20.5, -16.5, 0.19999981, -20.5, -16.5, 0.19999981, -13.5, -2.8000002, 0.6999998, -16.5, -3.1999998, 0.19999981, -15.5, -3.1000004, 0.19999981, -16.6, -3.5, 0.19999981, -13.1, -2.5, 0.6999998, -16.8, -3.0714283, 0.19999981, -14.685715, 4.6000004, 1.6999998, -20.5, -2.5, 1.6999998, -20.5, 4.700001, 0.19999981, -13.799999, 4.6833344, 0.19999981, -14.916666, 2.1285725, 0.19999981, -14.8714285, 3.6714287, 0.19999981, -14.228571, 4.1857147, 0, -14.014286, 2.2000008, 0.19999981, -9.4, 3.8000011, 0.19999981, -9.4, 2, 0.19999981, -9.099999, -3.5, 0.19999981, -8.599999, -1.1939793, 0.19999981, -14.99242, 2, 0.19999981, -8.5, 5, 0.19999981, -13.5, 4.1000004, 0.19999981, -9.099999, 4.1000004, 0.19999981, -6.5, 15.5, 0.19999981, -6.5, 15.5, 0.19999981, -13.5, -3.5, 0.19999981, 7.5, 2, 0.19999981, 7.6000004, -3.5, 0.19999981, 8.1, -3.6999998, 0.19999981, 8.4, -4.7, 0.19999981, 15.5, 2, 0.19999981, 15.5, -4.7, 0.19999981, 8.5, -17.5, 0.19999981, 8.5, -17.5, 0.19999981, 15.5)
+polygons = [PackedInt32Array(1, 0, 2), PackedInt32Array(2, 0, 4), PackedInt32Array(2, 4, 3), PackedInt32Array(5, 6, 7), PackedInt32Array(7, 6, 1), PackedInt32Array(1, 6, 0), PackedInt32Array(5, 9, 6), PackedInt32Array(6, 9, 10), PackedInt32Array(6, 10, 0), PackedInt32Array(0, 10, 8), PackedInt32Array(13, 17, 14), PackedInt32Array(14, 17, 16), PackedInt32Array(14, 16, 15), PackedInt32Array(14, 15, 11), PackedInt32Array(11, 15, 9), PackedInt32Array(11, 9, 12), PackedInt32Array(13, 19, 18), PackedInt32Array(8, 20, 21), PackedInt32Array(20, 8, 18), PackedInt32Array(18, 17, 13), PackedInt32Array(17, 18, 16), PackedInt32Array(16, 18, 15), PackedInt32Array(15, 22, 9), PackedInt32Array(9, 22, 10), PackedInt32Array(10, 22, 8), PackedInt32Array(8, 22, 18), PackedInt32Array(18, 22, 15), PackedInt32Array(20, 23, 21), PackedInt32Array(13, 24, 19), PackedInt32Array(19, 24, 25), PackedInt32Array(25, 24, 26), PackedInt32Array(26, 24, 28), PackedInt32Array(26, 28, 27), PackedInt32Array(21, 23, 29), PackedInt32Array(29, 23, 30), PackedInt32Array(31, 29, 30), PackedInt32Array(31, 30, 32), PackedInt32Array(32, 30, 34), PackedInt32Array(32, 34, 33), PackedInt32Array(33, 35, 32), PackedInt32Array(37, 36, 33), PackedInt32Array(33, 36, 35)]
+geometry_parsed_geometry_type = 1
+cell_size = 0.1
+cell_height = 0.1
 agent_max_climb = 0.5
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-albedo_color = Color(0.95754546, 0.90825707, 0.8050494, 1)
+albedo_color = Color(0.16091847, 0.12708566, 0.046489798, 1)
 albedo_texture = ExtResource("1_xw4mq")
 roughness = 0.8
 uv1_scale = Vector3(0.125, 0.125, 0.125)
@@ -90,20 +98,68 @@ _data = {
 [node name="TemplateScene" type="Node3D" unique_id=711727893]
 
 [node name="PlayerSpawn" type="Marker3D" parent="." unique_id=174069565]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, 14)
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=485095318]
 navigation_mesh = SubResource("NavigationMesh_tpl")
 
-[node name="Floor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=1126404787]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-use_collision = true
-size = Vector3(32, 1, 32)
-material = SubResource("StandardMaterial3D_floor")
-
 [node name="Enemies" type="Node3D" parent="NavigationRegion3D" unique_id=250288495]
 
+[node name="Enemy" parent="NavigationRegion3D/Enemies" unique_id=1726509542 instance=ExtResource("1_0en22")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.5, -17)
+coordinator_path = NodePath("../../../EnemyCoordinator")
+
 [node name="Items" type="Node3D" parent="NavigationRegion3D" unique_id=2123690795]
+
+[node name="FloorBlockout" type="CSGCombiner3D" parent="NavigationRegion3D" unique_id=1653724366]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+use_collision = true
+
+[node name="Ramp" type="CSGCombiner3D" parent="NavigationRegion3D/FloorBlockout" unique_id=1092434382]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, -17)
+
+[node name="CSGBox3D" type="CSGBox3D" parent="NavigationRegion3D/FloorBlockout/Ramp" unique_id=954789694]
+size = Vector3(8, 4, 8)
+material = ExtResource("2_n8pxx")
+
+[node name="CSGBox3D2" type="CSGBox3D" parent="NavigationRegion3D/FloorBlockout/Ramp" unique_id=38691314]
+transform = Transform3D(1, 0, 0, 0, 0.96592593, -0.25881907, 0, 0.25881907, 0.96592593, 0, 2, 0.7)
+operation = 2
+size = Vector3(8, 4, 12)
+material = ExtResource("2_n8pxx")
+
+[node name="Floor" type="CSGBox3D" parent="NavigationRegion3D/FloorBlockout" unique_id=1126404787]
+use_collision = true
+size = Vector3(8, 1, 32)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="Floor2" type="CSGBox3D" parent="NavigationRegion3D/FloorBlockout" unique_id=772703528]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -10)
+use_collision = true
+size = Vector3(16, 1, 8)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="Floor4" type="CSGBox3D" parent="NavigationRegion3D/FloorBlockout" unique_id=453465899]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, -17)
+use_collision = true
+size = Vector3(16, 1, 8)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="Floor3" type="CSGBox3D" parent="NavigationRegion3D/FloorBlockout" unique_id=138722159]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 12)
+use_collision = true
+size = Vector3(16, 1, 8)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="WallBlockout" type="CSGCombiner3D" parent="NavigationRegion3D" unique_id=1532157437]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+use_collision = true
+
+[node name="Wall" type="CSGBox3D" parent="NavigationRegion3D/WallBlockout" unique_id=509249754]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 7)
+use_collision = true
+size = Vector3(1, 8, 32)
+material = ExtResource("3_5tcrg")
 
 [node name="EnemyCoordinator" type="Node" parent="." unique_id=1575834191]
 script = ExtResource("2_d1bev")
@@ -121,7 +177,7 @@ visible = false
 [node name="Cutscenes" type="Node3D" parent="." unique_id=383801417]
 
 [node name="Cinema" type="Area3D" parent="Cutscenes" unique_id=1628747628]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, -9)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -9)
 script = ExtResource("3_d1bev")
 camera_enter = 1
 camera_return = 1
@@ -172,7 +228,7 @@ metadata/_custom_type_script = "uid://bfi0epqsf3rut"
 [node name="Interactions" type="Node3D" parent="." unique_id=1615394246]
 
 [node name="Conversation" type="Area3D" parent="Interactions" unique_id=247569955]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -9)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12)
 script = ExtResource("3_d1bev")
 letterbox = true
 metadata/_custom_type_script = "uid://cihcinvebp1hl"
