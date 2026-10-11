@@ -20,7 +20,50 @@ class_name TimelineStep
 @export var aim_cameras: Array[NodePath] = []
 
 
-func run(_interaction: Interaction) -> void:
+## Previewing a clip in the editor really sets the properties it animates, so a
+## scene saved mid-preview can ship with a timeline camera stuck `current = true`
+## — and that camera takes over the view as soon as the location loads. A RESET
+## animation prevents it (the editor restores RESET values before saving); this
+## catches a timeline without one.
+func _ready() -> void:
+	_check_saved_cameras.call_deferred()
+
+
+func _check_saved_cameras() -> void:
+	var ap := get_node_or_null(animation_player) as AnimationPlayer
+	for cam: Camera3D in _keyed_cameras():
+		if not cam.current:
+			continue
+		push_warning("[TimelineStep] %s: '%s' was saved as current, so it took over the view on load. Add a RESET animation to '%s' that keys it false." % [name, cam.name, ap.name])
+		var player: Node = get_tree().get_first_node_in_group(&"player")
+		var player_cam: Camera3D = player.call("get_camera") as Camera3D if player and player.has_method("get_camera") else null
+		if player_cam:
+			player_cam.make_current()
+		else:
+			cam.current = false
+
+
+## Cameras the clip switches on and off (tracks keying `current`).
+func _keyed_cameras() -> Array[Camera3D]:
+	var cams: Array[Camera3D] = []
+	var ap := get_node_or_null(animation_player) as AnimationPlayer
+	if ap == null or not ap.has_animation(animation):
+		return cams
+	var anim: Animation = ap.get_animation(animation)
+	var root: Node = ap.get_node_or_null(ap.root_node)
+	if root == null:
+		return cams
+	for i: int in anim.get_track_count():
+		var path: NodePath = anim.track_get_path(i)
+		if path.get_concatenated_subnames() != "current":
+			continue
+		var cam := root.get_node_or_null(NodePath(path.get_concatenated_names())) as Camera3D
+		if cam:
+			cams.append(cam)
+	return cams
+
+
+func run(interaction: Interaction) -> void:
 	var ap := get_node_or_null(animation_player) as AnimationPlayer
 	if ap == null or not ap.has_animation(animation):
 		push_warning("[TimelineStep] %s: no clip '%s' on '%s'." % [name, animation, animation_player])
@@ -29,7 +72,20 @@ func run(_interaction: Interaction) -> void:
 		push_warning("[TimelineStep] %s: '%s' loops and would never end — not playing it." % [name, animation])
 		return
 	_aim_cameras()
+	# If this clip takes the view off the player, the Interaction's camera_enter
+	# shapes that first cut: a fade covers it, a blend sweeps the new camera in.
+	var entering: bool = interaction.is_entering_camera() and not _keyed_cameras().is_empty()
+	if entering:
+		await interaction.begin_camera_switch()
 	ap.play(animation)
+	if entering:
+		# Apply the clip's first keys NOW so its camera is current before we look.
+		# (Waiting a process_frame isn't enough: that signal fires before nodes
+		# process, so the AnimationPlayer hasn't applied anything yet.)
+		ap.advance(0.0)
+		# Not awaited: the clip keeps playing under the fade-in / blend. FOV is
+		# left to the clip, which may be animating it.
+		interaction.end_camera_switch(false)
 	await ap.animation_finished
 
 

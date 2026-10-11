@@ -246,6 +246,12 @@ func is_control_enabled() -> bool:
 	return _control_enabled
 
 
+## Where the player's facing lives (the body never rotates) — ActorDriver turns
+## this rather than the body when a cutscene walks the player.
+func get_facing_node() -> Node3D:
+	return _model
+
+
 ## The camera the player normally sees through — interactions blend back to it.
 func get_camera() -> Camera3D:
 	return _camera

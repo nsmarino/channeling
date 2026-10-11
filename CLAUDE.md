@@ -85,7 +85,8 @@ the rebuild and copy what it wrote.
   `reload_current_scene()` behind a re-entrancy guard). Triggers: player death,
   falling below `fall_limit_y`, and the `restart` action. Also holds the Play
   From Here overrides (spawn point + `location_override`) for the whole session.
-- **`Cinematic`** — the letterbox bars. `show_bars()` / `hide_bars()` move only
+- **`Cinematic`** — the letterbox bars and a full-screen fade (`fade_out()` /
+  `fade_in()` / `clear_fade()`, drawn over the bars). `show_bars()` / `hide_bars()` move only
   the bars (what interactions use); `begin()` / `end()` also emit the
   `cutscene_started` / `cutscene_finished` freeze, for code that wants both.
 
@@ -272,6 +273,59 @@ camera cuts keyed on `current`, FOV pulls, audio tracks. The clip needs no
 (any camera the timeline cut to is put back afterwards). Timed choreography goes
 in the timeline; anything that waits on the player (dialogue) goes in steps
 around it. See `objects/cutscene/ExampleCutscene.tscn`.
+
+Camera transitions (Interaction › Camera) come in both directions, each `BLEND`
+(sweep around the player), `FADE` (to black, switch while dark, fade back in) or
+`CUT`, with their own blend / fade / hold times:
+- **`camera_enter`** shapes the *first* switch away from the player's camera,
+  whichever step makes it — a `CameraStep`, or a `TimelineStep` whose clip keys
+  a camera `current`. Later switches between level cameras use the CameraStep's
+  own `blend_time`. Steps make that first switch through
+  `begin_camera_switch()` (await; fades out) → switch → `end_camera_switch()`
+  (blends in / fades back in); a TimelineStep doesn't await the end, so the clip
+  plays on underneath, and leaves FOV to the clip.
+- **`camera_return`** takes the view back to the player at the end. FADE also
+  drops the letterbox while dark, and is skipped when no step moved the camera,
+  so a plain conversation never flashes to black.
+
+**Cutscenes with actors** — `objects/cutscene/IntroCutscene.tscn` is the worked
+example. Any actor — enemy, NPC, **the player** — is puppeted the same way: a
+`PathFollow3D` (`rotation_mode` Y; -Z faces along the path) carries an
+**`ActorDriver`**, the timeline keys the follower's `progress_ratio`, and keys the
+driver's `driving` **on at the start and off at the end**. The driver copies its
+position and facing onto the actor (`actor` path, or `actor_group` such as
+`player` when a cutscene file can't reach it by path); facing goes to the actor's
+`get_facing_node()` if it has one (the player's `Model` — the body never rotates),
+else the actor itself. It's off by default on purpose: a RemoteTransform3D pushes
+for as long as it exists and pins its target forever.
+
+The actor must not be moving itself: an enemy asleep in `MANUAL` activation (an
+`EventStep` connected to its `activate()` wakes it afterwards), or the player held
+by the Interaction's **`puppet_player`**, which claims `begin_scripted_move` for
+the run and releases it on finish and when freed mid-run. Clips play on an
+**animation playback track** aimed at the actor's AnimationPlayer (plus a method
+key setting `playback_default_blend_time` so switches crossfade). Pace walks at
+the actor's in-game speed (3 m/s for the Manicoppo) or feet slide, and end paths
+on the navmesh. Note the player snaps to its path start at the clip's first frame
+— put an enter FADE over that.
+
+**`LookAtTarget`** (child of a Camera3D) keeps the camera aimed at a node (or a
+group) every frame while it's active, optional `smoothing`; it stands aside while
+an Interaction blend owns the camera. Parent the camera to a PathFollow3D for a
+tracking shot — IntroCutscene's CamB rides the player's follower behind the
+shoulder and looks at the approaching Manicoppo.
+
+**Hand-writing transforms in `.tscn`:** Godot writes a `Transform3D` basis **row
+by row** (`x.x, y.x, z.x, x.y, …`), not axis by axis. Getting it backwards
+inverts the rotation — a camera aims mirrored — and a 180° yaw test can't catch
+it, because that rotation is its own inverse.
+
+**Give every timeline a `RESET` animation** keying its cameras' `current` to
+false (and FOVs to their authored values). Previewing a clip in the editor really
+sets the animated properties, and saving mid-preview stores them — a camera saved
+`current = true` steals the view the moment the location loads. The editor
+restores RESET values before saving; `TimelineStep` also checks on load, warns,
+and hands the view back to the player.
 
 State: `GameManager.flags` (`set_flag` / `has_flag`) live for the session and
 survive restarts. `once_flag` makes an interaction happen once and sets the flag;

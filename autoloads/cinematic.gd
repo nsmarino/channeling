@@ -13,15 +13,22 @@ extends CanvasLayer
 ## objects/cutscene/ExampleCutscene.tscn); they freeze the player themselves and
 ## only borrow the bars here, via `show_bars()` / `hide_bars()`. `begin()` / `end()`
 ## remain for code that wants the bars AND the cutscene freeze in one call.
+##
+## Also owns a full-screen black overlay for fade transitions — `fade_out()` to
+## black, `fade_in()` back — drawn above the bars so it covers everything.
 
 ## Height of each bar (px) at full letterbox.
 @export var bar_height: float = 90.0
 ## How long the bars take to slide in / out (seconds).
 @export var slide_duration: float = 0.4
+## Default length of a fade to / from black (seconds).
+@export var fade_duration: float = 0.35
 
 var _top: ColorRect = null
 var _bottom: ColorRect = null
 var _tween: Tween = null
+var _fade: ColorRect = null
+var _fade_tween: Tween = null
 
 
 func _ready() -> void:
@@ -29,6 +36,7 @@ func _ready() -> void:
 	layer = 128
 	_top = _make_bar(true)
 	_bottom = _make_bar(false)
+	_fade = _make_fade()  # added last, so it draws over the bars
 
 
 ## Start a cutscene: raise the letterbox and tell the world (the player suspends
@@ -56,6 +64,41 @@ func show_bars(height: float = -1.0, duration: float = -1.0) -> Tween:
 func hide_bars(duration: float = -1.0) -> Tween:
 	var d: float = slide_duration if duration < 0.0 else duration
 	return _slide(0.0, 0.0, d)
+
+
+## Fade the screen to black. Await the returned tween to wait for it.
+func fade_out(duration: float = -1.0) -> Tween:
+	return _fade_to(1.0, fade_duration if duration < 0.0 else duration)
+
+
+## Fade back in from black.
+func fade_in(duration: float = -1.0) -> Tween:
+	return _fade_to(0.0, fade_duration if duration < 0.0 else duration)
+
+
+## Drop any fade instantly — for cleanup when a sequence is cut short.
+func clear_fade() -> void:
+	if _fade_tween != null and _fade_tween.is_valid():
+		_fade_tween.kill()
+	_fade.color.a = 0.0
+
+
+func _fade_to(alpha: float, duration: float) -> Tween:
+	if _fade_tween != null and _fade_tween.is_valid():
+		_fade_tween.kill()
+	_fade_tween = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_fade_tween.tween_property(_fade, ^"color:a", alpha, maxf(duration, 0.001))
+	return _fade_tween
+
+
+## A full-screen black rect, transparent until a fade raises it.
+func _make_fade() -> ColorRect:
+	var rect := ColorRect.new()
+	rect.color = Color(0.0, 0.0, 0.0, 0.0)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(rect)
+	return rect
 
 
 ## Move the bars to their targets, replacing any in-flight slide. `top_target` is
