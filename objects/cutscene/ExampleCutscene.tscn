@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cihcinvebp1hl" path="res://objects/interaction/interaction.gd" id="1_inter"]
 [ext_resource type="Script" uid="uid://tjiqediqpe6e" path="res://objects/interaction/steps/timeline_step.gd" id="2_timeline"]
+[ext_resource type="Script" uid="uid://ckm7ovbdbhek" path="res://objects/cutscene/look_at_target.gd" id="3_look"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_trig"]
 size = Vector3(6, 6, 6)
@@ -147,5 +148,13 @@ libraries/ = SubResource("AnimationLibrary_main")
 script = ExtResource("2_timeline")
 animation_player = NodePath("../AnimationPlayer")
 animation = &"intro"
-focus = NodePath("../Focus")
-aim_cameras = Array[NodePath]([NodePath("../CamA"), NodePath("../CamB")])
+
+[node name="LookAtTarget" type="Node" parent="CamA"]
+script = ExtResource("3_look")
+target = NodePath("../../Focus")
+offset = Vector3(0, 0, 0)
+
+[node name="LookAtTarget" type="Node" parent="CamB"]
+script = ExtResource("3_look")
+target = NodePath("../../Focus")
+offset = Vector3(0, 0, 0)

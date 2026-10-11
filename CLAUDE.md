@@ -251,10 +251,15 @@ reports area overlaps from the previous physics step, by which time
 ### Interactions (`objects/interaction/`)
 
 Talking to an NPC, reading a sign. Ported from Nightbloom v1's DialogueTrigger. An
-`Interaction` (Area3D, mask 2) shows a prompt while the player is inside it;
+`Interaction` (Area3D; its script defaults it to layer 0 / mask 2, since
+Area3D's own mask 1 never sees the player, and it warns if the mask lacks layer
+2) shows a prompt while the player is inside it;
 pressing `interact` emits `Events.interaction_started`, which freezes the player
 exactly like a cutscene, then runs its **`InteractionStep` children top to
-bottom**, awaiting each, closes the dialogue box, blends the camera back and emits
+bottom**, awaiting each (the dialogue box closes whenever a run of SaySteps ends
+and the next step isn't one — Say → Timeline → Say exits and re-enters — and
+back-to-back SaySteps share one open box), closes the dialogue box, blends the
+camera back and emits
 `interaction_finished`. `ExampleNPC.tscn` shows a full one.
 
 Steps (`steps/`): `SayStep` (speaker, portrait, `lines` array — the DialogueBox
@@ -262,7 +267,8 @@ types each out; press to reveal, press again to advance), `CameraStep` (blend to
 Camera3D in the level, optional `look_at_target`), `SoundStep`, `AnimationStep`,
 `WaitStep`, `EventStep` (sets a GameManager flag and emits `fired` — connect it in
 the editor for any state change), `TimelineStep` (plays an AnimationPlayer clip
-and waits for it to end; optional camera aiming at a focus node). New beat = extend `InteractionStep`, override
+and waits for it to end; to aim a camera at something, give the camera a
+`LookAtTarget` child). New beat = extend `InteractionStep`, override
 `run()`, await inside it to hold the sequence.
 
 **Cutscenes are Interactions.** `start_on_enter` starts on walking in (no prompt;
@@ -311,7 +317,9 @@ on the navmesh. Note the player snaps to its path start at the clip's first fram
 
 **`LookAtTarget`** (child of a Camera3D) keeps the camera aimed at a node (or a
 group) every frame while it's active, optional `smoothing`; it stands aside while
-an Interaction blend owns the camera. Parent the camera to a PathFollow3D for a
+an Interaction blend owns the camera, and a blend *into* a tracking camera lands on
+the LookAtTarget's aim (read every step) rather than the camera's placed rotation,
+so there's no snap when it takes over. Parent the camera to a PathFollow3D for a
 tracking shot — IntroCutscene's CamB rides the player's follower behind the
 shoulder and looks at the approaching Manicoppo.
 
@@ -321,7 +329,8 @@ inverts the rotation — a camera aims mirrored — and a 180° yaw test can't c
 it, because that rotation is its own inverse.
 
 **Give every timeline a `RESET` animation** keying its cameras' `current` to
-false (and FOVs to their authored values). Previewing a clip in the editor really
+false — check this: Godot fills a new RESET key with the value at the moment you
+key the track, so a camera that was current then gets RESET to *true* (and FOVs to their authored values). Previewing a clip in the editor really
 sets the animated properties, and saving mid-preview stores them — a camera saved
 `current = true` steals the view the moment the location loads. The editor
 restores RESET values before saving; `TimelineStep` also checks on load, warns,

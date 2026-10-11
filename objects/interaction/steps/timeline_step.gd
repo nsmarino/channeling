@@ -13,11 +13,9 @@ class_name TimelineStep
 @export var animation_player: NodePath
 @export var animation: StringName = &""
 
-@export_group("Aim (optional)")
-## Point the cameras below at this node before playing. Pose cameras by position
-## only and they stay framed wherever the instance is moved.
-@export var focus: NodePath
-@export var aim_cameras: Array[NodePath] = []
+## To keep a camera aimed at something — a focus point, an actor — give the
+## camera a LookAtTarget child. (This step used to offer a one-shot aim at clip
+## start; LookAtTarget does it continuously, which is what "focus" implies.)
 
 
 ## Previewing a clip in the editor really sets the properties it animates, so a
@@ -71,7 +69,6 @@ func run(interaction: Interaction) -> void:
 	if ap.get_animation(animation).loop_mode != Animation.LOOP_NONE:
 		push_warning("[TimelineStep] %s: '%s' loops and would never end — not playing it." % [name, animation])
 		return
-	_aim_cameras()
 	# If this clip takes the view off the player, the Interaction's camera_enter
 	# shapes that first cut: a fade covers it, a blend sweeps the new camera in.
 	var entering: bool = interaction.is_entering_camera() and not _keyed_cameras().is_empty()
@@ -87,13 +84,3 @@ func run(interaction: Interaction) -> void:
 		# left to the clip, which may be animating it.
 		interaction.end_camera_switch(false)
 	await ap.animation_finished
-
-
-func _aim_cameras() -> void:
-	var target := get_node_or_null(focus) as Node3D
-	if target == null:
-		return
-	for path: NodePath in aim_cameras:
-		var cam := get_node_or_null(path) as Node3D
-		if cam and cam.global_position.distance_to(target.global_position) > 0.01:
-			cam.look_at(target.global_position, Vector3.UP)

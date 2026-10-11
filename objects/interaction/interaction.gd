@@ -106,8 +106,23 @@ var _entered_camera: bool = false
 var _puppet: Node = null
 
 
+## Collision layer the player body is on (project layer 2, "player").
+const PLAYER_LAYER_BIT: int = 1 << 1
+
+
+## Default to "detect the player, be detected by nothing" — Area3D's own default
+## (layer 1, mask 1) never sees the player, so an Interaction added from the
+## Add Node dialog would silently never trigger. Runs before the scene's saved
+## properties are applied, so a mask set explicitly in the Inspector still wins.
+func _init() -> void:
+	collision_layer = 0
+	collision_mask = PLAYER_LAYER_BIT
+
+
 func _ready() -> void:
 	monitoring = true
+	if collision_mask & PLAYER_LAYER_BIT == 0:
+		push_warning("[Interaction] %s: collision_mask doesn't include the player layer (2), so the player can never trigger it." % get_path())
 
 
 func _physics_process(_delta: float) -> void:
@@ -167,15 +182,22 @@ func start() -> void:
 	if puppet_player:
 		_claim_puppet()
 
-	for child: Node in get_children():
-		var step := child as InteractionStep
-		if step == null or not step.enabled:
-			continue
+	var steps: Array[InteractionStep] = _enabled_steps()
+	for i: int in steps.size():
 		# Called dynamically: the base run() isn't a coroutine, so a static call
 		# trips the "unnecessary await" warning, but overrides usually are.
-		await step.call(&"run", self)
+		await steps[i].call(&"run", self)
 		if not is_inside_tree():
 			return  # freed mid-sequence (restart, travel) — _exit_tree cleaned up
+		# A run of dialogue just ended (Say → Timeline → Say): close the box so it
+		# doesn't sit open and empty through the next beat; the next SayStep opens
+		# it again with its intro. Back-to-back SaySteps keep one box open. The
+		# box after the LAST step is closed below, with the rest of the wrap-up.
+		var next_is_say: bool = i + 1 < steps.size() and steps[i + 1] is SayStep
+		if i + 1 < steps.size() and not next_is_say:
+			var open_box: DialogueBox = get_dialogue_box()
+			if open_box and open_box.is_open():
+				await open_box.close()
 
 	var box: DialogueBox = get_dialogue_box()
 	if box:
@@ -194,6 +216,16 @@ func start() -> void:
 	_release_puppet()
 	_end()
 	finished.emit()
+
+
+## Children that will actually run, in order.
+func _enabled_steps() -> Array[InteractionStep]:
+	var steps: Array[InteractionStep] = []
+	for child: Node in get_children():
+		var step := child as InteractionStep
+		if step and step.enabled:
+			steps.append(step)
+	return steps
 
 
 ## The HUD's dialogue box, or null when running a scene without main.tscn's HUD.
@@ -222,7 +254,7 @@ func blend_camera_to(cam: Camera3D, duration: float) -> void:
 	cam.global_transform = from.global_transform
 	cam.fov = from.fov
 	cam.make_current()
-	await _arc_camera(cam, target_xform, target_fov, duration)
+	await _arc_camera(cam, target_xform, target_fov, duration, true)
 
 
 ## True until the first switch away from the player's camera has happened.
@@ -271,7 +303,7 @@ func end_camera_switch(include_fov: bool) -> void:
 			cam.global_transform = player_cam.global_transform
 			if include_fov:
 				cam.fov = player_cam.fov
-			await _arc_camera(cam, target_xform, target_fov if include_fov else -1.0, camera_enter_blend)
+			await _arc_camera(cam, target_xform, target_fov if include_fov else -1.0, camera_enter_blend, true)
 
 
 func _return_camera(duration: float) -> void:
@@ -314,12 +346,20 @@ func _fade_return() -> void:
 ## a straight line. Shots usually sit on different sides of the player, so a
 ## straight lerp swoops through (or right over) them; sweeping the direction from
 ## the player while easing the distance keeps the subject framed the whole way.
-func _arc_camera(cam: Camera3D, to_xform: Transform3D, to_fov: float, duration: float) -> void:
+##
+## `land_on_aim`: the blend is arriving at `cam`'s own shot. If the camera tracks
+## something (a LookAtTarget child), end on the aim it is about to take — read
+## every step, so a moving target is followed — rather than on its placed
+## rotation, which would snap the moment the blend lets go.
+func _arc_camera(cam: Camera3D, to_xform: Transform3D, to_fov: float, duration: float,
+		land_on_aim: bool = false) -> void:
 	var from_xform: Transform3D = cam.global_transform
 	var from_fov: float = cam.fov
 	var pivot: Vector3 = _arc_pivot(from_xform.origin, to_xform.origin)
+	var aim: LookAtTarget = _look_at_target_of(cam) if land_on_aim else null
 	var step := func(t: float) -> void:
-		_apply_arc(cam, from_xform, to_xform, from_fov, to_fov, pivot, t)
+		var dest: Transform3D = aim.aimed_transform(to_xform.origin, to_xform) if aim else to_xform
+		_apply_arc(cam, from_xform, dest, from_fov, to_fov, pivot, t)
 	cam.set_meta(&"interaction_blending", true)
 	var tween := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_method(step, 0.0, 1.0, duration)
@@ -344,6 +384,13 @@ func _apply_arc(cam: Camera3D, from_xform: Transform3D, to_xform: Transform3D,
 	cam.global_transform = Transform3D(Basis(rot), origin)
 	if to_fov >= 0.0:  # < 0 = something else (a timeline) owns the FOV
 		cam.fov = lerpf(from_fov, to_fov, t)
+
+
+func _look_at_target_of(cam: Camera3D) -> LookAtTarget:
+	for child: Node in cam.get_children():
+		if child is LookAtTarget:
+			return child as LookAtTarget
+	return null
 
 
 ## What the arc swings around: the player's chest, or the midpoint if no player.

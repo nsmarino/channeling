@@ -48,12 +48,16 @@ func _ready() -> void:
 func say(speaker: String, portrait: Texture2D, lines: Array[String]) -> void:
 	if lines.is_empty():
 		return
-	if not visible:
-		show()
-		await _play_intro_transition()
+	# Load this speaker before the intro, so a reopened box doesn't fade in still
+	# showing the previous run's speaker and line.
 	speaker_label.text = speaker
 	portrait_rect.texture = portrait
 	portrait_rect.visible = portrait != null
+	if not visible:
+		body_label.text = ""
+		continue_hint.visible = false
+		show()
+		await _play_intro_transition()
 	for line: String in lines:
 		_show_line(line)
 		await _line_advanced

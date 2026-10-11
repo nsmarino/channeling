@@ -56,6 +56,19 @@ func _process(delta: float) -> void:
 	_was_live = true
 
 
+## The transform a camera standing at `origin` would have while aiming at the
+## target right now — or `fallback` if there's nothing to aim at. Interaction
+## blends land on this, so a blend into a tracking camera doesn't end in a snap.
+func aimed_transform(origin: Vector3, fallback: Transform3D) -> Transform3D:
+	var node: Node3D = _get_target()
+	if node == null:
+		return fallback
+	var to_point: Vector3 = node.global_position + offset - origin
+	if to_point.length_squared() < 0.0001 or absf(to_point.normalized().y) > 0.999:
+		return fallback
+	return Transform3D(Basis.looking_at(to_point, Vector3.UP), origin)
+
+
 func _get_target() -> Node3D:
 	if not target.is_empty():
 		return get_node_or_null(target) as Node3D
