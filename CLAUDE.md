@@ -27,11 +27,14 @@ It covers the action system, the component map, testing practice and the traps.
   no level content; it instances a **location** scene at startup (see Locations).
 - **`levels/`** — `main.gd` (loads the location, swaps it on portal travel,
   registers player + location with `GameManager`), `location.gd` (the optional
-  `Location` root script: notes + overrides); the locations:
-  `hamptons_scene.tscn` (the current active one), `proto_scene.tscn` (the original
-  prototype level, with IntroCutscene), `duped_scene.tscn`, and
-  `template_scene.tscn` (copy it to start a new location); plus older
-  `overworld/`, `dungeon/`.
+  `Location` root script: notes + overrides), `template_scene.tscn` (copy it to
+  start a new location), and the locations in two folders:
+  - `locations/` — the game's places, each a template copy worked on in
+    parallel: `cliff-route`, `coppo-cavern`, `ruin-plaza`, `shaft-grove`,
+    `sorrow-pool`, `thorn-thicket`.
+  - `explore/` — test and prototype levels: `hamptons_scene.tscn` (the current
+    active one), `proto_scene.tscn` (the original prototype, with
+    IntroCutscene), `duped_scene.tscn`, and the older `overworld/`, `dungeon/`.
 - **`placeholder/`** — untextured blockout geometry and placeholder creature
   models.
 - **`objects/`**
@@ -133,7 +136,7 @@ nothing leaks into the next location; GameManager keeps its Inspector value in
 defaults. New override: export it on `Location` (empty = keep Main's), then apply
 and restore it in `Main._apply_location_overrides()`.
 
-**Starting a new location:** duplicate `levels/template_scene.tscn` (the tree
+**Starting a new location:** duplicate `levels/template_scene.tscn` into `levels/locations/` (the tree
 above, plus a 32×32 floor and a sun) with **Duplicate… in the FileSystem dock**,
 not Finder — Godot gives the copy a fresh scene UID, a Finder copy shares the
 template's and the two get confused. Then rename the root, fill in its notes, bake the

@@ -56,8 +56,9 @@ channeling/
   autoloads/                events.gd, game_manager.gd, cinematic.gd
   encounters/               exercise-1.tscn
   explores/                 throwaway experiments: animation, csg, gridmap, shaders, vfx
-  levels/                   main.gd + locations: hamptons_scene (active), proto_scene, duped_scene, template_scene;
-                            older overworld/, dungeon/
+  levels/                   main.gd, location.gd, template_scene; locations/ (cliff-route, coppo-cavern,
+                            ruin-plaza, shaft-grove, sorrow-pool, thorn-thicket); explore/ (hamptons_scene
+                            (active), proto_scene, duped_scene, older overworld/, dungeon/)
   objects/                  player/, components/, enemy/, breakables/, interactables/, level/, pickups/, weapons/, cutscene/
   placeholder/              untextured channel scenes + placeholder creature models
   resources/, ui/, vfx/     CombatUI.tscn; particle scenes
