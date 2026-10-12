@@ -16,7 +16,7 @@ roughness = 0.8
 uv1_scale = Vector3(0.125, 0.125, 0.125)
 uv1_triplanar = true
 
-[node name="TemplateScene" type="Node3D" unique_id=711727893]
+[node name="CliffRoute" type="Node3D" unique_id=711727893]
 script = ExtResource("1_kutna")
 notes = "Rename this root. What is this location for? What works, what to try next?"
 
