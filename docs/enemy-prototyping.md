@@ -374,6 +374,19 @@ change (the Ugrehk's eruption), not because of its combat.
 - **Enemy bodies have no gravity.** A `MovementPattern` assigns velocity outright,
   so a jump arc is driven frame by frame in the action. That's a feature for a
   telegraphed attack — the hang time is authored, not simulated.
+- **Height comes from the navmesh — so vertical moves must claim it.**
+  `MovementComponent` eases every enemy to the navmesh surface under it each
+  frame (`follow_navmesh_height`), which is how they climb ramps. An action that
+  lifts a creature has to say so *every frame*: a `drive()` with a vertical
+  component does it automatically; a pause in the air needs `hold_height()`
+  (`GroundPoundAction` calls it during its hang). Forget it and the leap is pulled
+  flat. A creature that should never follow the ground (a flier) turns
+  `follow_navmesh_height` off.
+- **Bake location navmeshes from Static Colliders.** The default bake ("Mesh
+  Instances") treats an enemy's visible model under the NavigationRegion3D as an
+  obstacle and carves a permanent hole around its spawn point, so it starts
+  "off-mesh" and its actions bail. Enemies don't need to sit under the region to
+  path on it.
 - **Moving a property to a parent class is safe for existing scenes.** A scene
   override on an inherited property still applies, as long as the parent's default
   matches what the child had.

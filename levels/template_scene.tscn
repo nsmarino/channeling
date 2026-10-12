@@ -2,6 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://c58clyh2d4y0j" path="res://assets/kenney_prototype-textures/PNG/Light/texture_06.png" id="1_tex"]
 [ext_resource type="Script" uid="uid://c23bju7icb7y1" path="res://objects/enemy/enemy_coordinator.gd" id="2_coord"]
+[ext_resource type="Script" uid="uid://bxvhtowap2v4q" path="res://levels/location.gd" id="3_loc"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_tpl"]
 geometry_parsed_geometry_type = 1
@@ -16,6 +17,8 @@ uv1_scale = Vector3(0.125, 0.125, 0.125)
 uv1_triplanar = true
 
 [node name="TemplateScene" type="Node3D" unique_id=711727893]
+script = ExtResource("3_loc")
+notes = "Rename this root. What is this location for? What works, what to try next?"
 
 [node name="PlayerSpawn" type="Marker3D" parent="." unique_id=174069565]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -45,3 +48,9 @@ shadow_enabled = true
 
 [node name="LightmapGI" type="LightmapGI" parent="." unique_id=240514062]
 visible = false
+
+[node name="Interactions" type="Node3D" parent="." unique_id=2122647854]
+
+[node name="Cutscenes" type="Node3D" parent="." unique_id=783004402]
+
+[node name="Portals" type="Node3D" parent="." unique_id=1279512129]

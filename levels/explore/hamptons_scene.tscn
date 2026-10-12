@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bov64shegoc1y"]
 
 [ext_resource type="PackedScene" uid="uid://dgi7xys3gdr48" path="res://objects/enemy/enemies/Manicoppo.tscn" id="1_0en22"]
+[ext_resource type="Script" uid="uid://bxvhtowap2v4q" path="res://levels/location.gd" id="1_61j4x"]
 [ext_resource type="Texture2D" uid="uid://c58clyh2d4y0j" path="res://assets/kenney_prototype-textures/PNG/Light/texture_06.png" id="1_xw4mq"]
 [ext_resource type="Script" uid="uid://c23bju7icb7y1" path="res://objects/enemy/enemy_coordinator.gd" id="2_d1bev"]
 [ext_resource type="Material" uid="uid://cudpdb74j4ur1" path="res://environs-material.tres" id="2_n8pxx"]
@@ -100,7 +101,9 @@ _data = {
 [sub_resource type="BoxShape3D" id="BoxShape3D_rdbjv"]
 size = Vector3(4, 3, 9)
 
-[node name="TemplateScene" type="Node3D" unique_id=711727893]
+[node name="Location" type="Node3D" unique_id=2036061811]
+script = ExtResource("1_61j4x")
+metadata/_custom_type_script = "uid://bxvhtowap2v4q"
 
 [node name="PlayerSpawn" type="Marker3D" parent="." unique_id=174069565]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 1, 20)
@@ -328,7 +331,7 @@ script = ExtResource("2_d1bev")
 max_attackers = 2
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1971866417]
-transform = Transform3D(0.9258706, -0.24688895, 0.28602362, 0, 0.7569951, 0.65342057, -0.3778408, -0.6049829, 0.7008795, 0, 0, 0)
+transform = Transform3D(0.9258706, -0.24688895, 0.28602365, 0, 0.7569951, 0.6534206, -0.3778408, -0.6049829, 0.70087945, 0, 0, 0)
 light_color = Color(1, 0.84561145, 0.742742, 1)
 light_bake_mode = 1
 shadow_enabled = true

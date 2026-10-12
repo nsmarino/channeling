@@ -249,6 +249,14 @@ func face_toward(point: Vector3) -> void:
 		move.call("face_toward", point)
 
 
+## Keep the body's current height this frame instead of letting it follow the
+## navmesh — for holding a creature in the air. A vertical drive() does this
+## automatically.
+func hold_height() -> void:
+	if move:
+		move.call("hold_height")
+
+
 ## Exact yaw, no smoothing — for when the action owns the interpolation curve.
 func set_facing(yaw: float) -> void:
 	if move:

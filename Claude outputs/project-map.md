@@ -2,7 +2,7 @@
 
 Where everything lives, what tooling is connected, and how to work on this project from Cowork. Read this first in any new session.
 
-*Last surveyed: 2026-09-13.*
+*Last surveyed: 2026-09-13. Godot layout lines updated 2026-10-11 — for current architecture (locations, portals, interactions, cutscenes) `channeling/CLAUDE.md` is authoritative.*
 
 ## The two folders
 
@@ -44,7 +44,7 @@ Current phase per the repo: **encounter prototyping** — tune the creatures by 
 
 ```
 channeling/
-  main.tscn                 playable scene (player, HUD, blockout, NavigationRegion3D, EnemyCoordinator, 3 Manicoppos)
+  main.tscn                 harness: player, HUD, environment, music; loads one location scene from levels/
   blockout_3_mesh.tscn      recent blockout iterations at the root
   blockout_3_use_smaller_chunks.tscn
   project.godot             autoloads Events / GameManager / Cinematic; 6 physics layers; input map
@@ -56,12 +56,13 @@ channeling/
   autoloads/                events.gd, game_manager.gd, cinematic.gd
   encounters/               exercise-1.tscn
   explores/                 throwaway experiments: animation, csg, gridmap, shaders, vfx
-  levels/                   main.gd, overworld/ (base_overworld, proto-overworld), dungeon/ (lance-blockout)
+  levels/                   main.gd + locations: hamptons_scene (active), proto_scene, duped_scene, template_scene;
+                            older overworld/, dungeon/
   objects/                  player/, components/, enemy/, breakables/, interactables/, level/, pickups/, weapons/, cutscene/
   placeholder/              untextured channel scenes + placeholder creature models
   resources/, ui/, vfx/     CombatUI.tscn; particle scenes
   *.tres at root            environs-material, floor-material, terrain-material
-  main.exr / main.lmbake    baked lightmap for main.tscn
+  main.exr / main.lmbake    baked lightmap (now used by proto_scene)
 ```
 
 Godot MCP counts: 65 scenes, 81 scripts, 326 assets.

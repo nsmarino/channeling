@@ -17,6 +17,10 @@ const PLAY_FROM_HERE_FILE: String = "user://play_from_here.cfg"
 ## Disable to opt out of the fall-off-map check (e.g. for a flying player).
 @export var fall_check_enabled: bool = true
 
+## `fall_limit_y` as set in the Inspector. A Location may override the live value
+## while it's loaded; Main puts this back when the next one doesn't.
+var default_fall_limit_y: float = 0.0
+
 var navigator: CharacterBody3D = null
 var overworld_root: Node = null
 var overworld_lighting: Node = null
@@ -44,6 +48,7 @@ var flags: Dictionary[StringName, bool] = {}
 
 func _ready() -> void:
 	print("[GameManager] Initialized")
+	default_fall_limit_y = fall_limit_y
 	_consume_spawn_override()
 	Events.player_killed.connect(restart_level)
 

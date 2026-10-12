@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dm0ymt1k01748"]
 
 [ext_resource type="Script" uid="uid://b1esvavhc0ixb" path="res://levels/main.gd" id="1_main"]
-[ext_resource type="PackedScene" uid="uid://bov64shegoc1y" path="res://levels/hamptons_scene.tscn" id="2_7mycd"]
+[ext_resource type="PackedScene" uid="uid://bov64shegoc1y" path="res://levels/explore/hamptons_scene.tscn" id="2_7mycd"]
 [ext_resource type="PackedScene" uid="uid://cplayrscn0fps" path="res://objects/player/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" uid="uid://ba2v8hmkv07hv" path="res://ui/dialogue/DialogueUI.tscn" id="3_dialogue"]
 [ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/CombatUI.tscn" id="3_hud"]

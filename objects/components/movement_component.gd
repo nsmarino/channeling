@@ -51,6 +51,10 @@ var _agent: NavigationAgent3D = null
 # needn't sit on the navmesh surface). Measured once the nav map is ready.
 var _nav_height_offset: float = 0.0
 var _nav_offset_known: bool = false
+# One-frame latch: something is moving the body vertically this frame (a jump arc),
+# so height-following must leave it alone. Set by hold_height(), and by drive()
+# whenever the driven velocity has a vertical component.
+var _height_held: bool = false
 
 
 func _setup() -> void:
@@ -88,8 +92,9 @@ func _physics_process(delta: float) -> void:
 	if not is_active or not _body:
 		return
 	_move(delta)
-	if follow_navmesh_height:
+	if follow_navmesh_height and not _height_held:
 		_follow_navmesh_height(delta)
+	_height_held = false
 
 
 func _move(delta: float) -> void:
@@ -140,6 +145,15 @@ func drive(velocity: Vector3) -> void:
 		return
 	_drive_velocity = velocity
 	_drive_active = true
+	if absf(velocity.y) > 0.0001:
+		_height_held = true  # a vertical drive owns the height this frame
+
+
+## Leave the body's height alone this frame — for an action that holds a creature
+## in the air (the pause at the top of a leap) without driving it vertically.
+## Same one-frame latch as drive(): call it every frame you want it.
+func hold_height() -> void:
+	_height_held = true
 
 
 ## Aim the body at a world point for this frame instead of along its travel.

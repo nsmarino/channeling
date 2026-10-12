@@ -25,8 +25,12 @@ It covers the action system, the component map, testing practice and the traps.
 
 - **`main.tscn`** — the harness: player, HUD, `WorldEnvironment`, music. It holds
   no level content; it instances a **location** scene at startup (see Locations).
-- **`levels/`** — `main.gd` (loads the location, registers player + location with
-  `GameManager`), `proto_scene.tscn` (the current prototype location),
+- **`levels/`** — `main.gd` (loads the location, swaps it on portal travel,
+  registers player + location with `GameManager`), `location.gd` (the optional
+  `Location` root script: notes + overrides); the locations:
+  `hamptons_scene.tscn` (the current active one), `proto_scene.tscn` (the original
+  prototype level, with IntroCutscene), `duped_scene.tscn`, and
+  `template_scene.tscn` (copy it to start a new location); plus older
   `overworld/`, `dungeon/`.
 - **`placeholder/`** — untextured blockout geometry and placeholder creature
   models.
@@ -39,7 +43,8 @@ It covers the action system, the component map, testing practice and the traps.
   - `interactables/` — bounce mushrooms (no base class; see below).
   - `interaction/` — `Interaction` + its step nodes (talk to NPCs; see below).
   - `level/` — `TriggerRegion`, `Portal`, level-authoring pieces.
-  - `cutscene/` — `ExampleCutscene` (an Interaction; see below).
+  - `cutscene/` — `ExampleCutscene` and `IntroCutscene` (Interactions; see
+    below), `ActorDriver`, `LookAtTarget`.
   - `pickups/`, `weapons/`.
 - **`autoloads/`** — `Events`, `GameManager`, `Cinematic`.
   `mcp_interaction_server.gd` is injected per-run by the MCP tool, not a project
@@ -80,11 +85,16 @@ the rebuild and copy what it wrote.
 ### Autoloads
 
 - **`Events`** — signal bus: `player_killed`, the cutscene bracket,
+  `interaction_prompt_shown` / `interaction_prompt_hidden` /
+  `interaction_started` / `interaction_finished`, and
   `enemy_hp_changed` / `enemy_damaged` / `attack_hit`.
 - **`GameManager`** — runtime refs + **level restart** (deferred
   `reload_current_scene()` behind a re-entrancy guard). Triggers: player death,
-  falling below `fall_limit_y`, and the `restart` action. Also holds the Play
-  From Here overrides (spawn point + `location_override`) for the whole session.
+  falling below `fall_limit_y`, and the `restart` action. Also holds, for the
+  whole session: the Play From Here overrides (spawn point + `location_override`),
+  the last portal trip (`record_travel()` → `location_override` +
+  `spawn_name_override`, so a restart returns to the door you came through), and
+  story `flags` (`set_flag` / `has_flag`).
 - **`Cinematic`** — the letterbox bars and a full-screen fade (`fade_out()` /
   `fade_in()` / `clear_fade()`, drawn over the bars). `show_bars()` / `hide_bars()` move only
   the bars (what interactions use); `begin()` / `end()` also emit the
@@ -102,7 +112,7 @@ A location owns everything that belongs to the place, so nothing leaks between
 locations:
 
 ```
-<Location> (Node3D root — required)
+<Location> (Node3D root — required; Location script optional, see below)
 ├── PlayerSpawn (Marker3D)     optional default spawn; else the player's spot in main.tscn
 ├── NavigationRegion3D         required if it has enemies — see below
 │   └── geometry (Enemies, Items may sit here too — see the bake note)
@@ -112,10 +122,21 @@ locations:
 
 Shared things (player, HUD, environment, music) stay in `main.tscn`.
 
+**The `Location` root script** (`levels/location.gd`, on the template's root)
+holds `notes` — what the place is for and what to try next, for picking a level
+back up after working on another — and **overrides** of what Main shares:
+`environment` (replaces the WorldEnvironment's), `music`, and `fall_limit_y`
+(with `override_fall_limit`). Empty or unticked means "keep Main's". Main applies
+them on every load and restores its own defaults when a location sets none, so
+nothing leaks into the next location; GameManager keeps its Inspector value in
+`default_fall_limit_y` for that. A plain Node3D root still works and gets all
+defaults. New override: export it on `Location` (empty = keep Main's), then apply
+and restore it in `Main._apply_location_overrides()`.
+
 **Starting a new location:** duplicate `levels/template_scene.tscn` (the tree
-above, plus a 40×40 floor and a sun) with **Duplicate… in the FileSystem dock**,
+above, plus a 32×32 floor and a sun) with **Duplicate… in the FileSystem dock**,
 not Finder — Godot gives the copy a fresh scene UID, a Finder copy shares the
-template's and the two get confused. Then rename the root, bake the
+template's and the two get confused. Then rename the root, fill in its notes, bake the
 NavigationRegion3D, and point `active_scene` at it. The template's navmesh ships
 unbaked — every copy reshapes its geometry and must bake its own anyway. It is a
 copy, not an inherited scene: changing the template later does not touch
@@ -196,6 +217,12 @@ ending it**, including on abort, or the player is frozen until a restart.
 Also: `hp`, `energy` (regenerates every frame), `spend_energy()` (all-or-nothing),
 `restore_energy()`, `take_damage()`.
 
+For cutscenes, portals and interactions: control is a **lock count**
+(cutscene/interaction signals lock and unlock it; `is_control_enabled()` reports
+it and gates `PlayerAbility` / `LockOnComponent`), `place_at(transform)` sets
+position and facing in one call, `get_facing_node()` returns the `Model` (what an
+`ActorDriver` turns), and `get_camera()` the player's own camera.
+
 Useful constants when tuning forces against the player: `move_speed` 6.0,
 `ground_acceleration` 60.0, `air_acceleration` 6.0.
 
@@ -248,7 +275,10 @@ Three ideas hold it together:
    surface under it, keeping the offset it was placed with
    (`follow_navmesh_height`, on by default — turn off for fliers). That's what
    lets creatures walk ramps and stairs; without it they keep their spawn height
-   and burrow into slopes. The offset is only measured once the nearest navmesh
+   and burrow into slopes. Anything that moves a creature **vertically** must say
+   so for that frame — a `drive()` with a vertical component does it
+   automatically; otherwise call `hold_height()` (on the action or the component;
+   `GroundPoundAction` does during its hang), or the follow pulls it back down. The offset is only measured once the nearest navmesh
    point is actually beneath the body — for the first frames after a load the map
    answers the world origin.
 2. **Perception** — vision cone with sticky loss (grace + hysteresis).
@@ -281,11 +311,10 @@ Area3D's own mask 1 never sees the player, and it warns if the mask lacks layer
 2) shows a prompt while the player is inside it;
 pressing `interact` emits `Events.interaction_started`, which freezes the player
 exactly like a cutscene, then runs its **`InteractionStep` children top to
-bottom**, awaiting each (the dialogue box closes whenever a run of SaySteps ends
-and the next step isn't one — Say → Timeline → Say exits and re-enters — and
-back-to-back SaySteps share one open box), closes the dialogue box, blends the
-camera back and emits
-`interaction_finished`. `ExampleNPC.tscn` shows a full one.
+bottom**, awaiting each, closes the dialogue box, returns the camera and emits
+`interaction_finished`. `ExampleNPC.tscn` shows a full one. The dialogue box
+closes whenever a run of SaySteps ends and the next step isn't one (Say →
+Timeline → Say exits and re-enters); back-to-back SaySteps share one open box.
 
 Steps (`steps/`): `SayStep` (speaker, portrait, `lines` array — the DialogueBox
 types each out; press to reveal, press again to advance), `CameraStep` (blend to a
@@ -354,12 +383,13 @@ inverts the rotation — a camera aims mirrored — and a 180° yaw test can't c
 it, because that rotation is its own inverse.
 
 **Give every timeline a `RESET` animation** keying its cameras' `current` to
-false — check this: Godot fills a new RESET key with the value at the moment you
-key the track, so a camera that was current then gets RESET to *true* (and FOVs to their authored values). Previewing a clip in the editor really
+false and FOVs to their authored values. Previewing a clip in the editor really
 sets the animated properties, and saving mid-preview stores them — a camera saved
 `current = true` steals the view the moment the location loads. The editor
-restores RESET values before saving; `TimelineStep` also checks on load, warns,
-and hands the view back to the player.
+restores RESET values before saving, so check them: Godot fills a new RESET key
+with the value at the moment you key the track, so a camera that was current then
+gets RESET to *true*. `TimelineStep` also checks on load, warns, and hands the
+view back to the player.
 
 State: `GameManager.flags` (`set_flag` / `has_flag`) live for the session and
 survive restarts. `once_flag` makes an interaction happen once and sets the flag;
@@ -431,7 +461,7 @@ Registered in code (`_ready`) and looked up with
 `get_tree().get_first_node_in_group(...)` / `get_nodes_in_group(...)`:
 
 `player`, `enemy`, `breakable`, `destructible`, `lockable`, `trigger_region`,
-`enemy_coordinator`.
+`enemy_coordinator`, `dialogue_box` (the HUD's DialogueBox, found by SayStep).
 
 `project.godot` also declares `level` as a global group, but nothing joins it —
 `GameManager` holds the level by direct reference instead. Don't write lookups
@@ -471,9 +501,13 @@ against it without registering it first.
 ## Current direction
 
 Landed: the bump-combat + energy loop, Power Dive, the node-based `EnemyAction`
-system, the AI stack on `BaseEnemy`, the Enemy / Breakable / Interactable split,
-trigger regions, and four prototype creatures (Manicoppo, Gevi-Dava, Ugrehk,
-Essurou).
+system, the AI stack on `BaseEnemy` (now following navmesh height up ramps), the
+Enemy / Breakable / Interactable split, trigger regions, four prototype creatures
+(Manicoppo, Gevi-Dava, Ugrehk, Essurou), **locations** loaded by Main from their
+own scenes with a template and **portals** (faded) between them, and
+**interactions**: NPC dialogue, cutscenes as Interactions with timelines, camera
+enter/return transitions, actor puppeting (enemies and the player) and tracking
+cameras.
 
 Next: **tuning the creatures by playing**, wiring `TriggerRegion`s into real
 encounters, filling the CSG blockout, and only then mise-en-scène in Blender.

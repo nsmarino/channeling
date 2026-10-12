@@ -10,7 +10,10 @@ class_name GroundPoundAction
 ## falloff behave identically whichever way you got hit.
 ##
 ## Enemies have no gravity of their own — a MovementPattern assigns velocity
-## outright — so the arc is driven here frame by frame rather than by physics. That
+## outright — so the arc is driven here frame by frame rather than by physics.
+## The vertical drives (and hold_height() during the hang) also keep
+## MovementComponent's navmesh height-following from pulling the creature down
+## mid-leap. That
 ## is a feature for a telegraphed attack: the hang time is authored, not simulated,
 ## so it reads the same every time regardless of where it started.
 
@@ -75,7 +78,8 @@ func run(token: int) -> bool:
 		elapsed += get_physics_process_delta_time()
 		await get_tree().physics_frame
 
-	if not await _hold(hang_time, token):
+	# Airborne: keep the height, or navmesh following would pull it back down.
+	if not await _hold(hang_time, token, true):
 		return false
 
 	# Down, until it reaches the floor we found or the safety timer trips.
@@ -124,12 +128,14 @@ func _probe_ground(fallback_y: float) -> float:
 
 
 ## Plant the feet for `seconds` without drifting.
-func _hold(seconds: float, token: int) -> bool:
+func _hold(seconds: float, token: int, keep_height: bool = false) -> bool:
 	var elapsed: float = 0.0
 	while elapsed < seconds:
 		if not still_running(token):
 			return false
 		drive(Vector3.ZERO)
+		if keep_height:
+			hold_height()
 		elapsed += get_physics_process_delta_time()
 		await get_tree().physics_frame
 	return still_running(token)

@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://cyiesrm1qu2pu"]
+
+[ext_resource type="Script" uid="uid://bxvhtowap2v4q" path="res://levels/location.gd" id="1_c0j6b"]
+[ext_resource type="Texture2D" uid="uid://c58clyh2d4y0j" path="res://assets/kenney_prototype-textures/PNG/Light/texture_06.png" id="2_asyjf"]
+[ext_resource type="Script" uid="uid://c23bju7icb7y1" path="res://objects/enemy/enemy_coordinator.gd" id="3_isso1"]
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_tpl"]
+geometry_parsed_geometry_type = 1
+geometry_collision_mask = 1
+agent_max_climb = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.95754546, 0.90825707, 0.8050494, 1)
+albedo_texture = ExtResource("2_asyjf")
+roughness = 0.8
+uv1_scale = Vector3(0.125, 0.125, 0.125)
+uv1_triplanar = true
+
+[node name="TemplateScene" type="Node3D" unique_id=711727893]
+script = ExtResource("1_c0j6b")
+notes = "Rename this root. What is this location for? What works, what to try next?"
+
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=174069565]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=485095318]
+navigation_mesh = SubResource("NavigationMesh_tpl")
+
+[node name="Floor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=1126404787]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+use_collision = true
+size = Vector3(32, 1, 32)
+material = SubResource("StandardMaterial3D_floor")
+
+[node name="Enemies" type="Node3D" parent="NavigationRegion3D" unique_id=250288495]
+
+[node name="Items" type="Node3D" parent="NavigationRegion3D" unique_id=2123690795]
+
+[node name="EnemyCoordinator" type="Node" parent="." unique_id=1575834191]
+script = ExtResource("3_isso1")
+max_attackers = 2
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1971866417]
+transform = Transform3D(0.9258706, -0.24688895, 0.28602362, 0, 0.7569951, 0.65342057, -0.3778408, -0.6049829, 0.7008795, 0, 0, 0)
+light_color = Color(1, 0.84561145, 0.742742, 1)
+light_bake_mode = 1
+shadow_enabled = true
+
+[node name="LightmapGI" type="LightmapGI" parent="." unique_id=240514062]
+visible = false
+
+[node name="Interactions" type="Node3D" parent="." unique_id=2122647854]
+
+[node name="Cutscenes" type="Node3D" parent="." unique_id=783004402]
+
+[node name="Portals" type="Node3D" parent="." unique_id=1279512129]

@@ -27,8 +27,18 @@ var location: Node3D = null
 # A portal trip is in progress (fading / swapping). Ignores further travel calls.
 var _traveling: bool = false
 
+# Harness defaults, restored when a location doesn't override them.
+@onready var _world_environment: WorldEnvironment = get_node_or_null(^"WorldEnvironment") as WorldEnvironment
+@onready var _music_player: AudioStreamPlayer = get_node_or_null(^"AudioStreamPlayer") as AudioStreamPlayer
+var _default_environment: Environment = null
+var _default_music: AudioStream = null
+
 
 func _ready() -> void:
+	if _world_environment:
+		_default_environment = _world_environment.environment
+	if _music_player:
+		_default_music = _music_player.stream
 	var scene: PackedScene = _override_scene()
 	if not scene:
 		scene = active_scene
@@ -100,7 +110,24 @@ func _add_location(scene: PackedScene) -> void:
 		push_error("[Main] %s does not have a Node3D root." % scene.resource_path)
 		return
 	add_child(location)
+	_apply_location_overrides()
 	print("[Main] Loaded location: %s" % scene.resource_path)
+
+
+## Apply the loaded location's overrides (see Location), or restore the harness
+## defaults where it sets none — a plain Node3D root gets all defaults.
+func _apply_location_overrides() -> void:
+	var loc := location as Location
+	if _world_environment:
+		_world_environment.environment = loc.environment if loc and loc.environment else _default_environment
+	if _music_player:
+		var track: AudioStream = loc.music if loc and loc.music else _default_music
+		if _music_player.stream != track:
+			_music_player.stream = track
+			if track:
+				_music_player.play()
+	if GameManager:
+		GameManager.fall_limit_y = loc.fall_limit_y if loc and loc.override_fall_limit else GameManager.default_fall_limit_y
 
 
 ## The location to load instead of `active_scene`, if Play From Here or a portal
