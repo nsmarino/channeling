@@ -44,15 +44,21 @@ It covers the action system, the component map, testing practice and the traps.
     concrete enemies, the blast system, movement patterns.
   - `breakables/` — `Breakable` base + Mushroom 1.
   - `interactables/` — bounce mushrooms (no base class; see below).
-  - `interaction/` — `Interaction` + its step nodes (talk to NPCs; see below).
+  - `interaction/` — `Interaction` + its step nodes (talk to NPCs; see below),
+    and `key-items/` (pickup scenes such as `SmolderingEmber`; see Key items).
   - `level/` — `TriggerRegion`, `Portal`, level-authoring pieces.
   - `cutscene/` — `ExampleCutscene` and `IntroCutscene` (Interactions; see
     below), `ActorDriver`, `LookAtTarget`.
   - `pickups/`, `weapons/`.
-- **`autoloads/`** — `Events`, `GameManager`, `Cinematic`.
+- **`autoloads/`** — `Events`, `GameManager`, `Cinematic`, `Inventory`.
   `mcp_interaction_server.gd` is injected per-run by the MCP tool, not a project
   autoload; **treat its warnings as noise** when triaging.
 - **`ui/dialogue/`** — `DialogueUI` (DialogueBox + PromptBox), instanced in Main's HUD.
+- **`ui/key_items/`** — `KeyItemsUI` (HUD thumbnails + inspect mode), its glow and
+  vignette shaders; instanced in Main's HUD.
+- **`resources/`** — data resources (`.tres` + their scripts), one folder per kind:
+  `items/` (KeyItems), `spells/`. **New item/weapon/spell data goes here**, not
+  next to the scene that uses it.
 - **`vfx/`**, **`ui/`**, **`assets/`**, **`addons/`**, **`explores/`** — as named.
 
 ## Running & Tooling
@@ -102,6 +108,9 @@ the rebuild and copy what it wrote.
   `fade_in()` / `clear_fade()`, drawn over the bars). `show_bars()` / `hide_bars()` move only
   the bars (what interactions use); `begin()` / `end()` also emit the
   `cutscene_started` / `cutscene_finished` freeze, for code that wants both.
+- **`Inventory`** — the player's key items for the session (`add` / `remove(id)` /
+  `has(id)` / `get_items()`), announced on `Events.key_item_added` /
+  `key_item_removed`. See Key items.
 
 ### Locations (`levels/`)
 
@@ -323,10 +332,21 @@ Steps (`steps/`): `SayStep` (speaker, portrait, `lines` array — the DialogueBo
 types each out; press to reveal, press again to advance), `CameraStep` (blend to a
 Camera3D in the level, optional `look_at_target`), `SoundStep`, `AnimationStep`,
 `WaitStep`, `EventStep` (sets a GameManager flag and emits `fired` — connect it in
-the editor for any state change), `TimelineStep` (plays an AnimationPlayer clip
+the editor for any state change), `PickupStep` (takes a KeyItem; see Key items),
+`UseKeyItemStep` (offers a held KeyItem with a Give/Keep choice; see Key items),
+`TimelineStep` (plays an AnimationPlayer clip
 and waits for it to end; to aim a camera at something, give the camera a
 `LookAtTarget` child). New beat = extend `InteractionStep`, override
-`run()`, await inside it to hold the sequence.
+`run()`, await inside it to hold the sequence. A step that talks through the
+DialogueBox overrides `uses_dialogue_box()` to return true, so a run of them
+shares one open box. A step can call `interaction.end_early()` to skip the steps
+after it; the normal wrap-up (box, camera, `finished`) still runs. That is the
+only branching: steps don't jump.
+
+**Choices:** `DialogueBox.ask(speaker, portrait, question, options) -> int` types
+the question, then lists the options (first one highlighted). Up/down or
+left/right (`ui_*`, `move_*`, d-pad) moves the highlight; only `interact` picks,
+after a short `choice_input_delay`, so mashing through dialogue can't choose.
 
 **Cutscenes are Interactions.** `start_on_enter` starts on walking in (no prompt;
 re-arms only after the player leaves), `letterbox` slides the Cinematic bars in
@@ -397,7 +417,16 @@ view back to the player.
 State: `GameManager.flags` (`set_flag` / `has_flag`) live for the session and
 survive restarts. `once_flag` makes an interaction happen once and sets the flag;
 `required_flag` gates one on it — pair two Interactions on one NPC for "first
-meeting" then "follow-up". `one_shot` only lasts until the location reloads.
+meeting" then "follow-up". `unless_flag` hides one while a flag is set but, unlike
+`once_flag`, never sets it on finishing: use it when something inside the
+interaction decides (a given item), so declining leaves it repeatable.
+`one_shot` only lasts until the location reloads. `GameManager.set_flag` emits
+`Events.flag_changed` when a value changes.
+
+**`FlagSpawner`** (`objects/level/flag_spawner.gd`, Node3D) instances its `scene`
+as a child while its `flag` is true: checked on load and on `flag_changed`, so
+world changes driven by story state survive restarts. Prefer it over spawning
+from an `EventStep`'s `fired`, which is forgotten on reload.
 
 Details that matter: only one interaction holds the prompt at a time (static
 arbitration, first in range wins); the press that ends a conversation must be
@@ -407,6 +436,43 @@ still hands control back in `_exit_tree`. Player control is a **lock count**
 release each other; `Player.is_control_enabled()` gates `PlayerAbility` and
 `LockOnComponent`, which read input themselves. Enemies are NOT paused during a
 conversation — place NPCs where nothing will attack.
+
+### Key items
+
+A **`KeyItem`** (`resources/items/key_item.gd`; one `.tres` per item in
+`resources/items/`) has `id`, `display_name`, `description` and `icon` (a
+cut-out with transparency — the selection glow follows its alpha). Items are
+unique and compared by `id`.
+
+The **`Inventory`** autoload holds them for the session, like `GameManager.flags`:
+they survive death and restarts (the player node doesn't, which is why it isn't
+on the player).
+
+**Pickups** are ordinary Interaction scenes (`objects/interaction/key-items/`,
+e.g. `SmolderingEmber.tscn`) whose steps end in, or include, a **`PickupStep`**.
+It adds the item, sets `got_<id>` (or its `got_flag`), hides the item scene and
+stops it blocking right away, but only **frees it on `Interaction.finished`**
+(the Interaction is its child; freeing it mid-run would skip later steps and snap
+the camera). On load, a PickupStep whose flag is set frees its scene, so a taken
+item never respawns, even after it's been given away. `item_root` defaults to
+the Interaction's parent.
+
+**`KeyItemsUI`** (Main › HUD) shows a thumbnail per item in the lower left
+(pop-in on pickup, rebuilt from the Inventory on load). `key_items_inspect`
+(U / d-pad up) toggles inspect mode: a vignette, `key_item_prev` / `key_item_next`
+(arrows / d-pad) pick an item, which grows with a white glow
+(`icon_glow.gdshader`) while its description shows as a serif italic subtitle;
+"Nothing carried" when empty. The player keeps moving; it won't open while
+control is locked and closes on `interaction_started` / `cutscene_started`.
+
+**Giving items:** `UseKeyItemStep` offers its `item` if the player holds it
+("Give the {item}?", Give / Keep, the item's icon as portrait). Give removes it,
+sets `given_flag` and emits `given`, and the next steps run. Keep, or not holding
+it, ends the interaction (`continue_if_declined` / `continue_if_missing` to go
+on instead). `objects/interaction/BabyBird.tscn` is the worked example:
+- `Interaction` (`unless_flag gave_ember_to_bird`): describe → offer → thank.
+- `InteractionWarm` (`required_flag gave_ember_to_bird`): the follow-up.
+- `WhereEmberShouldGo` is a FlagSpawner showing `objects/ember.tscn` once given.
 
 ### Loot
 
@@ -434,7 +500,8 @@ player. The brain collects regions from the actions that reference them.
 
 Keyboard + gamepad throughout. `move_*` (WASD **and** IJKL), `jump`, `look_*`,
 `lock_on` (O / R3), `attack` (LMB / R2), `power_slam` (`;` / X), `interact`
-(E / Y), `restart` (R / Back).
+(E / Y), `restart` (R / Back), `key_items_inspect` (U / d-pad up),
+`key_item_prev` / `key_item_next` (← → / d-pad left, right).
 
 ### Collision layers
 
@@ -498,6 +565,12 @@ against it without registering it first.
 - **Never commit without explicit permission.**
 - **Git remote:** `origin` is `https://github.com/nsmarino/channeling.git`.
   `main` tracks `origin/main`.
+- **Blender source files** live in a separate repo,
+  `/Users/nicholasmarino/Desktop/avern/fse-working/via-cowork` (kits, characters,
+  level sketchpads — one per location in `levels/<area>/<area>.blend`; its
+  `README.md` has the conventions). `origin` is
+  `https://github.com/nsmarino/fse-blender.git`, `main` tracks `origin/main`.
+  Same rule: never commit there without explicit permission.
 - Deleting superseded prototype content is welcome — verify nothing references it
   first, keep the reusable *scripts*, delete the scenes and their tuning `.tres`.
 

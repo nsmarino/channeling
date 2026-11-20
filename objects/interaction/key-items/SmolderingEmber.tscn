@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://bjfhqslqvgndt"]
+
+[ext_resource type="Script" uid="uid://cihcinvebp1hl" path="res://objects/interaction/interaction.gd" id="1_q6roh"]
+[ext_resource type="Script" uid="uid://bfi0epqsf3rut" path="res://objects/interaction/steps/say_step.gd" id="2_xi57s"]
+[ext_resource type="Texture2D" uid="uid://ix7g7uscg6d3" path="res://assets/brackeys-vfx/particles/opague/spark_04.png" id="4_u4by1"]
+[ext_resource type="Script" uid="uid://b1robw8wqd4kt" path="res://objects/interaction/steps/pickup_step.gd" id="6_pickup"]
+[ext_resource type="PackedScene" uid="uid://dxp3e6puqojrj" path="res://objects/ember.tscn" id="6_u4by1"]
+[ext_resource type="Resource" path="res://resources/items/smoldering_ember.tres" id="7_item"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_body"]
+radius = 0.2
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_talk"]
+height = 2.5
+radius = 2.0
+
+[node name="SmolderingEmber" type="StaticBody3D" unique_id=1957278544]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1315073798]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+shape = SubResource("SphereShape3D_body")
+
+[node name="Interaction" type="Area3D" parent="." unique_id=1325949889]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_q6roh")
+prompt_text = "[E] Take"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Interaction" unique_id=2140612266]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+shape = SubResource("CylinderShape3D_talk")
+
+[node name="Find" type="Node" parent="Interaction" unique_id=1975350246]
+script = ExtResource("2_xi57s")
+portrait = ExtResource("4_u4by1")
+lines = Array[String](["An ember, still smoldering in the dirt. It doesn't burn when you pick it up — just warms."])
+
+[node name="Take" type="Node" parent="Interaction" unique_id=78295741]
+script = ExtResource("6_pickup")
+item = ExtResource("7_item")
+
+[node name="Ember" parent="." unique_id=620601953 instance=ExtResource("6_u4by1")]

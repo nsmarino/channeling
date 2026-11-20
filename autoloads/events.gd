@@ -19,6 +19,13 @@ signal interaction_prompt_hidden
 signal interaction_started(interaction: Node)
 signal interaction_finished(interaction: Node)
 
+# A GameManager story flag changed value (FlagSpawner listens).
+signal flag_changed(flag: StringName, value: bool)
+
+# Key items — emitted by the Inventory autoload when its contents change.
+signal key_item_added(item: KeyItem)
+signal key_item_removed(item: KeyItem)
+
 # Enemy / hit feedback
 signal enemy_hp_changed(current: int, max_val: int)
 signal enemy_damaged(amount: int)

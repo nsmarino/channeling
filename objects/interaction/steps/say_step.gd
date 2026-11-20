@@ -12,6 +12,10 @@ class_name SayStep
 @export_multiline var lines: Array[String] = []
 
 
+func uses_dialogue_box() -> bool:
+	return true
+
+
 func run(interaction: Interaction) -> void:
 	var box: DialogueBox = interaction.get_dialogue_box()
 	if box == null:

@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://kqqp25st4qnj"]
+
+[ext_resource type="Script" uid="uid://cihcinvebp1hl" path="res://objects/interaction/interaction.gd" id="1_ttyct"]
+[ext_resource type="Script" uid="uid://bfi0epqsf3rut" path="res://objects/interaction/steps/say_step.gd" id="2_0m218"]
+[ext_resource type="Script" path="res://objects/interaction/steps/use_key_item_step.gd" id="3_use"]
+[ext_resource type="Resource" path="res://resources/items/smoldering_ember.tres" id="4_ember_item"]
+[ext_resource type="Script" path="res://objects/level/flag_spawner.gd" id="5_spawner"]
+[ext_resource type="PackedScene" uid="uid://dxp3e6puqojrj" path="res://objects/ember.tscn" id="6_ember_scene"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_npc"]
+radius = 0.2
+height = 0.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_npc"]
+albedo_color = Color(0.85, 0.65, 0.35, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.35
+height = 1.7
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_talk"]
+height = 2.5
+radius = 2.0
+
+[node name="BabyBird" type="StaticBody3D" unique_id=1957278544]
+
+[node name="Body" type="MeshInstance3D" parent="." unique_id=258421617]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+mesh = SubResource("CapsuleMesh_npc")
+surface_material_override/0 = SubResource("StandardMaterial3D_npc")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1315073798]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="Interaction" type="Area3D" parent="." unique_id=1325949889]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_ttyct")
+unless_flag = &"gave_ember_to_bird"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Interaction" unique_id=2140612266]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+shape = SubResource("CylinderShape3D_talk")
+
+[node name="say_Describe" type="Node" parent="Interaction" unique_id=1975350246]
+script = ExtResource("2_0m218")
+lines = Array[String](["A baby bird that fell from its nest. It looks cold and hungry."])
+
+[node name="use_GiveEmber" type="Node" parent="Interaction"]
+script = ExtResource("3_use")
+item = ExtResource("4_ember_item")
+given_flag = &"gave_ember_to_bird"
+
+[node name="say_Warm" type="Node" parent="Interaction"]
+script = ExtResource("2_0m218")
+lines = Array[String](["You set the ember down beside it. The baby bird shuffles closer to the glow, and its feathers begin to fluff out. It looks warm."])
+
+[node name="InteractionWarm" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_ttyct")
+required_flag = &"gave_ember_to_bird"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionWarm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+shape = SubResource("CylinderShape3D_talk")
+
+[node name="say_WarmButHungry" type="Node" parent="InteractionWarm"]
+script = ExtResource("2_0m218")
+lines = Array[String](["The baby bird is warm and cozy beside the ember, but it still looks kind of hungry."])
+
+[node name="WhereEmberShouldGo" type="Node3D" parent="." unique_id=406451388]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8493595, 0, -0.82377607)
+script = ExtResource("5_spawner")
+scene = ExtResource("6_ember_scene")
+flag = &"gave_ember_to_bird"

@@ -17,3 +17,9 @@ class_name InteractionStep
 ## Do the beat. Await inside to hold the sequence until it's done.
 func run(_interaction: Interaction) -> void:
 	pass
+
+
+## True for steps that talk through the DialogueBox. A run of them shares one open
+## box; the Interaction closes it before any other kind of step.
+func uses_dialogue_box() -> bool:
+	return false

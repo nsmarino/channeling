@@ -120,7 +120,10 @@ func record_travel(scene_path: String, spawn_name: StringName) -> void:
 
 
 func set_flag(flag: StringName, value: bool = true) -> void:
+	var changed: bool = has_flag(flag) != value
 	flags[flag] = value
+	if changed:
+		Events.flag_changed.emit(flag, value)
 
 
 func has_flag(flag: StringName) -> bool:

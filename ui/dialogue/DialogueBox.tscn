@@ -67,6 +67,11 @@ mouse_filter = 2
 fit_content = true
 scroll_active = false
 
+[node name="Choices" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 2
+
 [node name="ContinueHint" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer"]
 visible = false
 layout_mode = 2

@@ -46,6 +46,10 @@ signal finished
 @export var once_flag: StringName = &""
 ## If set: only available while this GameManager flag is true.
 @export var required_flag: StringName = &""
+## If set: only available while this GameManager flag is false. Unlike once_flag
+## it is never set by finishing — something else sets it (a UseKeyItemStep, an
+## EventStep), so an interaction can repeat until that happens.
+@export var unless_flag: StringName = &""
 ## Group a body must belong to to use the interaction.
 @export var target_group: StringName = &"player"
 
@@ -104,6 +108,8 @@ var _moved_cameras: Dictionary[Camera3D, Transform3D] = {}
 var _entered_camera: bool = false
 # The player whose scripted move we claimed for `puppet_player`, to release.
 var _puppet: Node = null
+# A step asked to skip the rest of the sequence (end_early()).
+var _ending_early: bool = false
 
 
 ## Collision layer the player body is on (project layer 2, "player").
@@ -171,6 +177,7 @@ func start() -> void:
 	_has_run = true
 	_await_release = true
 	_entered_camera = false
+	_ending_early = false
 	_await_exit = start_on_enter
 	# Drop the prompt even if another interaction held it; it re-takes the prompt
 	# once this one ends and the player is still in its range.
@@ -189,12 +196,15 @@ func start() -> void:
 		await steps[i].call(&"run", self)
 		if not is_inside_tree():
 			return  # freed mid-sequence (restart, travel) — _exit_tree cleaned up
+		if _ending_early:
+			break  # the wrap-up below still runs: box, camera, flags, finished
 		# A run of dialogue just ended (Say → Timeline → Say): close the box so it
-		# doesn't sit open and empty through the next beat; the next SayStep opens
-		# it again with its intro. Back-to-back SaySteps keep one box open. The
-		# box after the LAST step is closed below, with the rest of the wrap-up.
-		var next_is_say: bool = i + 1 < steps.size() and steps[i + 1] is SayStep
-		if i + 1 < steps.size() and not next_is_say:
+		# doesn't sit open and empty through the next beat; the next dialogue step
+		# opens it again with its intro. Back-to-back dialogue steps (SayStep,
+		# UseKeyItemStep) keep one box open. The box after the LAST step is closed
+		# below, with the rest of the wrap-up.
+		var next_talks: bool = i + 1 < steps.size() and steps[i + 1].uses_dialogue_box()
+		if i + 1 < steps.size() and not next_talks:
 			var open_box: DialogueBox = get_dialogue_box()
 			if open_box and open_box.is_open():
 				await open_box.close()
@@ -216,6 +226,13 @@ func start() -> void:
 	_release_puppet()
 	_end()
 	finished.emit()
+
+
+## Called by a step to skip the steps after it (a declined offer, a missing
+## item). The sequence still wraps up normally: the box closes, the camera
+## returns, once_flag is set and `finished` fires.
+func end_early() -> void:
+	_ending_early = true
 
 
 ## Children that will actually run, in order.
@@ -469,6 +486,8 @@ func _is_available() -> bool:
 	if not once_flag.is_empty() and GameManager.has_flag(once_flag):
 		return false
 	if not required_flag.is_empty() and not GameManager.has_flag(required_flag):
+		return false
+	if not unless_flag.is_empty() and GameManager.has_flag(unless_flag):
 		return false
 	return true
 
