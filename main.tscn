@@ -6,17 +6,10 @@
 [ext_resource type="PackedScene" uid="uid://ba2v8hmkv07hv" path="res://ui/dialogue/DialogueUI.tscn" id="3_dialogue"]
 [ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/CombatUI.tscn" id="3_hud"]
 [ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://assets/sounds/music/selection menu.mp3" id="4_music"]
-
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_jw1n3"]
-sky_top_color = Color(0.50419885, 0.55173254, 0.7033061, 1)
-sky_horizon_color = Color(0.47580007, 0.324, 0.6, 1)
-sky_curve = 0.30000004
-ground_bottom_color = Color(0.1616432, 0.24675348, 0.31789073, 1)
-ground_horizon_color = Color(0.4745098, 0.3254902, 0.6, 1)
-ground_curve = 0.069643855
+[ext_resource type="Material" path="res://vfx/shaders/cloud_sky_material.tres" id="5_cloudsky"]
 
 [sub_resource type="Sky" id="Sky_s07ge"]
-sky_material = SubResource("ProceduralSkyMaterial_jw1n3")
+sky_material = ExtResource("5_cloudsky")
 
 [sub_resource type="Environment" id="Environment_qy63d"]
 background_mode = 2

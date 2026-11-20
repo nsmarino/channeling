@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://vfx/shaders/cloud_sky.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/sky_top_color = Color(0.50419885, 0.55173254, 0.7033061, 1)
+shader_parameter/sky_horizon_color = Color(0.47580007, 0.324, 0.6, 1)
+shader_parameter/sky_curve = 0.30000004
+shader_parameter/ground_bottom_color = Color(0.1616432, 0.24675348, 0.31789073, 1)
+shader_parameter/ground_horizon_color = Color(0.4745098, 0.3254902, 0.6, 1)
+shader_parameter/ground_curve = 0.069643855
+shader_parameter/sky_energy = 1.0
