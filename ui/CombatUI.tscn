@@ -8,14 +8,6 @@ font_color = Color(0.93979514, 0, 0.16222212, 0.9490196)
 outline_size = 8
 outline_color = Color(0.95, 0.5225, 0, 0.8156863)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lockon"]
-bg_color = Color(0, 0, 0, 0)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(1, 0.85, 0.1, 1)
-
 [sub_resource type="LabelSettings" id="LabelSettings_energy"]
 font_size = 16
 font_color = Color(0.6, 0.9, 1, 0.95)
@@ -72,26 +64,6 @@ text = "○"
 label_settings = SubResource("LabelSettings_crosshair")
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="LockOn" type="Control" parent="." unique_id=402530000]
-visible = false
-layout_mode = 3
-anchors_preset = 0
-mouse_filter = 2
-
-[node name="Square" type="Panel" parent="LockOn" unique_id=402530001]
-layout_mode = 0
-offset_left = -28.0
-offset_top = -28.0
-offset_right = 28.0
-offset_bottom = 28.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_lockon")
-
-[node name="EligibleMarkers" type="Control" parent="." unique_id=1520386693]
-layout_mode = 3
-anchors_preset = 0
-mouse_filter = 2
 
 [node name="Resources" type="VBoxContainer" parent="." unique_id=402530100]
 offset_left = 24.0
