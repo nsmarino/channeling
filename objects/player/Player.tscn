@@ -15,6 +15,9 @@
 radius = 0.4
 height = 1.8
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_camarm"]
+radius = 0.2
+
 [sub_resource type="SphereShape3D" id="SphereShape3D_bump"]
 radius = 0.9
 
@@ -51,6 +54,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6123047, 0.9638977, -1.3920
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 
 [node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot" unique_id=876503036]
+shape = SubResource("SphereShape3D_camarm")
 spring_length = 8.0
 margin = 0.2
 

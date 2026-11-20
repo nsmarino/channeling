@@ -20,7 +20,9 @@ signal hit(amount: int)
 ##     the target the whole time.
 ##
 ## The body itself never rotates — look lives on the pivot, facing on the Model.
-## The capsule renders slightly left of center via the camera's `h_offset`.
+## The capsule renders slightly left of center: the spring arm sits off to the
+## right of the pivot (a shoulder offset), placed by a sphere cast so a wall on the
+## right shortens it instead of being clipped through.
 ##
 ## Registers into the "player" group (GameManager finds the navigator and the HUD
 ## reads `hp` through it). Death/fall/Restart route through GameManager.
@@ -54,17 +56,20 @@ signal hit(amount: int)
 @export_category("Lock-On")
 ## LockOnComponent that owns targeting. Referenced duck-typed (no class_name).
 @export var lock_on_path: NodePath = ^"LockOnComponent"
-## Frustum offset (world units) so the capsule sits left of center in free look.
-## Higher = further left. Tunable live in the Inspector.
+## Shoulder offset (world units, to the camera's right) so the capsule sits left of
+## center in free look. Higher = further left. Tunable live in the Inspector.
 @export var camera_h_offset: float = 0.35
-## Frustum offset while locked — a touch more, to keep the target readable right.
+## Shoulder offset while locked — a touch more, to keep the target readable right.
 @export var locked_h_offset: float = 0.5
 ## Camera FOV while locked (tighter than the base FOV for a punch-in).
 @export var locked_fov: float = 50.0
 ## How fast the camera swings to frame the target (higher = snappier).
 @export var frame_lerp_speed: float = 8.0
-## How fast FOV / h_offset ease between free and locked.
+## How fast FOV / shoulder offset ease between free and locked.
 @export var blend_speed: float = 6.0
+## Radius of the sphere swept sideways from the pivot to place the shoulder: the
+## gap kept between the camera and a wall on its right.
+@export var shoulder_probe_radius: float = 0.3
 
 @export_category("Weapon")
 ## Weapon instanced under the WeaponSocket on ready and fired with `attack`
@@ -106,7 +111,8 @@ signal hit(amount: int)
 @export var camera_pivot_path: NodePath = ^"CameraPivot"
 ## Visible body that turns to face its target direction.
 @export var model_path: NodePath = ^"Model"
-## The Camera3D on the spring arm (for FOV / h_offset).
+## The Camera3D on the spring arm (for FOV). Its parent SpringArm3D is slid
+## sideways for the shoulder offset.
 @export var camera_path: NodePath = ^"CameraPivot/SpringArm3D/Camera3D"
 
 var hp: int = 0
@@ -148,6 +154,10 @@ var _gravity: float = 0.0
 var _yaw: float = 0.0
 var _pitch: float = 0.0
 var _base_fov: float = 65.0
+## Shoulder offset for the current mode (free/locked), before wall clamping.
+var _shoulder_wanted: float = 0.0
+var _spring_arm: SpringArm3D = null
+var _shoulder_probe: SphereShape3D = null
 var _weapon: Node = null
 var _weapon_socket: Node3D = null
 var _muzzle: Node3D = null
@@ -169,7 +179,10 @@ func _ready() -> void:
 		_pitch = _pivot.rotation.x
 	if _camera:
 		_base_fov = _camera.fov
-		_camera.h_offset = camera_h_offset
+		_camera.h_offset = 0.0
+		_spring_arm = _camera.get_parent() as SpringArm3D
+		_shoulder_wanted = camera_h_offset
+		_place_shoulder(_shoulder_wanted)
 	_weapon_socket = get_node_or_null(weapon_socket_path) as Node3D
 	_spawn_weapon()
 	Events.cutscene_started.connect(_lock_control)
@@ -276,7 +289,7 @@ func _process_gamepad_look(delta: float) -> void:
 		_apply_look(-look.x * gamepad_look_speed * delta, -look.y * gamepad_look_speed * delta)
 
 
-## Blend FOV / h_offset toward the current mode every frame, and — when locked —
+## Blend FOV / shoulder offset toward the current mode every frame, and — when locked —
 ## swing the pivot so its forward (-Z) points at the target, framing it.
 func _process_lock_camera(delta: float) -> void:
 	var locked := _is_locked()
@@ -285,7 +298,8 @@ func _process_lock_camera(delta: float) -> void:
 	if _camera:
 		var blend := clampf(blend_speed * delta, 0.0, 1.0)
 		_camera.fov = lerpf(_camera.fov, locked_fov if locked else _base_fov, blend)
-		_camera.h_offset = lerpf(_camera.h_offset, locked_h_offset if locked else camera_h_offset, blend)
+		_shoulder_wanted = lerpf(_shoulder_wanted, locked_h_offset if locked else camera_h_offset, blend)
+		_place_shoulder(_shoulder_wanted)
 
 	if not locked or target == null or _pivot == null:
 		return
@@ -335,6 +349,29 @@ func _process_movement(delta: float) -> void:
 		_face_point(global_position + direction, delta)
 
 	move_and_slide()
+
+
+## Slide the spring arm sideways from the pivot by as much of `offset` as is free:
+## a sphere swept along the pivot's right axis stops at the first wall. The arm
+## then casts back from there, so walls on that side are handled physically —
+## continuous as the camera slides along them, unlike a ray from the arm's tip.
+func _place_shoulder(offset: float) -> void:
+	if _spring_arm == null or _pivot == null:
+		return
+	var side := offset
+	if not is_zero_approx(offset) and is_inside_tree():
+		if _shoulder_probe == null:
+			_shoulder_probe = SphereShape3D.new()
+		_shoulder_probe.radius = shoulder_probe_radius
+		var query := PhysicsShapeQueryParameters3D.new()
+		query.shape = _shoulder_probe
+		query.transform = Transform3D(Basis.IDENTITY, _pivot.global_position)
+		query.motion = _pivot.global_transform.basis.x.normalized() * offset
+		query.collision_mask = _spring_arm.collision_mask
+		query.exclude = [get_rid()]
+		var fractions := get_world_3d().direct_space_state.cast_motion(query)
+		side = offset * fractions[0]
+	_spring_arm.position.x = side
 
 
 ## Map stick/WASD input onto the camera's yaw so "forward" is where you look.
