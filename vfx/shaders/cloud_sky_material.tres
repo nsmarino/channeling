@@ -1,13 +1,29 @@
-[gd_resource type="ShaderMaterial" format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://27ofud5ccbqe"]
 
-[ext_resource type="Shader" path="res://vfx/shaders/cloud_sky.gdshader" id="1_shader"]
+[ext_resource type="Shader" uid="uid://cvnov1may7tey" path="res://vfx/shaders/cloud_sky.gdshader" id="1_shader"]
 
 [resource]
 shader = ExtResource("1_shader")
 shader_parameter/sky_top_color = Color(0.50419885, 0.55173254, 0.7033061, 1)
-shader_parameter/sky_horizon_color = Color(0.47580007, 0.324, 0.6, 1)
+shader_parameter/sky_horizon_color = Color(0.4052841, 0.45346218, 0.6691284, 1)
 shader_parameter/sky_curve = 0.30000004
 shader_parameter/ground_bottom_color = Color(0.1616432, 0.24675348, 0.31789073, 1)
-shader_parameter/ground_horizon_color = Color(0.4745098, 0.3254902, 0.6, 1)
+shader_parameter/ground_horizon_color = Color(0.47157592, 0.5088135, 0.7093402, 1)
 shader_parameter/ground_curve = 0.069643855
 shader_parameter/sky_energy = 1.0
+shader_parameter/sun_angle_max = 30.0
+shader_parameter/sun_curve = 0.15
+shader_parameter/cloud_color = Color(0.96, 0.93, 1, 1)
+shader_parameter/cloud_shadow_color = Color(0.8376077, 0.57962435, 0.31686518, 1)
+shader_parameter/cloud_coverage = 0.45
+shader_parameter/cloud_softness = 0.32300001499324
+shader_parameter/cloud_opacity = 0.626000029735
+shader_parameter/cloud_size = 0.63400002848506
+shader_parameter/detail_strength = 0.166000007885
+shader_parameter/detail_size = 0.39700001722756
+shader_parameter/wind_direction = Vector2(1, 0.35)
+shader_parameter/wind_speed = 0.015
+shader_parameter/horizon_fade = 0.12
+shader_parameter/shade_steps = 0
+shader_parameter/silver_lining = 0.8
+shader_parameter/sun_tint = 0.25

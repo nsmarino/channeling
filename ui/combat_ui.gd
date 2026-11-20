@@ -98,4 +98,3 @@ func _update_energy() -> void:
 	if is_instance_valid(_player) and "energy" in _player and "max_energy" in _player:
 		energy_bar.max_value = _player.max_energy
 		energy_bar.value = _player.energy
-

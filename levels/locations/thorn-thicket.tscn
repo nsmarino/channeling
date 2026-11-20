@@ -3,6 +3,16 @@
 [ext_resource type="Script" uid="uid://bxvhtowap2v4q" path="res://levels/location.gd" id="1_51med"]
 [ext_resource type="Texture2D" uid="uid://c58clyh2d4y0j" path="res://assets/kenney_prototype-textures/PNG/Light/texture_06.png" id="2_yhvid"]
 [ext_resource type="Script" uid="uid://c23bju7icb7y1" path="res://objects/enemy/enemy_coordinator.gd" id="3_7x8hi"]
+[ext_resource type="PackedScene" uid="uid://bv7kq4xnwm2rt" path="res://objects/enemy/enemies/Ugrehk.tscn" id="3_l71ye"]
+[ext_resource type="PackedScene" uid="uid://bp3lf4gc7l8ab" path="res://assets/models/plants/sapling.glb" id="3_lmk4b"]
+[ext_resource type="PackedScene" uid="uid://ckmi5uep11ol6" path="res://assets/models/plants/bush.glb" id="4_aucsk"]
+[ext_resource type="PackedScene" uid="uid://djiw4peoiyk5o" path="res://placeholder/channel-thorn-thicket.tscn" id="4_yhvid"]
+[ext_resource type="PackedScene" uid="uid://iyetfdjtyg54" path="res://assets/models/plants/date-palm.glb" id="5_l71ye"]
+[ext_resource type="PackedScene" uid="uid://brc1pkvynv5gn" path="res://assets/models/ground/thorn-thicket-1.glb" id="6_aucsk"]
+[ext_resource type="PackedScene" uid="uid://cyamm3b4io1tm" path="res://assets/models/decor/debris.glb" id="8_d1eu7"]
+[ext_resource type="PackedScene" uid="uid://bn6wq3xk0qamt" path="res://objects/breakables/Mushroom1.tscn" id="8_fkqkp"]
+[ext_resource type="PackedScene" uid="uid://dp4hs7xnkw2vq" path="res://objects/interactables/Mushroom2.tscn" id="9_d1eu7"]
+[ext_resource type="PackedScene" uid="uid://dv6np2xkhsawm" path="res://objects/interactables/Mushroom2Large.tscn" id="10_lfdxd"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_tpl"]
 geometry_parsed_geometry_type = 1
@@ -21,20 +31,51 @@ script = ExtResource("1_51med")
 notes = "Rename this root. What is this location for? What works, what to try next?"
 
 [node name="PlayerSpawn" type="Marker3D" parent="." unique_id=174069565]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7649779, 5.60376)
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=485095318]
 navigation_mesh = SubResource("NavigationMesh_tpl")
 
 [node name="Floor" type="CSGBox3D" parent="NavigationRegion3D" unique_id=1126404787]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -11.439209, 0)
 use_collision = true
 size = Vector3(32, 1, 32)
 material = SubResource("StandardMaterial3D_floor")
 
 [node name="Enemies" type="Node3D" parent="NavigationRegion3D" unique_id=250288495]
 
+[node name="Ugrehk" parent="NavigationRegion3D/Enemies" unique_id=2141588728 instance=ExtResource("3_l71ye")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.3514175, 9.536743e-07, 11.580301)
+model_path = NodePath("Model")
+hitbox_path = NodePath("HitBox")
+hidden_depth = -1.55
+hidden_hitbox_y = 0.3
+revealed_hitbox_y = 1.2
+reveal_time = 0.35
+
 [node name="Items" type="Node3D" parent="NavigationRegion3D" unique_id=2123690795]
+
+[node name="_roughout" type="Node3D" parent="NavigationRegion3D" unique_id=157269159]
+
+[node name="shrub" parent="NavigationRegion3D/_roughout" unique_id=1526930434 instance=ExtResource("3_lmk4b")]
+
+[node name="bush" parent="NavigationRegion3D/_roughout" unique_id=1872036186 instance=ExtResource("4_aucsk")]
+
+[node name="palm" parent="NavigationRegion3D/_roughout" unique_id=1021352067 instance=ExtResource("5_l71ye")]
+
+[node name="level" parent="NavigationRegion3D" unique_id=1263283803 instance=ExtResource("6_aucsk")]
+
+[node name="debris" parent="NavigationRegion3D/level" unique_id=1785072841 instance=ExtResource("8_d1eu7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.0517697, 0.39141464, 7.0289774)
+
+[node name="Mushroom1" parent="NavigationRegion3D" unique_id=877941445 instance=ExtResource("8_fkqkp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.469594, 0.28403473, 7.493947)
+
+[node name="Mushroom2" parent="NavigationRegion3D" unique_id=1215312170 instance=ExtResource("9_d1eu7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.27426, 0.2840352, 11.024836)
+
+[node name="Mushroom2Large" parent="NavigationRegion3D" unique_id=791249813 instance=ExtResource("10_lfdxd")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 5.7471156, 0, 8.327822)
 
 [node name="EnemyCoordinator" type="Node" parent="." unique_id=1575834191]
 script = ExtResource("3_7x8hi")
@@ -42,6 +83,7 @@ max_attackers = 2
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1971866417]
 transform = Transform3D(0.9258706, -0.24688895, 0.28602362, 0, 0.7569951, 0.65342057, -0.3778408, -0.6049829, 0.7008795, 0, 0, 0)
+visible = false
 light_color = Color(1, 0.84561145, 0.742742, 1)
 light_bake_mode = 1
 shadow_enabled = true
@@ -54,3 +96,11 @@ visible = false
 [node name="Cutscenes" type="Node3D" parent="." unique_id=783004402]
 
 [node name="Portals" type="Node3D" parent="." unique_id=1279512129]
+
+[node name="_ref" type="Node3D" parent="." unique_id=1781333210]
+
+[node name="ThornThicket" parent="_ref" unique_id=1286918616 instance=ExtResource("4_yhvid")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.07118797, 0)
+visible = false
+
+[editable path="NavigationRegion3D/level"]

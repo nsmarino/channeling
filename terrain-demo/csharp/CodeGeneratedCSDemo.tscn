@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://w4eisl2c6xal"]
+
+[ext_resource type="PackedScene" uid="uid://cofnhdcclon1w" path="res://terrain-demo/CodeGeneratedDemo.tscn" id="1_qdypl"]
+[ext_resource type="Script" path="res://demo/csharp/CodeGenerated.cs" id="2_qdypl"]
+
+[node name="CodeGenerated" instance=ExtResource("1_qdypl")]
+script = ExtResource("2_qdypl")

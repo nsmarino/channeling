@@ -1,0 +1,16 @@
+[configuration]
+
+entry_symbol = "vertex_studio_native_init"
+compatibility_minimum = "4.3"
+reloadable = false
+
+[libraries]
+
+windows.x86_64 = "res://addons/vertex_studio/bin/libvsnative.windows.x86_64.dll"
+windows.x86_32 = "res://addons/vertex_studio/bin/libvsnative.windows.x86_32.dll"
+linux.x86_64 = "res://addons/vertex_studio/bin/libvsnative.linux.x86_64.so"
+linux.arm64 = "res://addons/vertex_studio/bin/libvsnative.linux.arm64.so"
+macos = "res://addons/vertex_studio/bin/libvsnative.macos.universal.framework"
+macos.arm64 = "res://addons/vertex_studio/bin/libvsnative.macos.arm64.framework"
+android.arm64 = "res://addons/vertex_studio/bin/libvsnative.android.arm64.so"
+android.arm32 = "res://addons/vertex_studio/bin/libvsnative.android.arm32.so"
