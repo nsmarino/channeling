@@ -54,6 +54,11 @@ It covers the action system, the component map, testing practice and the traps.
   `mcp_interaction_server.gd` is injected per-run by the MCP tool, not a project
   autoload; **treat its warnings as noise** when triaging.
 - **`ui/dialogue/`** — `DialogueUI` (DialogueBox + PromptBox), instanced in Main's HUD.
+  The DialogueBox is styled like the key-item inspect mode: vignette, centred
+  subtitle text (width capped by `text_max_width` and kept clear of the portrait),
+  portrait pinned to the lower-left corner, blinking ▼ hint to the lower-right.
+- **`ui/fonts/serif_italic.tres`** — the shared serif italic (a SystemFont:
+  Georgia / Times) used by dialogue and key-item subtitles.
 - **`ui/key_items/`** — `KeyItemsUI` (HUD thumbnails + inspect mode), its glow and
   vignette shaders; instanced in Main's HUD.
 - **`resources/`** — data resources (`.tres` + their scripts), one folder per kind:
@@ -462,7 +467,9 @@ the Interaction's parent.
 (U / d-pad up) toggles inspect mode: a vignette, `key_item_prev` / `key_item_next`
 (arrows / d-pad) pick an item, which grows with a white glow
 (`icon_glow.gdshader`) while its description shows as a serif italic subtitle;
-"Nothing carried" when empty. The player keeps moving; it won't open while
+"Nothing carried" when empty. A hint under the thumbnails reads "[U] Items" /
+"[U] Close" (`open_hint_text` / `close_hint_text`) and hides while an
+interaction or cutscene holds the player. The player keeps moving; it won't open while
 control is locked and closes on `interaction_started` / `cutscene_started`.
 
 **Giving items:** `UseKeyItemStep` offers its `item` if the player holds it

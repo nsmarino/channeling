@@ -1,8 +1,11 @@
 [gd_scene format=3 uid="uid://bskwjh1ps6wpq"]
 
 [ext_resource type="Script" uid="uid://b0g7qqegw5045" path="res://ui/dialogue/prompt_box.gd" id="1_script"]
+[ext_resource type="SystemFont" path="res://ui/fonts/serif_italic.tres" id="2_serif"]
 
-[node name="PromptBox" type="Control"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_panel"]
+
+[node name="PromptBox" type="Control" unique_id=505439432]
 layout_mode = 3
 anchors_preset = 7
 anchor_left = 0.5
@@ -18,7 +21,7 @@ grow_vertical = 0
 mouse_filter = 2
 script = ExtResource("1_script")
 
-[node name="PanelContainer" type="PanelContainer" parent="."]
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=771171504]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -26,16 +29,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_panel")
 
-[node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer" unique_id=1362551535]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 8
 
-[node name="PromptLabel" type="Label" parent="PanelContainer/MarginContainer"]
+[node name="PromptLabel" type="Label" parent="PanelContainer/MarginContainer" unique_id=914431177]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "[E] Talk"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 2
+theme_override_constants/shadow_outline_size = 8
+theme_override_fonts/font = ExtResource("2_serif")
+theme_override_font_sizes/font_size = 24
+text = "[O] Talk"
 horizontal_alignment = 1

@@ -17,6 +17,9 @@ class_name KeyItemsUI
 @export var next_action: StringName = &"key_item_next"
 ## Subtitle shown when inspecting with nothing in the inventory.
 @export var empty_text: String = "Nothing carried"
+## Lower-left key hint, when closed and while inspecting.
+@export var open_hint_text: String = "[U] Items"
+@export var close_hint_text: String = "[U] Close"
 
 @export_group("Thumbnails")
 ## Square size of each thumbnail slot (px). The icon is inset inside it by the
@@ -37,6 +40,7 @@ class_name KeyItemsUI
 @onready var _vignette: ColorRect = $Vignette
 @onready var _strip: HBoxContainer = $Strip
 @onready var _caption: Control = $Caption
+@onready var _hint: Label = $Hint
 @onready var _name_label: Label = $Caption/Name
 @onready var _description_label: Label = $Caption/Description
 
@@ -57,8 +61,16 @@ func _ready() -> void:
 		_add_thumb(item, false)
 	Events.key_item_added.connect(_on_item_added)
 	Events.key_item_removed.connect(_on_item_removed)
-	Events.interaction_started.connect(func(_i: Node) -> void: close())
-	Events.cutscene_started.connect(close)
+	# Hide the hint while something holds the player (U does nothing then).
+	Events.interaction_started.connect(func(_i: Node) -> void:
+		close()
+		_hint.hide())
+	Events.interaction_finished.connect(func(_i: Node) -> void: _hint.show())
+	Events.cutscene_started.connect(func() -> void:
+		close()
+		_hint.hide())
+	Events.cutscene_finished.connect(_hint.show)
+	_hint.text = open_hint_text
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -87,6 +99,7 @@ func open() -> void:
 	if _inspecting:
 		return
 	_inspecting = true
+	_hint.text = close_hint_text
 	_fade_vignette(1.0)
 	_selected = clampi(_selected, 0, maxi(_items.size() - 1, 0))
 	if _items.is_empty():
@@ -99,6 +112,7 @@ func close() -> void:
 	if not _inspecting:
 		return
 	_inspecting = false
+	_hint.text = open_hint_text
 	_fade_vignette(0.0)
 	_hide_caption()
 	if _selected < _thumbs.size():

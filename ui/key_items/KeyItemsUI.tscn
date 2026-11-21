@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://ui/key_items/key_items_ui.gd" id="1_ui"]
 [ext_resource type="Shader" path="res://ui/key_items/vignette.gdshader" id="2_vignette"]
 [ext_resource type="Shader" path="res://ui/key_items/icon_glow.gdshader" id="3_glow"]
+[ext_resource type="Font" path="res://ui/fonts/serif_italic.tres" id="4_serif"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_glow"]
 shader = ExtResource("3_glow")
@@ -19,10 +20,6 @@ shader_parameter/amount = 0.0
 shader_parameter/inner = 0.3
 shader_parameter/outer = 0.85
 shader_parameter/opacity = 0.85
-
-[sub_resource type="SystemFont" id="SystemFont_serif"]
-font_names = PackedStringArray("Georgia", "Times New Roman", "Serif")
-font_italic = true
 
 [node name="KeyItemsUI" type="CanvasLayer"]
 script = ExtResource("1_ui")
@@ -42,13 +39,33 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = -108.0
+offset_top = -136.0
 offset_right = 64.0
-offset_bottom = -24.0
+offset_bottom = -52.0
 grow_vertical = 0
 mouse_filter = 2
 theme_override_constants/separation = 8
 alignment = 0
+
+[node name="Hint" type="Label" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -48.0
+offset_right = 224.0
+offset_bottom = -16.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 2
+theme_override_constants/shadow_outline_size = 8
+theme_override_fonts/font = ExtResource("4_serif")
+theme_override_font_sizes/font_size = 20
+text = "[U] Items"
+vertical_alignment = 2
 
 [node name="Caption" type="VBoxContainer" parent="."]
 anchors_preset = -1
@@ -69,7 +86,7 @@ layout_mode = 2
 modulate = Color(1, 1, 1, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
 theme_override_constants/outline_size = 4
-theme_override_fonts/font = SubResource("SystemFont_serif")
+theme_override_fonts/font = ExtResource("4_serif")
 theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 
@@ -81,7 +98,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 2
 theme_override_constants/outline_size = 5
-theme_override_fonts/font = SubResource("SystemFont_serif")
+theme_override_fonts/font = ExtResource("4_serif")
 theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
 autowrap_mode = 3

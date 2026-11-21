@@ -1,8 +1,13 @@
 extends Control
 class_name DialogueBox
 
-## The on-screen dialogue panel: speaker name, optional portrait, typewriter body
-## text and a continue hint. Ported from Nightbloom v1.
+## The on-screen dialogue, styled like film subtitles to match the key-item
+## inspect mode: a vignette darkens the screen edges while it's open, and the
+## speaker name and typewriter body text sit centred near the bottom in the shared
+## serif italic. The portrait is pinned to the lower-left corner and the ▼
+## continue hint to the lower-right, both outside the text's layout, so neither
+## shifts it; the text's width is capped to stay clear of the portrait.
+## Ported from Nightbloom v1.
 ##
 ## Driven by SayStep, not by the Events bus — a step calls `say()` and awaits it,
 ## so a conversation is just steps running in order. The box stays open between
@@ -20,10 +25,17 @@ class_name DialogueBox
 @export var characters_per_second: float = 45.0
 ## Any of these advances a line. `attack` is LMB, so a mouse click works too.
 @export var advance_actions: Array[StringName] = [&"interact", &"jump", &"attack"]
-@export var fade_in_duration: float = 0.15
-@export var fade_out_duration: float = 0.15
-## How far the panel slides up as it fades in (px).
-@export var fade_slide_offset: float = 18.0
+@export var fade_in_duration: float = 0.25
+@export var fade_out_duration: float = 0.25
+## Widest the text may get (px). It also always stops short of the portrait's
+## corner, on both sides so it stays centred.
+@export var text_max_width: float = 720.0
+## Space kept between the text and the portrait (px).
+@export var text_portrait_gap: float = 24.0
+## Seconds for one blink of the ▼ continue hint (0 = steady).
+@export var hint_blink_period: float = 1.0
+## How far the hint dims at the bottom of a blink.
+@export_range(0.0, 1.0) var hint_min_alpha: float = 0.1
 
 @export_group("Choices")
 ## Picks the highlighted option.
@@ -40,18 +52,19 @@ signal _line_advanced
 signal _choice_made(index: int)
 
 @onready var panel_container: PanelContainer = $PanelContainer
-@onready var speaker_label: Label = $PanelContainer/MarginContainer/VBoxContainer/Header/SpeakerLabel
-@onready var body_label: RichTextLabel = $PanelContainer/MarginContainer/VBoxContainer/BodyRow/BodyText
-@onready var portrait_rect: TextureRect = $PanelContainer/MarginContainer/VBoxContainer/BodyRow/Portrait
-@onready var continue_hint: Label = $PanelContainer/MarginContainer/VBoxContainer/ContinueHint
-@onready var choices_box: VBoxContainer = $PanelContainer/MarginContainer/VBoxContainer/Choices
+@onready var vignette: ColorRect = $Vignette
+@onready var speaker_label: Label = $PanelContainer/VBoxContainer/SpeakerLabel
+@onready var body_label: RichTextLabel = $PanelContainer/VBoxContainer/BodyText
+@onready var portrait_rect: TextureRect = $Portrait
+@onready var continue_hint: Label = $ContinueHint
+@onready var choices_box: VBoxContainer = $PanelContainer/VBoxContainer/Choices
 
 var _current_text: String = ""
 var _reveal_progress: float = 0.0
 var _is_typing: bool = false
 var _waiting_for_advance: bool = false
 var _is_transitioning: bool = false
-var _panel_rest_position: Vector2 = Vector2.ZERO
+var _hint_time: float = 0.0
 # Options of the question being asked (empty when not asking).
 var _options: Array[String] = []
 var _choice: int = 0
@@ -62,7 +75,9 @@ var _choosing: bool = false
 func _ready() -> void:
 	add_to_group("dialogue_box")
 	hide()
-	_panel_rest_position = panel_container.position
+	_set_vignette(0.0)
+	resized.connect(_update_text_width)
+	_update_text_width()
 
 
 ## Show `lines` one at a time under `speaker`, waiting for the player to advance
@@ -85,6 +100,9 @@ func ask(speaker: String, portrait: Texture2D, question: String, options: Array[
 	await _open_for(speaker, portrait)
 	_options = options
 	_choice = 0
+	# Lay the options out (invisible) before typing, so the question doesn't jump
+	# up when they appear.
+	_build_choices()
 	_show_line(question)
 	var index: int = await _choice_made
 	_options = []
@@ -97,6 +115,7 @@ func ask(speaker: String, portrait: Texture2D, question: String, options: Array[
 # showing the previous run's speaker and line.
 func _open_for(speaker: String, portrait: Texture2D) -> void:
 	speaker_label.text = speaker
+	speaker_label.visible = not speaker.is_empty()
 	portrait_rect.texture = portrait
 	portrait_rect.visible = portrait != null
 	if not visible:
@@ -118,10 +137,18 @@ func close() -> void:
 	await _play_outro_transition()
 	_clear_choices()
 	hide()
-	panel_container.modulate.a = 1.0
-	panel_container.position = _panel_rest_position
 	_current_text = ""
 	portrait_rect.texture = null
+
+
+# Centre the text and cap its width: no wider than text_max_width, and clear of
+# the portrait's corner on both sides (whether or not a portrait is showing, so
+# the text never changes width between speakers).
+func _update_text_width() -> void:
+	var side: float = portrait_rect.offset_right + text_portrait_gap
+	var width: float = maxf(minf(text_max_width, size.x - 2.0 * side), 120.0)
+	panel_container.offset_left = -width * 0.5
+	panel_container.offset_right = width * 0.5
 
 
 func is_open() -> bool:
@@ -129,7 +156,11 @@ func is_open() -> bool:
 
 
 func _process(delta: float) -> void:
-	if not visible or not _is_typing:
+	if not visible:
+		return
+	if continue_hint.visible:
+		_blink_hint(delta)
+	if not _is_typing:
 		return
 	_reveal_progress += characters_per_second * delta
 	var visible_chars: int = mini(_current_text.length(), int(floor(_reveal_progress)))
@@ -182,16 +213,27 @@ func _handle_choice_input(event: InputEvent) -> void:
 		_set_choice(wrapi(_choice + 1, 0, _options.size()))
 
 
-# The question has finished typing: list the options, then take input shortly after.
-func _show_choices() -> void:
+# Lay the options out under the question, invisible until it has typed out.
+func _build_choices() -> void:
 	_clear_choices()
+	var font: Font = body_label.get_theme_font(&"normal_font")
 	for option: String in _options:
 		var label := Label.new()
-		label.text = option
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.add_theme_font_override(&"font", font)
 		label.add_theme_font_size_override(&"font_size", 22)
+		label.add_theme_color_override(&"font_outline_color", Color(0, 0, 0, 0.6))
+		label.add_theme_constant_override(&"outline_size", 4)
 		choices_box.add_child(label)
+	choices_box.modulate.a = 0.0
 	choices_box.visible = true
 	_set_choice(_choice)
+
+
+# The question has finished typing: show the options, then take input shortly after.
+func _reveal_choices() -> void:
+	var tween := create_tween()
+	tween.tween_property(choices_box, ^"modulate:a", 1.0, 0.15)
 	if choice_input_delay > 0.0:
 		await get_tree().create_timer(choice_input_delay).timeout
 	if not _options.is_empty() and visible:
@@ -203,7 +245,8 @@ func _set_choice(index: int) -> void:
 	for i: int in choices_box.get_child_count():
 		var label := choices_box.get_child(i) as Label
 		var selected: bool = i == index
-		label.text = ("▸  " if selected else "    ") + _options[i]
+		# Marks on both sides keep the centred word where it was.
+		label.text = ("›  %s  ‹" if selected else "%s") % _options[i]
 		label.add_theme_color_override(&"font_color",
 				choice_selected_color if selected else choice_unselected_color)
 
@@ -227,19 +270,33 @@ func _show_line(text: String) -> void:
 func _finish_typing() -> void:
 	_is_typing = false
 	if not _options.is_empty():
-		_show_choices()  # a question: list the options instead of the ▼ hint
+		_reveal_choices()  # a question: show the options instead of the ▼ hint
 		return
 	_waiting_for_advance = true
+	_hint_time = 0.0  # each line's hint starts fully lit
+	continue_hint.modulate.a = 1.0
 	continue_hint.visible = true
+
+
+# Fade the ▼ hint in and out: lit for the first half of each period, dim for
+# the second, with soft edges.
+func _blink_hint(delta: float) -> void:
+	_hint_time += delta
+	if hint_blink_period <= 0.0:
+		continue_hint.modulate.a = 1.0
+		return
+	var wave: float = 0.5 + 0.5 * cos(TAU * _hint_time / hint_blink_period)
+	continue_hint.modulate.a = lerpf(hint_min_alpha, 1.0, smoothstep(0.2, 0.8, wave))
 
 
 func _play_intro_transition() -> void:
 	_is_transitioning = true
 	panel_container.modulate.a = 0.0
-	panel_container.position = _panel_rest_position + Vector2(0, fade_slide_offset)
+	portrait_rect.modulate.a = 0.0
 	var tween := create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.tween_property(panel_container, ^"modulate:a", 1.0, fade_in_duration)
-	tween.tween_property(panel_container, ^"position", _panel_rest_position, fade_in_duration)
+	tween.tween_property(portrait_rect, ^"modulate:a", 1.0, fade_in_duration)
+	tween.tween_method(_set_vignette, _vignette_amount(), 1.0, fade_in_duration)
 	await tween.finished
 	_is_transitioning = false
 
@@ -248,6 +305,18 @@ func _play_outro_transition() -> void:
 	_is_transitioning = true
 	var tween := create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	tween.tween_property(panel_container, ^"modulate:a", 0.0, fade_out_duration)
-	tween.tween_property(panel_container, ^"position", _panel_rest_position + Vector2(0, fade_slide_offset), fade_out_duration)
+	tween.tween_property(portrait_rect, ^"modulate:a", 0.0, fade_out_duration)
+	tween.tween_method(_set_vignette, _vignette_amount(), 0.0, fade_out_duration)
 	await tween.finished
 	_is_transitioning = false
+
+
+func _set_vignette(amount: float) -> void:
+	var mat := vignette.material as ShaderMaterial
+	if mat:
+		mat.set_shader_parameter(&"amount", amount)
+
+
+func _vignette_amount() -> float:
+	var mat := vignette.material as ShaderMaterial
+	return float(mat.get_shader_parameter(&"amount")) if mat else 0.0
