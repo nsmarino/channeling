@@ -1,0 +1,65 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://yirvmdqa734w"]
+
+[ext_resource type="Shader" uid="uid://blxvvtdcc2g3x" path="res://vfx/shaders/water_plane.gdshader" id="1_water"]
+
+[sub_resource type="Gradient" id="Gradient_base"]
+colors = PackedColorArray(0.014485768, 0.23290744, 0.33699876, 1, 0.69607294, 0.9076923, 0.71205306, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_base"]
+noise_type = 2
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_base"]
+noise = SubResource("FastNoiseLite_base")
+color_ramp = SubResource("Gradient_base")
+seamless = true
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_li4kh"]
+noise_type = 2
+frequency = 0.0014
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_lfdxd"]
+noise = SubResource("FastNoiseLite_li4kh")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_overlay"]
+seed = 7
+frequency = 0.006
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_overlay"]
+noise = SubResource("FastNoiseLite_overlay")
+seamless = true
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_water")
+shader_parameter/base_tex = SubResource("NoiseTexture2D_base")
+shader_parameter/base_scale = 0.03125
+shader_parameter/base_dir = Vector2(1, 0)
+shader_parameter/base_speed = 0.01
+shader_parameter/overlay_tex = SubResource("NoiseTexture2D_overlay")
+shader_parameter/overlay_color = Color(0.85, 1, 0.95, 1)
+shader_parameter/overlay_opacity = 0.1010000047975
+shader_parameter/overlay_scale = 0.1
+shader_parameter/overlay_dir = Vector2(-1, 1)
+shader_parameter/overlay_speed = 0.02
+shader_parameter/overlay_low = 0.3
+shader_parameter/overlay_high = 0.8
+shader_parameter/overlay_steps = 0
+shader_parameter/overlay_blend = 2
+shader_parameter/edge_enabled = true
+shader_parameter/edge_color = Color(0.79406667, 0.86, 0.774, 1)
+shader_parameter/edge_width = 0.58999998681232
+shader_parameter/edge_softness = 0.910000043225
+shader_parameter/edge_breakup = 0.6070000288325
+shader_parameter/edge_noise_scale = 0.342
+shader_parameter/edge_noise_dir = Vector2(0, 1)
+shader_parameter/edge_noise_speed = 0.05
+shader_parameter/bottom_enabled = true
+shader_parameter/bottom_color = Color(0, 0.05, 0.12, 1)
+shader_parameter/bottom_strength = 0.6
+shader_parameter/bottom_start = 0.2
+shader_parameter/bottom_full = 2.0
+shader_parameter/bottom_tex = SubResource("NoiseTexture2D_lfdxd")
+shader_parameter/bottom_noise_scale = 0.08
+shader_parameter/bottom_noise_amount = 0.4310000204725
+shader_parameter/roughness = 1.0
+shader_parameter/specular = 0.5

@@ -22,7 +22,7 @@ shader_parameter/color6 = Color(0.329, 0.306, 0.408, 1)
 shader_parameter/color7 = Color(0.125, 0.236, 0.337, 1)
 shader_parameter/color8 = Color(0.05, 0.169, 0.271, 1)
 shader_parameter/enable_dithering = true
-shader_parameter/dither_strength = 0.2000000095
+shader_parameter/dither_strength = 0.3
 
 [sub_resource type="QuadMesh" id="QuadMesh_wuy2e"]
 material = SubResource("ShaderMaterial_w5bfo")

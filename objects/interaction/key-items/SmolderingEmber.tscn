@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://ix7g7uscg6d3" path="res://assets/brackeys-vfx/particles/opague/spark_04.png" id="4_u4by1"]
 [ext_resource type="Script" uid="uid://b1robw8wqd4kt" path="res://objects/interaction/steps/pickup_step.gd" id="6_pickup"]
 [ext_resource type="PackedScene" uid="uid://dxp3e6puqojrj" path="res://objects/ember.tscn" id="6_u4by1"]
+[ext_resource type="PackedScene" uid="uid://bn61smkgiqtjy" path="res://assets/models/household/brazier.glb" id="7_0fg5y"]
 [ext_resource type="Resource" path="res://resources/items/smoldering_ember.tres" id="7_item"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_body"]
@@ -13,6 +14,18 @@ radius = 0.2
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_talk"]
 height = 2.5
 radius = 2.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wsp3h"]
+albedo_color = Color(0, 0, 0, 1)
+emission_enabled = true
+emission = Color(0.94019645, 0.6345025, 0.13549367, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_rdbjv"]
+material = SubResource("StandardMaterial3D_wsp3h")
+top_radius = 0.2
+bottom_radius = 0.3
+height = 0.025
 
 [node name="SmolderingEmber" type="StaticBody3D" unique_id=1957278544]
 
@@ -40,3 +53,10 @@ script = ExtResource("6_pickup")
 item = ExtResource("7_item")
 
 [node name="Ember" parent="." unique_id=620601953 instance=ExtResource("6_u4by1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.66623807, 0)
+
+[node name="household" parent="." unique_id=334027602 instance=ExtResource("7_0fg5y")]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1019066833]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.50853145, 0)
+mesh = SubResource("CylinderMesh_rdbjv")
