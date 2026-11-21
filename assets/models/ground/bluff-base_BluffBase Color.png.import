@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://deqb6p34jatc"
-path.s3tc="res://.godot/imported/kelp-walls_Plane.png-d9d1045d7a0307a1d67ad6ea42f5f319.s3tc.ctex"
+uid="uid://86hleq0hdymp"
+path.s3tc="res://.godot/imported/bluff-base_BluffBase Color.png-0457dad1e78f0d62e75e70fcec01d242.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "d9220da21ff8068a6130978bb65eb06d"
+"md5": "16fffb5cbf5b8a7d2529b266de193870"
 }
 
 [deps]
 
-source_file="res://assets/models/rails/kelp-walls_Plane.png"
-dest_files=["res://.godot/imported/kelp-walls_Plane.png-d9d1045d7a0307a1d67ad6ea42f5f319.s3tc.ctex"]
+source_file="res://assets/models/ground/bluff-base_BluffBase Color.png"
+dest_files=["res://.godot/imported/bluff-base_BluffBase Color.png-0457dad1e78f0d62e75e70fcec01d242.s3tc.ctex"]
 
 [params]
 

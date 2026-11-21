@@ -1,0 +1,124 @@
+// Wind sway — a port of the WindSway geometry-nodes modifier from the Blender
+// plants file (props/plants/plants.blend), done as vertex displacement.
+//
+// Same knobs as the modifier, minus the vertex group (the whole mesh sways).
+// Blender is Z-up, Godot Y-up: height runs along object-space Y here, and the
+// wind direction is in Godot axes. Blender's (x, y, z) arrives as (x, z, -y), so
+// the modifier's default (1, 0.4, 0) is (1, 0, -0.4).
+//
+// The modifier measures the mesh's lowest and highest point itself; a shader
+// can't, so set `bounds_bottom` / `bounds_top` to the mesh's object-space Y
+// range (the AABB in the mesh's Inspector).
+shader_type spatial;
+render_mode cull_disabled, depth_draw_opaque;
+
+group_uniforms Surface;
+uniform sampler2D albedo_texture : source_color, filter_linear_mipmap, repeat_enable;
+uniform vec4 albedo_color : source_color = vec4(1.0);
+uniform float roughness : hint_range(0.0, 1.0) = 0.9;
+// Below this alpha a pixel is cut out (keeps shadows and depth sorting sane).
+uniform float alpha_scissor : hint_range(0.0, 1.0) = 0.5;
+
+group_uniforms Shape;
+// On: hangs from the top (scarves, banners). Off: rooted at the bottom (plants).
+uniform bool anchor_at_top = false;
+// Object-space Y of the mesh's lowest and highest vertex.
+uniform float bounds_bottom = 0.0;
+uniform float bounds_top = 1.0;
+// Higher = anchored end stiffer, free end moves more.
+uniform float falloff_power : hint_range(0.2, 5.0) = 1.6;
+
+group_uniforms Wind;
+// Steady push along the wind direction (m).
+uniform float strength : hint_range(0.0, 2.0) = 0.15;
+// Random flutter amount (m).
+uniform float turbulence : hint_range(0.0, 2.0) = 0.08;
+uniform vec3 wind_direction = vec3(1.0, 0.0, -0.4);
+// Seconds before the motion repeats seamlessly.
+uniform float loop_length : hint_range(0.5, 120.0) = 10.4167;
+// Gust pulses per loop.
+uniform int gust_waves : hint_range(1, 10) = 2;
+uniform float flutter_speed : hint_range(0.0, 10.0) = 0.6;
+uniform float flutter_scale : hint_range(0.0, 10.0) = 0.6;
+
+// Per node: give each copy a different seed (MeshInstance3D › Instance Shader
+// Parameters) so they move differently.
+instance uniform int seed = 7;
+
+// --- 3D gradient noise, standing in for Blender's 4D Noise Texture ---------
+
+vec3 hash3(vec3 p) {
+	p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
+			dot(p, vec3(269.5, 183.3, 246.1)),
+			dot(p, vec3(113.5, 271.9, 124.6)));
+	return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+}
+
+// Signed gradient noise, roughly -1..1.
+float gradient_noise(vec3 p) {
+	vec3 i = floor(p);
+	vec3 f = fract(p);
+	vec3 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+	return mix(mix(mix(dot(hash3(i + vec3(0, 0, 0)), f - vec3(0, 0, 0)),
+					dot(hash3(i + vec3(1, 0, 0)), f - vec3(1, 0, 0)), u.x),
+				mix(dot(hash3(i + vec3(0, 1, 0)), f - vec3(0, 1, 0)),
+					dot(hash3(i + vec3(1, 1, 0)), f - vec3(1, 1, 0)), u.x), u.y),
+			mix(mix(dot(hash3(i + vec3(0, 0, 1)), f - vec3(0, 0, 1)),
+					dot(hash3(i + vec3(1, 0, 1)), f - vec3(1, 0, 1)), u.x),
+				mix(dot(hash3(i + vec3(0, 1, 1)), f - vec3(0, 1, 1)),
+					dot(hash3(i + vec3(1, 1, 1)), f - vec3(1, 1, 1)), u.x), u.y), u.z);
+}
+
+// Blender's FBM at Detail 2 / Roughness 0.5 / Lacunarity 2, normalized:
+// three octaves, averaged. Returns about -0.5..0.5, i.e. Blender's
+// normalized output (0..1, centred on 0.5) with the 0.5 already taken off.
+float fbm(vec3 p) {
+	float sum = gradient_noise(p)
+			+ 0.5 * gradient_noise(p * 2.0)
+			+ 0.25 * gradient_noise(p * 4.0);
+	return 0.5 * sum / 1.75;
+}
+
+// Blender's Noise Texture Color: three decorrelated noise channels.
+vec3 noise_color(vec3 p, float w) {
+	vec3 o = vec3(w * 0.37, w * 0.61, w * 0.83);
+	return vec3(fbm(p + o),
+			fbm(p + o + vec3(19.19, 7.31, 3.77)),
+			fbm(p + o + vec3(5.47, 23.11, 11.93)));
+}
+
+// --- vertex ----------------------------------------------------------------
+
+void vertex() {
+	float height = max(bounds_top - bounds_bottom, 0.0001);
+	// 0 at the anchored end, 1 at the free end.
+	float along = anchor_at_top
+			? clamp((bounds_top - VERTEX.y) / height, 0.0, 1.0)
+			: clamp((VERTEX.y - bounds_bottom) / height, 0.0, 1.0);
+	float falloff = pow(along, falloff_power);
+
+	float s = float(seed);
+	float phase = TIME / loop_length * TAU;
+
+	// Gusts: a pulse travelling up the mesh, never fully slack (0.2..1.0).
+	float gust = sin(phase * float(gust_waves) + s * 2.3 + along * -1.4 * height);
+	vec3 steady = normalize(wind_direction) * (gust * 0.4 + 0.6) * strength;
+
+	// Flutter: noise sampled at a point that circles in the ground plane, so it
+	// loops with the gusts.
+	vec3 drift = vec3(cos(phase), 0.0, sin(phase)) * flutter_speed;
+	vec3 flutter = noise_color(VERTEX * flutter_scale + drift, s * 5.7) * turbulence;
+
+	VERTEX += (steady + flutter) * falloff;
+}
+
+// --- fragment --------------------------------------------------------------
+
+void fragment() {
+	vec4 tex = texture(albedo_texture, UV) * albedo_color;
+	ALBEDO = tex.rgb;
+	ALPHA = tex.a;
+	ALPHA_SCISSOR_THRESHOLD = alpha_scissor;
+	ROUGHNESS = roughness;
+	METALLIC = 0.0;
+}

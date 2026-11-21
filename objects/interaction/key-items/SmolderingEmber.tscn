@@ -24,7 +24,7 @@ shape = SubResource("SphereShape3D_body")
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("1_q6roh")
-prompt_text = "[E] Take"
+prompt_text = "[O] Examine"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Interaction" unique_id=2140612266]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)

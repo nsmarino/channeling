@@ -2,23 +2,24 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://djr5sk7msjv66"
-path="res://.godot/imported/kelp-walls_kelp-forest.png-1c583114aadbd0077fc1bf1c2bdf54c5.ctex"
+uid="uid://crqfwbu2cjfhn"
+path.s3tc="res://.godot/imported/graswold_Material Color.png-f69f4a0245c85d17d9ae8bdd290a9689.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "a45b58ff73581b524b1c825637b27ceb"
+"md5": "cbc05fe3c9c06ce71a09e805c8dd0854"
 }
 
 [deps]
 
-source_file="res://assets/models/rails/kelp-walls_kelp-forest.png"
-dest_files=["res://.godot/imported/kelp-walls_kelp-forest.png-1c583114aadbd0077fc1bf1c2bdf54c5.ctex"]
+source_file="res://assets/models/plants/graswold_Material Color.png"
+dest_files=["res://.godot/imported/graswold_Material Color.png-f69f4a0245c85d17d9ae8bdd290a9689.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
