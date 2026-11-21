@@ -31,10 +31,10 @@ It covers the action system, the component map, testing practice and the traps.
   start a new location), and the locations in two folders:
   - `locations/` — the game's places, each a template copy worked on in
     parallel: `cliff-route`, `coppo-cavern`, `ruin-plaza`, `shaft-grove`,
-    `sorrow-pool`, `thorn-thicket`.
-  - `explore/` — test and prototype levels: `hamptons_scene.tscn` (the current
-    active one), `proto_scene.tscn` (the original prototype, with
-    IntroCutscene), `duped_scene.tscn`, and the older `overworld/`, `dungeon/`.
+    `sorrow-pool`, `thorn-thicket` (Main's current `active_scene`).
+  - `explore/` — test and prototype levels: `hamptons_scene.tscn` (where the
+    SmolderingEmber and BabyBird examples are placed), `proto_scene.tscn` (the
+    original prototype, with IntroCutscene) and `duped_scene.tscn`.
 - **`placeholder/`** — untextured blockout geometry and placeholder creature
   models.
 - **`objects/`**
