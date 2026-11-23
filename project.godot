@@ -92,11 +92,6 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-
-
-
-
-
 Events="*res://autoloads/events.gd"
 GameManager="*res://autoloads/game_manager.gd"
 Cinematic="*res://autoloads/cinematic.gd"
@@ -257,3 +252,30 @@ key_item_next={
 
 anti_aliasing/quality/msaa_3d=1
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
+
+[shader_globals]
+
+wind_direction={
+"type": "vec3",
+"value": Vector3(1, 0, -0.4)
+}
+wind_strength={
+"type": "float",
+"value": 0.15
+}
+wind_turbulence={
+"type": "float",
+"value": 0.08
+}
+wind_loop_length={
+"type": "float",
+"value": 10.4167
+}
+wind_gust_waves={
+"type": "int",
+"value": 2
+}
+wind_flutter_speed={
+"type": "float",
+"value": 0.6
+}

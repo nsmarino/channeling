@@ -71,6 +71,12 @@ signal hit(amount: int)
 ## gap kept between the camera and a wall on its right.
 @export var shoulder_probe_radius: float = 0.3
 
+@export_category("Camera Pull")
+## How fast the spring arm eases out to a requested pull and back in (higher =
+## snappier). Pulls come from outside — a bounce pad's path flight asks for one
+## with set_camera_pull() — so the length is the pad's knob, this is the feel.
+@export var camera_pull_speed: float = 3.0
+
 @export_category("Weapon")
 ## Weapon instanced under the WeaponSocket on ready and fired with `attack`
 ## (semi/auto follows the weapon's own data). Swap it here to change loadout.
@@ -157,6 +163,11 @@ var _base_fov: float = 65.0
 ## Shoulder offset for the current mode (free/locked), before wall clamping.
 var _shoulder_wanted: float = 0.0
 var _spring_arm: SpringArm3D = null
+## The spring arm's length as authored, and the extra length currently asked for.
+var _base_spring_length: float = 0.0
+var _camera_pull: float = 0.0
+## Drop the pull on the next landing (see clear_camera_pull_on_landing()).
+var _camera_pull_until_floor: bool = false
 var _shoulder_probe: SphereShape3D = null
 var _weapon: Node = null
 var _weapon_socket: Node3D = null
@@ -181,6 +192,8 @@ func _ready() -> void:
 		_base_fov = _camera.fov
 		_camera.h_offset = 0.0
 		_spring_arm = _camera.get_parent() as SpringArm3D
+		if _spring_arm:
+			_base_spring_length = _spring_arm.spring_length
 		_shoulder_wanted = camera_h_offset
 		_place_shoulder(_shoulder_wanted)
 	_weapon_socket = get_node_or_null(weapon_socket_path) as Node3D
@@ -190,6 +203,32 @@ func _ready() -> void:
 	Events.interaction_started.connect(_on_interaction_started)
 	Events.interaction_finished.connect(_on_interaction_finished)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+## Ease the spring arm toward its authored length plus any requested pull. In
+## _process, not _physics_process, so it keeps easing during a scripted move
+## (which returns early from the physics step).
+func _process(delta: float) -> void:
+	if _spring_arm == null:
+		return
+	if _camera_pull_until_floor and not _scripted_move and is_on_floor():
+		_camera_pull_until_floor = false
+		_camera_pull = 0.0
+	var target: float = _base_spring_length + _camera_pull
+	_spring_arm.spring_length = lerpf(_spring_arm.spring_length, target, 1.0 - exp(-camera_pull_speed * delta))
+
+
+## Pull the camera back by `extra` metres (0 = back to normal). Eased, not
+## snapped. Cancels a pending clear_camera_pull_on_landing().
+func set_camera_pull(extra: float) -> void:
+	_camera_pull = maxf(extra, 0.0)
+	_camera_pull_until_floor = false
+
+
+## Keep the current pull until the player next lands, then ease back in — for a
+## flight that hands control back in mid-air.
+func clear_camera_pull_on_landing() -> void:
+	_camera_pull_until_floor = true
 
 
 func _unhandled_input(event: InputEvent) -> void:

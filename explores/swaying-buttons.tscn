@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://2o21fedd0n0q"]
+
+[ext_resource type="PackedScene" uid="uid://cb8jrro8lwc7g" path="res://assets/models/bluff/buttons.glb" id="1_3durx"]
+
+[node name="Node3D" type="Node3D" unique_id=498664858]
+
+[node name="buttons" parent="." unique_id=1238057048 instance=ExtResource("1_3durx")]

@@ -1,0 +1,220 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://vfx/particles/burst.gd" id="1_burst"]
+[ext_resource type="Texture2D" uid="uid://chrunhl81eno7" path="res://assets/brackeys-vfx/particles/alpha/circle_02_a.png" id="2_ring"]
+[ext_resource type="Texture2D" uid="uid://c4uuysv6fkvmw" path="res://assets/brackeys-vfx/particles/alpha/effect_03_a.png" id="3_flash"]
+[ext_resource type="Texture2D" uid="uid://15mwgfsi04u5" path="res://assets/brackeys-vfx/particles/alpha/star_04_a.png" id="4_sparkle"]
+[ext_resource type="Texture2D" uid="uid://f7w27ji8gk15" path="res://assets/brackeys-vfx/particles/alpha/smoke_07_a.png" id="5_dust"]
+
+[sub_resource type="Gradient" id="Gradient_ring"]
+offsets = PackedFloat32Array(0, 0.15, 1)
+colors = PackedColorArray(0.85, 1, 0.8, 0, 0.75, 1, 0.65, 1, 0.5, 0.9, 0.45, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ring"]
+gradient = SubResource("Gradient_ring")
+
+[sub_resource type="Curve" id="Curve_ring"]
+_data = [Vector2(0, 0.15), 0.0, 3.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_ring"]
+curve = SubResource("Curve_ring")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_ring"]
+gravity = Vector3(0, 0, 0)
+scale_curve = SubResource("CurveTexture_ring")
+color_ramp = SubResource("GradientTexture1D_ring")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring"]
+transparency = 1
+blend_mode = 1
+cull_mode = 2
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("2_ring")
+
+[sub_resource type="QuadMesh" id="QuadMesh_ring"]
+material = SubResource("StandardMaterial3D_ring")
+size = Vector2(3.2, 3.2)
+orientation = 1
+
+[sub_resource type="Gradient" id="Gradient_flash"]
+offsets = PackedFloat32Array(0, 0.1, 1)
+colors = PackedColorArray(1, 1, 1, 0, 0.9, 1, 0.85, 1, 0.6, 1, 0.55, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_flash"]
+gradient = SubResource("Gradient_flash")
+
+[sub_resource type="Curve" id="Curve_flash"]
+_data = [Vector2(0, 0.3), 0.0, 4.0, 0, 0, Vector2(0.35, 1), 0.0, 0.0, 0, 0, Vector2(1, 1.15), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_flash"]
+curve = SubResource("Curve_flash")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_flash"]
+angle_min = -180.0
+angle_max = 180.0
+gravity = Vector3(0, 0, 0)
+scale_curve = SubResource("CurveTexture_flash")
+color_ramp = SubResource("GradientTexture1D_flash")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_flash"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("3_flash")
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_flash"]
+material = SubResource("StandardMaterial3D_flash")
+size = Vector2(1.6, 1.6)
+
+[sub_resource type="Gradient" id="Gradient_sparkle"]
+offsets = PackedFloat32Array(0, 0.1, 0.7, 1)
+colors = PackedColorArray(1, 1, 1, 0, 0.9, 1, 0.8, 1, 0.6, 1, 0.5, 0.8, 0.45, 0.9, 0.4, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_sparkle"]
+gradient = SubResource("Gradient_sparkle")
+
+[sub_resource type="Curve" id="Curve_sparkle"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -1.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_sparkle"]
+curve = SubResource("Curve_sparkle")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_sparkle"]
+emission_shape = 6
+emission_ring_axis = Vector3(0, 1, 0)
+emission_ring_height = 0.1
+emission_ring_radius = 0.5
+emission_ring_inner_radius = 0.35
+direction = Vector3(0, 1, 0)
+spread = 25.0
+initial_velocity_min = 1.0
+initial_velocity_max = 2.2
+radial_velocity_min = 2.0
+radial_velocity_max = 3.5
+gravity = Vector3(0, -4, 0)
+damping_min = 2.5
+damping_max = 3.5
+scale_min = 0.6
+scale_curve = SubResource("CurveTexture_sparkle")
+color_ramp = SubResource("GradientTexture1D_sparkle")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sparkle"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("4_sparkle")
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_sparkle"]
+material = SubResource("StandardMaterial3D_sparkle")
+size = Vector2(0.3, 0.3)
+
+[sub_resource type="Gradient" id="Gradient_dust"]
+offsets = PackedFloat32Array(0, 0.15, 1)
+colors = PackedColorArray(0.8, 0.85, 0.75, 0, 0.8, 0.85, 0.75, 0.45, 0.7, 0.75, 0.65, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_dust"]
+gradient = SubResource("Gradient_dust")
+
+[sub_resource type="Curve" id="Curve_dust"]
+_data = [Vector2(0, 0.5), 0.0, 1.5, 0, 0, Vector2(1, 1.3), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_dust"]
+curve = SubResource("Curve_dust")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_dust"]
+emission_shape = 6
+emission_ring_axis = Vector3(0, 1, 0)
+emission_ring_height = 0.1
+emission_ring_radius = 0.6
+emission_ring_inner_radius = 0.5
+angle_min = -180.0
+angle_max = 180.0
+direction = Vector3(0, 1, 0)
+spread = 10.0
+initial_velocity_min = 0.1
+initial_velocity_max = 0.3
+radial_velocity_min = 1.0
+radial_velocity_max = 1.6
+gravity = Vector3(0, 0, 0)
+damping_min = 1.5
+damping_max = 2.5
+scale_min = 0.7
+scale_curve = SubResource("CurveTexture_dust")
+color_ramp = SubResource("GradientTexture1D_dust")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dust"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("5_dust")
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_dust"]
+material = SubResource("StandardMaterial3D_dust")
+size = Vector2(0.9, 0.9)
+
+[node name="BounceShockwave" type="Node3D"]
+script = ExtResource("1_burst")
+
+[node name="Ring" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 1
+lifetime = 0.45
+one_shot = true
+explosiveness = 1.0
+visibility_aabb = AABB(-2, -0.5, -2, 4, 1, 4)
+process_material = SubResource("ParticleProcessMaterial_ring")
+draw_pass_1 = SubResource("QuadMesh_ring")
+
+[node name="Flash" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 1
+lifetime = 0.3
+one_shot = true
+explosiveness = 1.0
+visibility_aabb = AABB(-1, -1, -1, 2, 2, 2)
+process_material = SubResource("ParticleProcessMaterial_flash")
+draw_pass_1 = SubResource("QuadMesh_flash")
+
+[node name="Sparkles" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 12
+lifetime = 0.7
+one_shot = true
+explosiveness = 1.0
+randomness = 0.4
+visibility_aabb = AABB(-2.5, -1, -2.5, 5, 3, 5)
+process_material = SubResource("ParticleProcessMaterial_sparkle")
+draw_pass_1 = SubResource("QuadMesh_sparkle")
+
+[node name="Dust" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 8
+lifetime = 0.9
+one_shot = true
+explosiveness = 1.0
+randomness = 0.3
+visibility_aabb = AABB(-2, -0.5, -2, 4, 1.5, 4)
+process_material = SubResource("ParticleProcessMaterial_dust")
+draw_pass_1 = SubResource("QuadMesh_dust")

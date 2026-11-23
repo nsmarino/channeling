@@ -1,0 +1,23 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://c52psafeyouq2"]
+
+[ext_resource type="Shader" uid="uid://bvqes0f0cd6hc" path="res://vfx/shaders/wind_sway.gdshader" id="1_fry7l"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_fry7l")
+shader_parameter/albedo_color = Color(0, 0, 0, 1)
+shader_parameter/roughness = 0.5
+shader_parameter/alpha_scissor = 0.5
+shader_parameter/emission_color = Color(0.6073969, 0.98790956, 1, 1)
+shader_parameter/emission_energy = 1.5
+shader_parameter/anchor_at_top = false
+shader_parameter/bounds_bottom = -0.16956615
+shader_parameter/bounds_top = 2.4964485
+shader_parameter/falloff_power = 1.6
+shader_parameter/strength = 0.15
+shader_parameter/turbulence = 0.08
+shader_parameter/wind_direction = Vector3(1, 0, -0.4)
+shader_parameter/loop_length = 10.4167
+shader_parameter/gust_waves = 2
+shader_parameter/flutter_speed = 0.6
+shader_parameter/flutter_scale = 0.6

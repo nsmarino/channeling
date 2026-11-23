@@ -526,6 +526,32 @@ Layer 3 is `hurtbox`, not `enemy` — breakables and props need it too. Enemy
 makes a bump land cleanly); set layer 1 only when something should physically
 block, like the Essurou.
 
+### Wind sway (`vfx/`)
+
+Plants and other soft props sway via `vfx/shaders/wind_sway.gdshader`, a port of
+the Blender `WindSway` geometry-nodes modifier (vertex displacement, whole mesh,
+rooted at the bottom unless `anchor_at_top`).
+
+- **The wind is global**: Project Settings › Shader Globals › `wind_direction`,
+  `wind_strength`, `wind_turbulence`, `wind_loop_length`, `wind_gust_waves`,
+  `wind_flutter_speed`. Change it at runtime with
+  `RenderingServer.global_shader_parameter_set()` (never `_get` outside the
+  editor — it errors).
+- **Opt a model in per .glb**: Import dock › Import Script ›
+  `vfx/wind_sway_import.gd`, Reimport. It writes one shared material per source
+  material next to the model (`<model>_wind.tres`, or
+  `<model>_<material>_wind.tres` when there are several) and points the model at
+  it. Every placed copy shares it; copies sway out of step via
+  `seed_from_position` (plus an optional per-node `seed` instance parameter).
+- **Reimport refreshes** albedo texture/colour, roughness, emission and the mesh
+  height bounds from the glb; **it keeps** the per-model tuning in the `.tres`
+  (`anchor_at_top`, `falloff_power`, `flutter_scale`, `strength_scale`,
+  `turbulence_scale`, `seed_from_position`, `alpha_scissor`). Normal maps etc.
+  are dropped — the shader doesn't have them.
+- Blender is Z-up: its `(x, y, z)` wind direction is `(x, z, -y)` here.
+- Headless reimport: `Godot --headless --import --path .` (touch the .glb first
+  if its import settings didn't change).
+
 ### Curved-path authoring (`addons/nurbs_path/`)
 
 `NurbsPath3D` (a `Path3D` subclass) authored as a control polygon rather than

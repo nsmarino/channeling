@@ -1,16 +1,32 @@
 // Wind sway — a port of the WindSway geometry-nodes modifier from the Blender
 // plants file (props/plants/plants.blend), done as vertex displacement.
 //
-// Same knobs as the modifier, minus the vertex group (the whole mesh sways).
+// The WIND is global: Project Settings › Shader Globals (`wind_*`), shared by
+// every swaying thing, and settable at runtime with
+// RenderingServer.global_shader_parameter_set(). Each material keeps the
+// SHAPE knobs (how this model bends) plus multipliers on the global strength
+// and turbulence, so a stiff shrub and a floppy frond share one wind.
+//
+// Materials are normally made by vfx/wind_sway_import.gd (an import script set
+// per model in the Import dock), which also fills in the surface and bounds.
+//
 // Blender is Z-up, Godot Y-up: height runs along object-space Y here, and the
 // wind direction is in Godot axes. Blender's (x, y, z) arrives as (x, z, -y), so
 // the modifier's default (1, 0.4, 0) is (1, 0, -0.4).
-//
-// The modifier measures the mesh's lowest and highest point itself; a shader
-// can't, so set `bounds_bottom` / `bounds_top` to the mesh's object-space Y
-// range (the AABB in the mesh's Inspector).
 shader_type spatial;
 render_mode cull_disabled, depth_draw_opaque;
+
+// --- the wind: Project Settings › Shader Globals ---------------------------
+// Steady push along the wind direction (m).
+global uniform float wind_strength;
+// Random flutter amount (m).
+global uniform float wind_turbulence;
+global uniform vec3 wind_direction;
+// Seconds before the motion repeats seamlessly.
+global uniform float wind_loop_length;
+// Gust pulses per loop.
+global uniform int wind_gust_waves;
+global uniform float wind_flutter_speed;
 
 group_uniforms Surface;
 uniform sampler2D albedo_texture : source_color, filter_linear_mipmap, repeat_enable;
@@ -19,31 +35,34 @@ uniform float roughness : hint_range(0.0, 1.0) = 0.9;
 // Below this alpha a pixel is cut out (keeps shadows and depth sorting sane).
 uniform float alpha_scissor : hint_range(0.0, 1.0) = 0.5;
 
+group_uniforms Emission;
+// Glow colour; black = no emission. Multiplied by the texture and energy, like
+// StandardMaterial3D's emission (Add operator).
+uniform vec4 emission_color : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+uniform float emission_energy : hint_range(0.0, 16.0) = 1.0;
+uniform sampler2D emission_texture : source_color, hint_default_white, filter_linear_mipmap, repeat_enable;
+
 group_uniforms Shape;
 // On: hangs from the top (scarves, banners). Off: rooted at the bottom (plants).
 uniform bool anchor_at_top = false;
-// Object-space Y of the mesh's lowest and highest vertex.
+// Object-space Y of the mesh's lowest and highest vertex (the import script
+// measures these).
 uniform float bounds_bottom = 0.0;
 uniform float bounds_top = 1.0;
 // Higher = anchored end stiffer, free end moves more.
 uniform float falloff_power : hint_range(0.2, 5.0) = 1.6;
-
-group_uniforms Wind;
-// Steady push along the wind direction (m).
-uniform float strength : hint_range(0.0, 2.0) = 0.15;
-// Random flutter amount (m).
-uniform float turbulence : hint_range(0.0, 2.0) = 0.08;
-uniform vec3 wind_direction = vec3(1.0, 0.0, -0.4);
-// Seconds before the motion repeats seamlessly.
-uniform float loop_length : hint_range(0.5, 120.0) = 10.4167;
-// Gust pulses per loop.
-uniform int gust_waves : hint_range(1, 10) = 2;
-uniform float flutter_speed : hint_range(0.0, 10.0) = 0.6;
+// Size of the flutter noise on this model: higher = busier, smaller ripples.
 uniform float flutter_scale : hint_range(0.0, 10.0) = 0.6;
+// Multipliers on the global wind: below 1 = stiffer, above 1 = floppier.
+uniform float strength_scale : hint_range(0.0, 4.0) = 1.0;
+uniform float turbulence_scale : hint_range(0.0, 4.0) = 1.0;
+// Add a seed derived from where the model stands, so copies placed around a
+// level sway out of step with no setup.
+uniform bool seed_from_position = true;
 
-// Per node: give each copy a different seed (MeshInstance3D › Instance Shader
-// Parameters) so they move differently.
-instance uniform int seed = 7;
+// Per node (MeshInstance3D › Instance Shader Parameters): an extra seed, for
+// copies that should differ but stand in the same spot.
+instance uniform int seed = 0;
 
 // --- 3D gradient noise, standing in for Blender's 4D Noise Texture ---------
 
@@ -98,16 +117,20 @@ void vertex() {
 	float falloff = pow(along, falloff_power);
 
 	float s = float(seed);
-	float phase = TIME / loop_length * TAU;
+	if (seed_from_position) {
+		vec3 p = NODE_POSITION_WORLD;
+		s += fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453) * 100.0;
+	}
+	float phase = TIME / wind_loop_length * TAU;
 
 	// Gusts: a pulse travelling up the mesh, never fully slack (0.2..1.0).
-	float gust = sin(phase * float(gust_waves) + s * 2.3 + along * -1.4 * height);
-	vec3 steady = normalize(wind_direction) * (gust * 0.4 + 0.6) * strength;
+	float gust = sin(phase * float(wind_gust_waves) + s * 2.3 + along * -1.4 * height);
+	vec3 steady = normalize(wind_direction) * (gust * 0.4 + 0.6) * wind_strength * strength_scale;
 
 	// Flutter: noise sampled at a point that circles in the ground plane, so it
 	// loops with the gusts.
-	vec3 drift = vec3(cos(phase), 0.0, sin(phase)) * flutter_speed;
-	vec3 flutter = noise_color(VERTEX * flutter_scale + drift, s * 5.7) * turbulence;
+	vec3 drift = vec3(cos(phase), 0.0, sin(phase)) * wind_flutter_speed;
+	vec3 flutter = noise_color(VERTEX * flutter_scale + drift, s * 5.7) * wind_turbulence * turbulence_scale;
 
 	VERTEX += (steady + flutter) * falloff;
 }
@@ -121,4 +144,5 @@ void fragment() {
 	ALPHA_SCISSOR_THRESHOLD = alpha_scissor;
 	ROUGHNESS = roughness;
 	METALLIC = 0.0;
+	EMISSION = emission_color.rgb * texture(emission_texture, UV).rgb * emission_energy;
 }
