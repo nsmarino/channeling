@@ -14,6 +14,17 @@
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_e4ut0"]
 height = 1.5
 
+[sub_resource type="Gradient" id="Gradient_xuqi2"]
+interpolation_mode = 2
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_wawy1"]
+gradient = SubResource("Gradient_xuqi2")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.95, 0.5)
+
 [node name="Enemy" unique_id=1726509542 instance=ExtResource("1_7nm3q")]
 max_hp = 5
 
@@ -27,13 +38,13 @@ shape = SubResource("CapsuleShape3D_e4ut0")
 [node name="MovementComponent" parent="." index="1" unique_id=1586329003]
 pattern = ExtResource("3_wander")
 
-[node name="Orbit" type="Node3D" parent="Actions" index="0" unique_id=1474613559]
+[node name="Orbit" type="Node3D" parent="Actions" parent_id_path=PackedInt32Array(1275521916) index="0" unique_id=1474613559]
 script = ExtResource("8_orbit")
 arc_units = 3.0
 weight = 0.45
 timeout = 6.0
 
-[node name="AttackCombo" type="Node3D" parent="Actions" index="1" unique_id=2104198915]
+[node name="AttackCombo" type="Node3D" parent="Actions" parent_id_path=PackedInt32Array(1275521916) index="1" unique_id=2104198915]
 script = ExtResource("9_combo")
 damage = 1
 weight = 0.55
@@ -164,7 +175,16 @@ idle_animation = &"Idle1"
 [node name="LockOnTargetComponent" parent="." index="12" unique_id=2110957130]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 
-[node name="BlobShadow" type="Decal" parent="."]
+[node name="HealthPips" parent="." index="14" unique_id=26479678]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0461907, 0)
+
+[node name="BlobShadow" type="Decal" parent="." index="15" unique_id=971003805]
+size = Vector3(2.2, 2, 2.6)
+texture_albedo = SubResource("GradientTexture2D_wawy1")
+modulate = Color(0, 0, 0, 0.7)
+normal_fade = 0.5
+upper_fade = 0.0
+lower_fade = 0.0
 script = ExtResource("20_blobshadow")
 shadow_size = Vector2(2.2, 2.6)
 

@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://dxdl3e55dkcxw"]
+
+[ext_resource type="Script" uid="uid://cihcinvebp1hl" path="res://objects/interaction/interaction.gd" id="1_kl2ok"]
+[ext_resource type="Script" uid="uid://bfi0epqsf3rut" path="res://objects/interaction/steps/say_step.gd" id="2_y42o1"]
+[ext_resource type="Texture2D" uid="uid://0ce2cqm0nioc" path="res://assets/brackeys-vfx/particles/opague/smoke_04.png" id="3_gocb5"]
+[ext_resource type="Script" uid="uid://b1robw8wqd4kt" path="res://objects/interaction/steps/pickup_step.gd" id="4_5wwfa"]
+[ext_resource type="Resource" uid="uid://2jr8v8757sgo" path="res://resources/items/green_spore.tres" id="5_mngga"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_y42o1"]
+radius = 0.2
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_kl2ok"]
+height = 2.5
+radius = 2.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kl2ok"]
+albedo_color = Color(0, 0, 0, 1)
+emission_enabled = true
+emission = Color(0.4812823, 0.8123515, 0, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_y42o1"]
+material = SubResource("StandardMaterial3D_kl2ok")
+top_radius = 0.2
+bottom_radius = 0.3
+height = 0.025
+
+[node name="GreenSpore" type="StaticBody3D" unique_id=1081168512]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1630322893]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+shape = SubResource("SphereShape3D_y42o1")
+
+[node name="Interaction" type="Area3D" parent="." unique_id=1154128111]
+script = ExtResource("1_kl2ok")
+prompt_text = "[O] Examine"
+metadata/_custom_type_script = "uid://cihcinvebp1hl"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Interaction" unique_id=1587985013]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+shape = SubResource("CylinderShape3D_kl2ok")
+
+[node name="SayStep" type="Node" parent="Interaction" unique_id=467396261]
+script = ExtResource("2_y42o1")
+portrait = ExtResource("3_gocb5")
+lines = Array[String](["A dormant spore. It could grow into a mushroom if given the proper nourishment."])
+metadata/_custom_type_script = "uid://bfi0epqsf3rut"
+
+[node name="PickupStep" type="Node" parent="Interaction" unique_id=1389725584]
+script = ExtResource("4_5wwfa")
+item = ExtResource("5_mngga")
+metadata/_custom_type_script = "uid://b1robw8wqd4kt"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=956920972]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+mesh = SubResource("CylinderMesh_y42o1")

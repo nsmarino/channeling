@@ -12,9 +12,11 @@
 [ext_resource type="PackedScene" uid="uid://b4h1ep7qebmuu" path="res://vfx/particles/blast.tscn" id="10_burst"]
 [ext_resource type="Script" uid="uid://dglfsh64ac1f3" path="res://objects/components/lock_on_target.gd" id="10_yjxd1"]
 [ext_resource type="Script" uid="uid://bvd8awcuiibx1" path="res://objects/components/melee_hitbox.gd" id="11_melee"]
-[ext_resource type="Script" uid="uid://cf9tj2xhrp6ws" path="res://objects/components/drop_component.gd" id="12_drop"]
-[ext_resource type="Script" uid="uid://ct7wm2xkvnq5b" path="res://objects/components/floating_text_component.gd" id="14_floattext"]
+[ext_resource type="Script" uid="uid://cgatj2xhrp6ws" path="res://objects/components/drop_component.gd" id="12_drop"]
 [ext_resource type="PackedScene" path="res://objects/pickups/PowerDrop.tscn" id="13_drop_scene"]
+[ext_resource type="Script" uid="uid://ct7wm2xkvnq5b" path="res://objects/components/floating_text_component.gd" id="14_floattext"]
+[ext_resource type="Script" uid="uid://jc7qgptvbkxg" path="res://objects/components/enemy_health_pips.gd" id="15_hppips"]
+[ext_resource type="Texture2D" uid="uid://b7xbog8cbgd5q" path="res://ui/hud/enemy-health-pip-full.png" id="17_ec57v"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
 radius = 1.2
@@ -39,29 +41,29 @@ shape = SubResource("SphereShape3D_hit")
 [node name="MovementComponent" type="Node" parent="." unique_id=1586329003]
 script = ExtResource("3_move")
 
-[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=1931435194]
 path_desired_distance = 0.6
 height = 1.5
 
-[node name="PerceptionComponent" type="Node" parent="."]
+[node name="PerceptionComponent" type="Node" parent="." unique_id=266229162]
 script = ExtResource("4_perception")
 
-[node name="EnemyBrain" type="Node" parent="."]
+[node name="EnemyBrain" type="Node" parent="." unique_id=1529554153]
 script = ExtResource("5_brain")
 
-[node name="Actions" type="Node3D" parent="."]
+[node name="Actions" type="Node3D" parent="." unique_id=1275521916]
 
-[node name="AttackBox" type="Area3D" parent="."]
+[node name="AttackBox" type="Area3D" parent="." unique_id=47445579]
 collision_layer = 0
 collision_mask = 2
 monitoring = false
 script = ExtResource("11_melee")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackBox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackBox" unique_id=2134303665]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.5, -0.9250001)
 shape = SubResource("CapsuleShape3D_attack")
 
-[node name="DropComponent" type="Node" parent="."]
+[node name="DropComponent" type="Node" parent="." unique_id=1215839573]
 script = ExtResource("12_drop")
 drop_scene = ExtResource("13_drop_scene")
 bump_chance = 0.5
@@ -84,5 +86,15 @@ death_burst = ExtResource("10_burst")
 script = ExtResource("10_yjxd1")
 metadata/_custom_type_script = "uid://dglfsh64ac1f3"
 
-[node name="FloatingTextComponent" type="Node" parent="."]
+[node name="FloatingTextComponent" type="Node" parent="." unique_id=299637745]
 script = ExtResource("14_floattext")
+
+[node name="HealthPips" type="Node3D" parent="." unique_id=26479678]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+script = ExtResource("15_hppips")
+full_texture = ExtResource("17_ec57v")
+pixel_size = 9.999999999999996e-05
+draw_through_walls = false
+reveal_time = 0.5
+reveal_stagger = 0.1
+empty_scale = 0.65

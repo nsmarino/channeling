@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://585x6trs8dp"]
+
+[ext_resource type="PackedScene" uid="uid://dv6np2xkhsawm" path="res://objects/interactables/Mushroom2Large.tscn" id="1_fuyno"]
+[ext_resource type="Script" uid="uid://cn8rbspth3d0a" path="res://addons/nurbs_path/nurbs_path_3d.gd" id="2_7alca"]
+
+[sub_resource type="Curve3D" id="Curve3D_frha2"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0.33333334, 1.6666666, 0, 0, 0, 0, 0.16666669, -1.3333333, 0, -0.16666666, 1.3333335, 0, 0.5, 4.6666665, 0, 0.5833334, 0, 0, -0.5833333, 0, 0, -0.9166667, 7, 0, 0.5, 1, 0, 0, 0, 0, -2.5, 5, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
+
+[node name="Node3D" type="Node3D" unique_id=1920888634]
+
+[node name="Mushroom2Large" parent="." unique_id=1092425878 instance=ExtResource("1_fuyno")]
+transform = Transform3D(-1.3998265, 0, -0.0220381, 0, 1.4, 0, 0.0220381, 0, -1.3998265, 0, 0, 0)
+
+[node name="BouncePad" parent="Mushroom2Large" index="3" unique_id=2051088603]
+path_node = NodePath("../NurbsPath3D")
+
+[node name="NurbsPath3D" type="Path3D" parent="Mushroom2Large" unique_id=1262493082]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5245711, 0)
+curve = SubResource("Curve3D_frha2")
+script = ExtResource("2_7alca")
+control_points = Array[Vector3]([Vector3(0, 0, 0), Vector3(1, 5, 0), Vector3(-1, 8, 0), Vector3(-2.5, 5, 0)])
+metadata/_custom_type_script = "uid://cn8rbspth3d0a"
+
+[editable path="Mushroom2Large"]

@@ -274,7 +274,13 @@ so a breakable prop doesn't drive the enemy HUD channel), `_label()`,
 **`Enemy`** (`base_enemy.gd`) — `enemy_data`, `activation_mode`
 (`DISTANCE` / `BUMP` / `MANUAL`), public `activate()`, and the `_on_activated()`
 virtual for what waking up looks like. In `BUMP` mode the first hit wakes the
-creature and **deals no damage** — that is what lets something disguise itself.
+creature (and still deals its damage) — that is what lets something disguise itself.
+
+**`EnemyHealthPips`** (`objects/components/enemy_health_pips.gd`, `HealthPips` on
+`BaseEnemy.tscn`) — a billboarded row of the player's HP pip textures above the
+enemy, one pip per HP (enemies are meant to stay at 10 HP or less), hidden until
+the enemy is first hit and again on death. Move the node to set the height per
+creature.
 
 **`Breakable`** (`objects/breakables/breakable.gd`) — deliberately almost empty.
 Its job is to exist as a *type* so a level can ask for breakables without also
@@ -442,7 +448,11 @@ interaction decides (a given item), so declining leaves it repeatable.
 **`FlagSpawner`** (`objects/level/flag_spawner.gd`, Node3D) instances its `scene`
 as a child while its `flag` is true: checked on load and on `flag_changed`, so
 world changes driven by story state survive restarts. Prefer it over spawning
-from an `EventStep`'s `fired`, which is forgotten on reload.
+from an `EventStep`'s `fired`, which is forgotten on reload. Its counterpart
+**`FlagDisableCollision`** (`objects/level/flag_disable_collision.gd`) turns
+collision off while a flag is set — its `targets` (shapes or bodies), else its
+parent's shapes. Pair it with the Interaction's `unless_flag` to retire an NPC:
+`objects/interaction/DeceasedSoldier.tscn` does both on `fed_spore_to_soldier`.
 
 Details that matter: only one interaction holds the prompt at a time (static
 arbitration, first in range wins); the press that ends a conversation must be

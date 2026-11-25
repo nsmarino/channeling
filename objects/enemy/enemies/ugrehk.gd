@@ -9,9 +9,7 @@ class_name Ugrehk
 ## the ground carrying a mouth, and now you are in a fight.
 ##
 ## The disguise is `activation_mode = BUMP` on the base: while INACTIVE the first
-## hit wakes it and deals no damage, so it cannot be quietly killed before it has
-## revealed itself. That would defeat the trick entirely — a player who bumped
-## every mushroom would never learn to fear one.
+## hit wakes it (and still deals its damage).
 ##
 ## The reveal is a position tween rather than an animation because the whole body
 ## is one rigid shape: the creature lives most of its length UNDERGROUND, sunk by

@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://b1robw8wqd4kt" path="res://objects/interaction/steps/pickup_step.gd" id="6_pickup"]
 [ext_resource type="PackedScene" uid="uid://dxp3e6puqojrj" path="res://objects/ember.tscn" id="6_u4by1"]
 [ext_resource type="PackedScene" uid="uid://bn61smkgiqtjy" path="res://assets/models/household/brazier.glb" id="7_0fg5y"]
-[ext_resource type="Resource" path="res://resources/items/smoldering_ember.tres" id="7_item"]
+[ext_resource type="Resource" uid="uid://b32e4wns2c2tm" path="res://resources/items/smoldering_ember.tres" id="7_item"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_body"]
 radius = 0.2
@@ -15,14 +15,14 @@ radius = 0.2
 height = 2.5
 radius = 2.0
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wsp3h"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0fg5y"]
 albedo_color = Color(0, 0, 0, 1)
 emission_enabled = true
 emission = Color(0.94019645, 0.6345025, 0.13549367, 1)
 emission_energy_multiplier = 2.0
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_rdbjv"]
-material = SubResource("StandardMaterial3D_wsp3h")
+material = SubResource("StandardMaterial3D_0fg5y")
 top_radius = 0.2
 bottom_radius = 0.3
 height = 0.025
@@ -46,7 +46,7 @@ shape = SubResource("CylinderShape3D_talk")
 [node name="Find" type="Node" parent="Interaction" unique_id=1975350246]
 script = ExtResource("2_xi57s")
 portrait = ExtResource("4_u4by1")
-lines = Array[String](["An ember, still smoldering in the dirt. It doesn't burn when you pick it up — just warms."])
+lines = Array[String](["The brazier has been filled with embers as a tribute to the birds."])
 
 [node name="Take" type="Node" parent="Interaction" unique_id=78295741]
 script = ExtResource("6_pickup")
@@ -55,7 +55,7 @@ item = ExtResource("7_item")
 [node name="Ember" parent="." unique_id=620601953 instance=ExtResource("6_u4by1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.66623807, 0)
 
-[node name="household" parent="." unique_id=334027602 instance=ExtResource("7_0fg5y")]
+[node name="Brazier" parent="." unique_id=334027602 instance=ExtResource("7_0fg5y")]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1019066833]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.50853145, 0)

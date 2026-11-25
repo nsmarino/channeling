@@ -13,6 +13,11 @@ class_name PerceptionComponent
 ## `lose_distance`. Without that hysteresis the alert would flicker every time the
 ## player clipped the edge of the cone, and the brain would stutter between states.
 ##
+## Being HIT also counts as noticing (`alert_on_hit`): the host's `hit` signal
+## alerts it as if it had just seen the player, wherever they are, so a hit from
+## behind turns it round instead of leaving it wandering. The usual
+## `lose_grace` / `lose_distance` then apply as for any sighting.
+##
 ## Read by EnemyBrain via is_alerted(); also emits signals for one-shot reactions.
 
 signal player_spotted
@@ -34,6 +39,8 @@ signal player_lost
 @export var target_height: float = 1.0
 ## Layers that block sight. Defaults to `environment` (layer 1).
 @export_flags_3d_physics var sight_blockers: int = 1
+## Being hit alerts it, even from outside the vision cone.
+@export var alert_on_hit: bool = true
 @export var debug_log: bool = false
 
 var _body: Node3D = null
@@ -46,6 +53,20 @@ func _setup() -> void:
 	_body = host as Node3D
 	_player = get_tree().get_first_node_in_group("player") as Node3D
 	set_physics_process(false)
+	if host and host.has_signal("hit"):
+		host.connect("hit", _on_host_hit)
+
+
+## A hit is a sighting: alert now and restart the give-up timer.
+func _on_host_hit(_amount: int) -> void:
+	if not alert_on_hit or not is_instance_valid(_player):
+		return
+	_time_unseen = 0.0
+	if not _alerted:
+		_alerted = true
+		if debug_log:
+			print("[Perception] %s was hit and noticed the player" % String(host.name))
+		player_spotted.emit()
 
 
 func on_activate() -> void:

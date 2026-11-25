@@ -25,8 +25,7 @@ class_name Enemy
 ## How this enemy wakes up.
 ##   DISTANCE — the player gets within `activation_distance`. The default.
 ##   BUMP     — it stays dormant until something HITS it. The first hit wakes it
-##              and deals no damage, so a creature disguised as scenery cannot be
-##              killed before it has revealed itself.
+##              and still deals its damage.
 ##   MANUAL   — nothing wakes it automatically; a cutscene or another script calls
 ##              activate().
 enum Activation { DISTANCE, BUMP, MANUAL }
@@ -163,13 +162,10 @@ func _on_activated() -> void:
 
 # --- Overrides -------------------------------------------------------------
 
-## In BUMP mode the first hit is the wake-up call and deals nothing: a creature
-## pretending to be scenery must not be killable before it has dropped the act.
-## Every later hit goes through normally.
+## In BUMP mode the first hit is the wake-up call, and it still lands its damage.
 func take_damage(amount: int, is_blast: bool = false) -> void:
 	if state == State.INACTIVE and activation_mode == Activation.BUMP:
 		activate()
-		return
 	super.take_damage(amount, is_blast)
 
 ## Enemies (unlike bare Destructibles) feed the enemy hit-feedback channel.

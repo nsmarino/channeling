@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" uid="uid://cihcinvebp1hl" path="res://objects/interaction/interaction.gd" id="1_ttyct"]
 [ext_resource type="Script" uid="uid://bfi0epqsf3rut" path="res://objects/interaction/steps/say_step.gd" id="2_0m218"]
-[ext_resource type="Script" path="res://objects/interaction/steps/use_key_item_step.gd" id="3_use"]
-[ext_resource type="Resource" path="res://resources/items/smoldering_ember.tres" id="4_ember_item"]
-[ext_resource type="Script" path="res://objects/level/flag_spawner.gd" id="5_spawner"]
+[ext_resource type="Script" uid="uid://bybfdcsoahonk" path="res://objects/interaction/steps/use_key_item_step.gd" id="3_use"]
+[ext_resource type="Resource" uid="uid://b32e4wns2c2tm" path="res://resources/items/smoldering_ember.tres" id="4_ember_item"]
+[ext_resource type="Script" uid="uid://caki6d3is5hve" path="res://objects/level/flag_spawner.gd" id="5_spawner"]
 [ext_resource type="PackedScene" uid="uid://dxp3e6puqojrj" path="res://objects/ember.tscn" id="6_ember_scene"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_npc"]
@@ -37,6 +37,7 @@ shape = SubResource("CapsuleShape3D_body")
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("1_ttyct")
+prompt_text = "[O] Chat"
 unless_flag = &"gave_ember_to_bird"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Interaction" unique_id=2140612266]
@@ -47,26 +48,26 @@ shape = SubResource("CylinderShape3D_talk")
 script = ExtResource("2_0m218")
 lines = Array[String](["A baby bird that fell from its nest. It looks cold and hungry."])
 
-[node name="use_GiveEmber" type="Node" parent="Interaction"]
+[node name="use_GiveEmber" type="Node" parent="Interaction" unique_id=1540563108]
 script = ExtResource("3_use")
 item = ExtResource("4_ember_item")
 given_flag = &"gave_ember_to_bird"
 
-[node name="say_Warm" type="Node" parent="Interaction"]
+[node name="say_Warm" type="Node" parent="Interaction" unique_id=1168601944]
 script = ExtResource("2_0m218")
 lines = Array[String](["You set the ember down beside it. The baby bird shuffles closer to the glow, and its feathers begin to fluff out. It looks warm."])
 
-[node name="InteractionWarm" type="Area3D" parent="."]
+[node name="InteractionWarm" type="Area3D" parent="." unique_id=1184614964]
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("1_ttyct")
 required_flag = &"gave_ember_to_bird"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionWarm"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionWarm" unique_id=1792088954]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
 shape = SubResource("CylinderShape3D_talk")
 
-[node name="say_WarmButHungry" type="Node" parent="InteractionWarm"]
+[node name="say_WarmButHungry" type="Node" parent="InteractionWarm" unique_id=741832819]
 script = ExtResource("2_0m218")
 lines = Array[String](["The baby bird is warm and cozy beside the ember, but it still looks kind of hungry."])
 

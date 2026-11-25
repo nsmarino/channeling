@@ -13,6 +13,7 @@ outline_color = Color(0.95, 0.5225, 0, 0.8156863)
 [node name="CombatUI" type="CanvasLayer" unique_id=1419006388]
 script = ExtResource("1_combat_ui_script")
 health_pip_size = Vector2(32, 32)
+empty_pip_scale = 0.6
 power_pip_size = Vector2(24, 24)
 
 [node name="Crosshair" type="Control" parent="." unique_id=2020455207]

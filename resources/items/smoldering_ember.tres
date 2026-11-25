@@ -1,11 +1,11 @@
-[gd_resource type="Resource" script_class="KeyItem" format=3]
+[gd_resource type="Resource" script_class="KeyItem" format=3 uid="uid://b32e4wns2c2tm"]
 
-[ext_resource type="Script" path="res://resources/items/key_item.gd" id="1_item"]
-[ext_resource type="Texture2D" path="res://assets/brackeys-vfx/particles/alpha/flame_02_a.png" id="2_icon"]
+[ext_resource type="Script" uid="uid://duqv7shxajt42" path="res://resources/items/key_item.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://c278vombtoawt" path="res://assets/brackeys-vfx/particles/alpha/flame_02_a.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_item")
 id = &"smoldering_ember"
 display_name = "Smoldering Ember"
-description = "A coal that will not go out. It breathes a little heat into your palm, as if it remembers being a fire."
+description = "Mostly ash but some faint heat remains."
 icon = ExtResource("2_icon")
