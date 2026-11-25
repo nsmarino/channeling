@@ -30,8 +30,10 @@ var _traveling: bool = false
 # Harness defaults, restored when a location doesn't override them.
 @onready var _world_environment: WorldEnvironment = get_node_or_null(^"WorldEnvironment") as WorldEnvironment
 @onready var _music_player: AudioStreamPlayer = get_node_or_null(^"AudioStreamPlayer") as AudioStreamPlayer
+@onready var _ambience_player: AudioStreamPlayer = get_node_or_null(^"AmbiencePlayer") as AudioStreamPlayer
 var _default_environment: Environment = null
 var _default_music: AudioStream = null
+var _default_ambience: AudioStream = null
 
 
 func _ready() -> void:
@@ -39,6 +41,8 @@ func _ready() -> void:
 		_default_environment = _world_environment.environment
 	if _music_player:
 		_default_music = _music_player.stream
+	if _ambience_player:
+		_default_ambience = _ambience_player.stream
 	var scene: PackedScene = _override_scene()
 	if not scene:
 		scene = active_scene
@@ -121,13 +125,26 @@ func _apply_location_overrides() -> void:
 	if _world_environment:
 		_world_environment.environment = loc.environment if loc and loc.environment else _default_environment
 	if _music_player:
-		var track: AudioStream = loc.music if loc and loc.music else _default_music
-		if _music_player.stream != track:
-			_music_player.stream = track
-			if track:
-				_music_player.play()
+		_set_stream(_music_player, loc.music if loc and loc.music else _default_music)
+	if _ambience_player:
+		_set_stream(_ambience_player, loc.ambience if loc and loc.ambience else _default_ambience)
 	if GameManager:
 		GameManager.fall_limit_y = loc.fall_limit_y if loc and loc.override_fall_limit else GameManager.default_fall_limit_y
+
+
+## Switch a player to `stream` and start it, unless it is already that stream —
+## so a portal trip between two places sharing a track doesn't restart it.
+## Null stops it.
+func _set_stream(player: AudioStreamPlayer, stream: AudioStream) -> void:
+	if player.stream == stream:
+		if stream and not player.playing:
+			player.play()
+		return
+	player.stream = stream
+	if stream:
+		player.play()
+	else:
+		player.stop()
 
 
 ## The location to load instead of `active_scene`, if Play From Here or a portal

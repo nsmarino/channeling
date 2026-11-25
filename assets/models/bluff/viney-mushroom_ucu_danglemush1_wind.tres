@@ -1,0 +1,24 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dlguekdau7tq3"]
+
+[ext_resource type="Shader" uid="uid://bvqes0f0cd6hc" path="res://vfx/shaders/wind_sway.gdshader" id="1_u7uj5"]
+[ext_resource type="Texture2D" uid="uid://b7n7exkkmh27q" path="res://assets/models/bluff/viney-mushroom_Plane.png" id="2_5iqpd"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_u7uj5")
+shader_parameter/albedo_texture = ExtResource("2_5iqpd")
+shader_parameter/albedo_color = Color(1, 1, 1, 1)
+shader_parameter/roughness = 0.5
+shader_parameter/alpha_scissor = 0.5
+shader_parameter/emission_color = Color(0, 0, 0, 1)
+shader_parameter/emission_energy = 1.0
+shader_parameter/anchor_at_top = false
+shader_parameter/bounds_bottom = -0.0001504585
+shader_parameter/bounds_top = 0.93503183
+shader_parameter/falloff_power = 1.6
+shader_parameter/flutter_scale = 0.6
+shader_parameter/lean = 0.1
+shader_parameter/strength_scale = 0.10000000475
+shader_parameter/turbulence_scale = 0.10000000475
+shader_parameter/size_response = 1.0
+shader_parameter/seed_from_position = true

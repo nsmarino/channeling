@@ -142,7 +142,9 @@ Shared things (player, HUD, environment, music) stay in `main.tscn`.
 **The `Location` root script** (`levels/location.gd`, on the template's root)
 holds `notes` — what the place is for and what to try next, for picking a level
 back up after working on another — and **overrides** of what Main shares:
-`environment` (replaces the WorldEnvironment's), `music`, and `fall_limit_y`
+`environment` (replaces the WorldEnvironment's), `music`, `ambience` (a second
+looping bed on Main's `AmbiencePlayer`, under the music; none by default) and
+`fall_limit_y`
 (with `override_fall_limit`). Empty or unticked means "keep Main's". Main applies
 them on every load and restores its own defaults when a location sets none, so
 nothing leaks into the next location; GameManager keeps its Inspector value in
@@ -460,7 +462,8 @@ stops it blocking right away, but only **frees it on `Interaction.finished`**
 (the Interaction is its child; freeing it mid-run would skip later steps and snap
 the camera). On load, a PickupStep whose flag is set frees its scene, so a taken
 item never respawns, even after it's been given away. `item_root` defaults to
-the Interaction's parent.
+the Interaction's parent. It plays `sound` on pickup (default
+`assets/sounds/clothing-rustle.wav`, non-positional; clear it for silence).
 
 **`KeyItemsUI`** (Main › HUD) shows a thumbnail per item in the lower left
 (pop-in on pickup, rebuilt from the Inventory on load). `key_items_inspect`
@@ -545,12 +548,45 @@ rooted at the bottom unless `anchor_at_top`).
   `seed_from_position` (plus an optional per-node `seed` instance parameter).
 - **Reimport refreshes** albedo texture/colour, roughness, emission and the mesh
   height bounds from the glb; **it keeps** the per-model tuning in the `.tres`
-  (`anchor_at_top`, `falloff_power`, `flutter_scale`, `strength_scale`,
-  `turbulence_scale`, `seed_from_position`, `alpha_scissor`). Normal maps etc.
+  (`anchor_at_top`, `falloff_power`, `flutter_scale`, `lean`, `strength_scale`,
+  `turbulence_scale`, `size_response`, `seed_from_position`, `alpha_scissor`). Normal maps etc.
   are dropped — the shader doesn't have them.
-- Blender is Z-up: its `(x, y, z)` wind direction is `(x, z, -y)` here.
+- Wind direction and distances (strength, lean, turbulence) are world-space, so
+  a rotated copy still bends downwind. How far a **scaled** copy bends is
+  `size_response`: 0 = the same metres at any size, 1 = in proportion to its
+  scale, 0.5 = a 10× copy sways ~3× as far. Tune `strength_scale` for scale-1
+  copies first. Blender is Z-up: its `(x, y, z)` wind direction is
+  `(x, z, -y)` here.
+- **Check the link after an in-editor reimport.** Once (viney-mushroom), an
+  editor reimport saved copies of the wind materials inside the `.glb`'s import
+  instead of linking the `_wind.tres` files, so `.tres` tuning silently did
+  nothing. In game, a surface's material `resource_path` should end in
+  `_wind.tres`, not `.glb::ShaderMaterial_…`; a headless reimport (below)
+  relinked it.
 - Headless reimport: `Godot --headless --import --path .` (touch the .glb first
   if its import settings didn't change).
+
+### Blob shadows (`objects/components/blob_shadow.gd`)
+
+`BlobShadow` (a `Decal`) gives a body a soft oblong "you are here" shadow,
+independent of any light. Add it as a child of the body; the Player and the
+Manicoppo have one. Each physics frame it raycasts straight down (layer 1) and
+moves to the hit, so it wraps slopes and ledges and stays on the ground during a
+jump, fading and shrinking with height (`max_height`, `min_scale`,
+`fade_curve`). Shape: `shadow_size` (width × length, length along the facing),
+`angle`, `offset` (metres along the oval's own axes — Y ≈ half the length puts
+one end under the body), `follow_facing`, `softness`, `opacity`.
+
+- Make it **wider than the body**: only what sticks out past the silhouette
+  reads; below ~1.5 m the player hides their own.
+- `exclude_owner` (on) keeps it off the owner: at runtime the owner's meshes
+  move to visual layer 20 (`owner_layer`) and the decal's `cull_mask` drops it.
+  Nothing else uses visual layers yet — if something starts to, keep layer 20
+  free or change `owner_layer`. Other creatures walking through still darken.
+- The box reaches `reach_above` / `reach_below` (1 m each) from the ground under
+  the body; ground under the oval outside that range cuts the shadow off in a
+  straight line. No `upper_fade`/`lower_fade`, which would erase it.
+- Assumes the parent's origin is at its feet.
 
 ### Curved-path authoring (`addons/nurbs_path/`)
 

@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://bwno7mvkspkcf"]
+
+[ext_resource type="Material" uid="uid://dhi574bv5koy" path="res://floor-material.tres" id="1_iwhjw"]
+
+[node name="CSGCombiner3D" type="CSGCombiner3D" unique_id=1317913458]
+use_collision = true
+
+[node name="Fallback" type="CSGBox3D" parent="." unique_id=1141329165]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6203613, -0.5, 5.2147217)
+material_override = ExtResource("1_iwhjw")
+use_collision = true
+size = Vector3(41.240723, 1, 34.786377)
+
+[node name="Fallback2" type="CSGBox3D" parent="." unique_id=358000886]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.600464, -0.5, -24.730148)
+material_override = ExtResource("1_iwhjw")
+use_collision = true
+size = Vector3(17.280518, 1, 25.145416)

@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://dkspe3go2x8xu"]
 
 [ext_resource type="Script" uid="uid://cv2fwr6qxrq13" path="res://ui/combat_ui.gd" id="1_combat_ui_script"]
+[ext_resource type="Texture2D" uid="uid://do43o50oy0ed5" path="res://ui/hud/energy_bar_empty.png" id="2_bar_empty"]
+[ext_resource type="Texture2D" uid="uid://u4ri3tbeuuho" path="res://ui/hud/energy_bar_full.png" id="3_bar_full"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_crosshair"]
 font_size = 48
@@ -8,33 +10,10 @@ font_color = Color(0.93979514, 0, 0.16222212, 0.9490196)
 outline_size = 8
 outline_color = Color(0.95, 0.5225, 0, 0.8156863)
 
-[sub_resource type="LabelSettings" id="LabelSettings_energy"]
-font_size = 16
-font_color = Color(0.6, 0.9, 1, 0.95)
-outline_size = 5
-outline_color = Color(0, 0, 0, 0.7)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_energy_bg"]
-bg_color = Color(0.05, 0.07, 0.1, 0.6)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 0, 0, 0.5)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_energy_fill"]
-bg_color = Color(0.25, 0.75, 1, 0.9)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-
 [node name="CombatUI" type="CanvasLayer" unique_id=1419006388]
 script = ExtResource("1_combat_ui_script")
+health_pip_size = Vector2(32, 32)
+power_pip_size = Vector2(24, 24)
 
 [node name="Crosshair" type="Control" parent="." unique_id=2020455207]
 layout_mode = 3
@@ -67,27 +46,31 @@ vertical_alignment = 1
 
 [node name="Resources" type="VBoxContainer" parent="." unique_id=402530100]
 offset_left = 24.0
-offset_top = 16.0
-offset_right = 300.0
-offset_bottom = 110.0
-theme_override_constants/separation = 8
+offset_top = 24.0
+offset_right = 422.0
+offset_bottom = 118.0
+scale = Vector2(1.2, 1.2)
 mouse_filter = 2
+theme_override_constants/separation = 8
 
-[node name="PowerRow" type="HBoxContainer" parent="Resources"]
+[node name="PowerRow" type="HBoxContainer" parent="Resources" unique_id=1255571608]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Energy" type="ProgressBar" parent="Resources" unique_id=402530201]
-custom_minimum_size = Vector2(236, 14)
+[node name="Energy" type="TextureProgressBar" parent="Resources" unique_id=402530201]
+custom_minimum_size = Vector2(398, 23)
 layout_mode = 2
 size_flags_horizontal = 0
-theme_override_styles/background = SubResource("StyleBoxFlat_energy_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_energy_fill")
-max_value = 100.0
-value = 100.0
-show_percentage = false
 mouse_filter = 2
+value = 100.0
+nine_patch_stretch = true
+stretch_margin_left = 3
+stretch_margin_top = 3
+stretch_margin_right = 3
+stretch_margin_bottom = 3
+texture_under = ExtResource("2_bar_empty")
+texture_progress = ExtResource("3_bar_full")
 
-[node name="HealthRow" type="HBoxContainer" parent="Resources"]
+[node name="HealthRow" type="HBoxContainer" parent="Resources" unique_id=636456851]
 layout_mode = 2
 mouse_filter = 2

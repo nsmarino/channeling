@@ -14,8 +14,8 @@ extends EditorScenePostImport
 ## texture), plus the mesh's lowest and highest point (the shader's bounds).
 ##
 ## Kept across reimports (tune these in the .tres): the Shape group —
-## anchor_at_top, falloff_power, flutter_scale, strength_scale,
-## turbulence_scale, seed_from_position — and alpha_scissor.
+## anchor_at_top, falloff_power, flutter_scale, lean, strength_scale,
+## turbulence_scale, size_response, seed_from_position — and alpha_scissor.
 ##
 ## The wind itself is global: Project Settings › Shader Globals › wind_*.
 ##
@@ -30,8 +30,10 @@ const TUNING_DEFAULTS: Dictionary[StringName, Variant] = {
 	&"anchor_at_top": false,
 	&"falloff_power": 1.6,
 	&"flutter_scale": 0.6,
+	&"lean": 0.1,
 	&"strength_scale": 1.0,
 	&"turbulence_scale": 1.0,
+	&"size_response": 0.0,
 	&"seed_from_position": true,
 	&"alpha_scissor": 0.5,
 }

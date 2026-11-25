@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://cx4msavkwt7bn" path="res://objects/components/dash_ability.gd" id="8_dash"]
 [ext_resource type="Script" uid="uid://dn6kt2xwvramr" path="res://objects/components/model_sway_component.gd" id="9_sway"]
 [ext_resource type="Script" uid="uid://bh3wq7xmnvk4t" path="res://objects/components/heal_ability.gd" id="10_heal"]
+[ext_resource type="Script" uid="uid://c2b1lscr5l8kc" path="res://objects/components/blob_shadow.gd" id="20_blobshadow"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
@@ -25,12 +26,23 @@ radius = 0.9
 _data = [Vector2(0, 0), 0.0, 0.17514817, 0, 0, Vector2(1, 1), 3.014817, 0.0, 0, 0]
 point_count = 2
 
-[sub_resource type="Curve3D" id="Curve3D_n1h8g"]
+[sub_resource type="Curve3D" id="Curve3D_sq4k3"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0.6666667, 1.6666666, 0.6666667, 0, 0, 0, 0.33333337, -0.83333325, 0.16666675, -0.3333333, 0.8333335, -0.16666663, 1, 4.1666665, 1.1666666, 0.3333333, 0.8333335, 2.3333333, -0.33333337, -0.83333325, -2.3333333, -1, 4.1666665, -2.3333333, -0.6666667, 1.6666666, 3.666667, 0, 0, 0, 0, 0, -12),
 "tilts": PackedFloat32Array(0, 0, 0, 0)
 }
 point_count = 4
+
+[sub_resource type="Gradient" id="Gradient_sq4k3"]
+interpolation_mode = 2
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_cq43t"]
+gradient = SubResource("Gradient_sq4k3")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.95, 0.5)
 
 [node name="Player" type="CharacterBody3D" unique_id=1382951870 groups=["player"]]
 collision_layer = 2
@@ -69,8 +81,6 @@ script = ExtResource("2_lockon")
 collision_layer = 0
 collision_mask = 4
 script = ExtResource("3_bump")
-max_damage = 3
-min_damage = 1
 energy_cost = 30.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BumpCombat" unique_id=1500000022]
@@ -97,7 +107,7 @@ usable_in_air = false
 cooldown = 0.4
 
 [node name="NurbsPath3D" type="Path3D" parent="." unique_id=290428690]
-curve = SubResource("Curve3D_n1h8g")
+curve = SubResource("Curve3D_sq4k3")
 script = ExtResource("5_h7ooo")
 control_points = Array[Vector3]([Vector3(0, 0, 0), Vector3(2, 5, 2), Vector3(-2, 5, -1), Vector3(0, 0, -12)])
 metadata/_custom_type_script = "uid://cn8rbspth3d0a"
@@ -115,3 +125,22 @@ input_action = &"heal"
 power_cost = 10
 usable_in_air = false
 cooldown = 0.5
+
+[node name="BlobShadow" type="Decal" parent="." unique_id=137032353]
+size = Vector3(1.2, 0.75, 2.5)
+texture_albedo = SubResource("GradientTexture2D_cq43t")
+modulate = Color(0, 0, 0, 0.58)
+normal_fade = 0.5
+upper_fade = 0.0
+lower_fade = 0.0
+script = ExtResource("20_blobshadow")
+shadow_size = Vector2(1.2, 2.5)
+angle = 16.0
+offset = Vector2(0, -0.66)
+follow_facing = false
+softness = 0.55
+opacity = 0.58
+reach_above = 0.15
+reach_below = 0.6
+exclude_owner = null
+owner_layer = null

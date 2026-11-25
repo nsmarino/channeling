@@ -23,6 +23,10 @@ class_name Location
 @export var environment: Environment
 ## Music for this location. Empty = Main's track. Unchanged if it's already playing.
 @export var music: AudioStream
+## Ambient bed (wind, insects, water) for this location, played alongside the
+## music on Main's AmbiencePlayer. Empty = Main's (none by default). Unchanged if
+## it's already playing. Tick Loop in the .ogg's Import dock, or it plays once.
+@export var ambience: AudioStream
 ## Use this location's `fall_limit_y` instead of GameManager's.
 @export var override_fall_limit: bool = false
 ## Restart when the player drops below this Y (only with `override_fall_limit`).

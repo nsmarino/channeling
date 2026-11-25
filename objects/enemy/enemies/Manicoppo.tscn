@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://bk80pv5rtoawc" path="res://objects/enemy/actions/attack_combo_action.gd" id="9_combo"]
 [ext_resource type="Script" uid="uid://c3xmq7hjdw2vb" path="res://objects/enemy/actions/zigzag_twirl_action.gd" id="10_twirl"]
 [ext_resource type="Script" uid="uid://dr6ln8fys4kxe" path="res://objects/enemy/actions/retreat_action.gd" id="11_retreat"]
+[ext_resource type="Script" uid="uid://c2b1lscr5l8kc" path="res://objects/components/blob_shadow.gd" id="20_blobshadow"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_e4ut0"]
 height = 1.5
@@ -162,5 +163,9 @@ idle_animation = &"Idle1"
 
 [node name="LockOnTargetComponent" parent="." index="12" unique_id=2110957130]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+
+[node name="BlobShadow" type="Decal" parent="."]
+script = ExtResource("20_blobshadow")
+shadow_size = Vector2(2.2, 2.6)
 
 [editable path="manicoppo-for-export"]

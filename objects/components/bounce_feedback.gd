@@ -21,6 +21,9 @@ extends Node
 ## Optional burst effect played on launch (anything with a play() method,
 ## e.g. vfx/particles/bounce-shockwave.tscn).
 @export var effect_path: NodePath = ^"../BounceShockwave"
+## Optional sound played when the wiggle starts (an AudioStreamPlayer3D, or any
+## player with play()). Nothing there = silent wiggle.
+@export var wiggle_sound_path: NodePath = ^"../WiggleSound"
 
 @export_group("Wiggle")
 @export var wiggle_enabled: bool = true
@@ -34,6 +37,9 @@ extends Node
 @export_range(0.5, 15.0, 0.1) var wiggle_frequency: float = 4.5
 ## Seconds until it settles.
 @export_range(0.1, 3.0, 0.05) var wiggle_duration: float = 0.8
+## Random pitch spread on the wiggle sound (0.1 = ±10%), so repeats don't
+## sound identical.
+@export_range(0.0, 0.5, 0.01) var wiggle_pitch_variation: float = 0.1
 
 @export_group("Bounce")
 @export var bounce_enabled: bool = true
@@ -48,6 +54,8 @@ extends Node
 
 var _model: Node3D = null
 var _effect: Node = null
+var _wiggle_sound: Node = null
+var _wiggle_sound_pitch: float = 1.0
 var _body: Node3D = null  # the mushroom root, used for distances
 var _rest: Transform3D = Transform3D.IDENTITY
 
@@ -61,6 +69,9 @@ func _ready() -> void:
 	_body = get_parent() as Node3D
 	_model = get_node_or_null(model_path) as Node3D
 	_effect = get_node_or_null(effect_path)
+	_wiggle_sound = get_node_or_null(wiggle_sound_path)
+	if _wiggle_sound and "pitch_scale" in _wiggle_sound:
+		_wiggle_sound_pitch = _wiggle_sound.get("pitch_scale")
 	if _model:
 		_rest = _model.transform
 	else:
@@ -131,6 +142,16 @@ func _start_wiggle(to_player: Vector3) -> void:
 	var axis_local: Vector3 = parent.global_basis.inverse() * axis_world if parent else axis_world
 	_wiggle_axis = axis_local.normalized()
 	_wiggle_t = 0.0
+	_play_wiggle_sound()
+
+
+func _play_wiggle_sound() -> void:
+	if _wiggle_sound == null or not _wiggle_sound.has_method("play"):
+		return
+	if "pitch_scale" in _wiggle_sound:
+		_wiggle_sound.set("pitch_scale",
+				_wiggle_sound_pitch * (1.0 + randf_range(-wiggle_pitch_variation, wiggle_pitch_variation)))
+	_wiggle_sound.call("play")
 
 
 func _on_launched(_launched_body: Node3D) -> void:

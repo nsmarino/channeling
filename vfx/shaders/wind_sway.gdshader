@@ -10,14 +10,16 @@
 // Materials are normally made by vfx/wind_sway_import.gd (an import script set
 // per model in the Import dock), which also fills in the surface and bounds.
 //
-// Blender is Z-up, Godot Y-up: height runs along object-space Y here, and the
-// wind direction is in Godot axes. Blender's (x, y, z) arrives as (x, z, -y), so
+// Blender is Z-up, Godot Y-up: height runs along object-space Y here. The wind
+// direction and every distance (strength, lean, turbulence) are in WORLD space,
+// so a node's scale and rotation don't change how far or which way it bends.
+// The wind direction is in Godot axes. Blender's (x, y, z) arrives as (x, z, -y), so
 // the modifier's default (1, 0.4, 0) is (1, 0, -0.4).
 shader_type spatial;
 render_mode cull_disabled, depth_draw_opaque;
 
 // --- the wind: Project Settings › Shader Globals ---------------------------
-// Steady push along the wind direction (m).
+// How far the free end swings either way along the wind direction (m).
 global uniform float wind_strength;
 // Random flutter amount (m).
 global uniform float wind_turbulence;
@@ -53,9 +55,17 @@ uniform float bounds_top = 1.0;
 uniform float falloff_power : hint_range(0.2, 5.0) = 1.6;
 // Size of the flutter noise on this model: higher = busier, smaller ripples.
 uniform float flutter_scale : hint_range(0.0, 10.0) = 0.6;
+// Constant bend downwind at the free end (m), which the sway swings around.
+uniform float lean : hint_range(0.0, 2.0) = 0.1;
 // Multipliers on the global wind: below 1 = stiffer, above 1 = floppier.
+// strength_scale scales the sway and the lean; turbulence_scale the flutter.
 uniform float strength_scale : hint_range(0.0, 4.0) = 1.0;
 uniform float turbulence_scale : hint_range(0.0, 4.0) = 1.0;
+// How the sway follows a copy's scale. 0 = the same distance in metres at any
+// size (a 10x copy sways no further than a 1x one). 1 = in proportion to size
+// (10x sways 10x as far). Between: 0.5 makes a 10x copy sway ~3x as far.
+// Tune strength_scale for scale-1 copies; this sets how the others follow.
+uniform float size_response : hint_range(0.0, 1.0) = 0.0;
 // Add a seed derived from where the model stands, so copies placed around a
 // level sway out of step with no setup.
 uniform bool seed_from_position = true;
@@ -123,16 +133,23 @@ void vertex() {
 	}
 	float phase = TIME / wind_loop_length * TAU;
 
-	// Gusts: a pulse travelling up the mesh, never fully slack (0.2..1.0).
+	// Sway: a gust pulse travelling up the mesh, swinging either side of the
+	// lean (-1..1), so strength_scale sets how far things actually move.
 	float gust = sin(phase * float(wind_gust_waves) + s * 2.3 + along * -1.4 * height);
-	vec3 steady = normalize(wind_direction) * (gust * 0.4 + 0.6) * wind_strength * strength_scale;
+	vec3 steady = normalize(wind_direction) * (lean + gust * wind_strength) * strength_scale;
 
 	// Flutter: noise sampled at a point that circles in the ground plane, so it
 	// loops with the gusts.
 	vec3 drift = vec3(cos(phase), 0.0, sin(phase)) * wind_flutter_speed;
 	vec3 flutter = noise_color(VERTEX * flutter_scale + drift, s * 5.7) * wind_turbulence * turbulence_scale;
 
-	VERTEX += (steady + flutter) * falloff;
+	// The amounts above are world-space metres along a world direction. Bring
+	// them into object space, so a copy scaled 10x doesn't sway 10x as far and
+	// a rotated copy still bends downwind.
+	mat3 model = mat3(MODEL_MATRIX);
+	float node_scale = (length(model[0]) + length(model[1]) + length(model[2])) / 3.0;
+	vec3 offset_world = (steady + flutter) * falloff * pow(node_scale, size_response);
+	VERTEX += inverse(model) * offset_world;
 }
 
 // --- fragment --------------------------------------------------------------

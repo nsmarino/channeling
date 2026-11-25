@@ -112,6 +112,17 @@ signal hit(amount: int)
 ## Energy spent per jump. The jump is suppressed if you can't afford it.
 @export var jump_energy_cost: float = 8.0
 
+@export_category("Sound")
+## Played when the player lands from the air (a jump, a fall, a bounce). Clear it
+## for silent landings.
+@export var land_sound: AudioStream = preload("res://assets/sounds/robot_land.wav")
+@export_range(-40.0, 12.0, 0.5, "suffix:dB") var land_sound_volume_db: float = 0.0
+## Downward speed (m/s) a landing needs to make a sound, so stepping off a kerb
+## or down a stair stays quiet. A 5 m/s jump lands at about 5.
+@export_range(0.0, 20.0, 0.1) var land_min_speed: float = 2.5
+## Random pitch spread per landing (0.08 = ±8%).
+@export_range(0.0, 0.5, 0.01) var land_pitch_variation: float = 0.08
+
 @export_category("References")
 ## Pivot orbited for yaw/pitch. Holds the SpringArm3D + Camera3D.
 @export var camera_pivot_path: NodePath = ^"CameraPivot"
@@ -172,6 +183,7 @@ var _shoulder_probe: SphereShape3D = null
 var _weapon: Node = null
 var _weapon_socket: Node3D = null
 var _muzzle: Node3D = null
+var _land_player: AudioStreamPlayer = null
 
 
 func _ready() -> void:
@@ -198,6 +210,9 @@ func _ready() -> void:
 		_place_shoulder(_shoulder_wanted)
 	_weapon_socket = get_node_or_null(weapon_socket_path) as Node3D
 	_spawn_weapon()
+	_land_player = AudioStreamPlayer.new()
+	_land_player.name = "LandSound"
+	add_child(_land_player)
 	Events.cutscene_started.connect(_lock_control)
 	Events.cutscene_finished.connect(_unlock_control)
 	Events.interaction_started.connect(_on_interaction_started)
@@ -369,7 +384,7 @@ func _process_movement(delta: float) -> void:
 		var damp := knockback_damping * delta
 		velocity.x = move_toward(velocity.x, 0.0, damp)
 		velocity.z = move_toward(velocity.z, 0.0, damp)
-		move_and_slide()
+		_move_and_detect_landing()
 		return
 
 	var input := Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
@@ -387,7 +402,26 @@ func _process_movement(delta: float) -> void:
 	elif direction.length_squared() > 0.001:
 		_face_point(global_position + direction, delta)
 
+	_move_and_detect_landing()
+
+
+## move_and_slide(), noticing the frame we go from airborne to grounded. The fall
+## speed is read BEFORE the slide, which zeroes it on touchdown.
+func _move_and_detect_landing() -> void:
+	var was_airborne: bool = not is_on_floor()
+	var fall_speed: float = -velocity.y
 	move_and_slide()
+	if was_airborne and is_on_floor() and fall_speed >= land_min_speed:
+		_play_land_sound()
+
+
+func _play_land_sound() -> void:
+	if land_sound == null or _land_player == null:
+		return
+	_land_player.stream = land_sound
+	_land_player.volume_db = land_sound_volume_db
+	_land_player.pitch_scale = 1.0 + randf_range(-land_pitch_variation, land_pitch_variation)
+	_land_player.play()
 
 
 ## Slide the spring arm sideways from the pivot by as much of `offset` as is free:

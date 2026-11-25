@@ -1,9 +1,14 @@
 [gd_scene format=3 uid="uid://dv6np2xkhsawm"]
 
 [ext_resource type="PackedScene" uid="uid://dp4hs7xnkw2vq" path="res://objects/interactables/Mushroom2.tscn" id="1_base"]
+[ext_resource type="AudioStream" uid="uid://bcmibcwusegaf" path="res://assets/sounds/clothing-rustle.wav" id="2_rustle"]
 
 [node name="Mushroom2Large" instance=ExtResource("1_base")]
 transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 0, 0, 0)
 
 [node name="BouncePad" parent="." index="3"]
 launch_speed = 14.0
+
+[node name="WiggleSound" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+stream = ExtResource("2_rustle")

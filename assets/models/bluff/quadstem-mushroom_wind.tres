@@ -1,0 +1,24 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bjaimgbld75wc"]
+
+[ext_resource type="Shader" uid="uid://bvqes0f0cd6hc" path="res://vfx/shaders/wind_sway.gdshader" id="1_llair"]
+[ext_resource type="Texture2D" uid="uid://dvewskxgta8pd" path="res://assets/models/bluff/quadstem-mushroom_ucu_Quadstem Color.png" id="2_l5eu1"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_llair")
+shader_parameter/albedo_texture = ExtResource("2_l5eu1")
+shader_parameter/albedo_color = Color(1, 1, 1, 1)
+shader_parameter/roughness = 1.0
+shader_parameter/alpha_scissor = 0.5
+shader_parameter/emission_color = Color(0, 0, 0, 1)
+shader_parameter/emission_energy = 1.0
+shader_parameter/anchor_at_top = false
+shader_parameter/bounds_bottom = 0.008818258
+shader_parameter/bounds_top = 6.6639423
+shader_parameter/falloff_power = 1.6
+shader_parameter/flutter_scale = 0.6
+shader_parameter/lean = 0.1
+shader_parameter/strength_scale = 0.2000000095
+shader_parameter/turbulence_scale = 0.2000000095
+shader_parameter/size_response = 0.5070000240825
+shader_parameter/seed_from_position = true

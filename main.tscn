@@ -5,38 +5,47 @@
 [ext_resource type="PackedScene" uid="uid://cplayrscn0fps" path="res://objects/player/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" uid="uid://ba2v8hmkv07hv" path="res://ui/dialogue/DialogueUI.tscn" id="3_dialogue"]
 [ext_resource type="PackedScene" uid="uid://dkspe3go2x8xu" path="res://ui/CombatUI.tscn" id="3_hud"]
-[ext_resource type="AudioStream" uid="uid://nekdfepyouik" path="res://assets/sounds/music/selection menu.mp3" id="4_music"]
 [ext_resource type="Material" uid="uid://27ofud5ccbqe" path="res://vfx/shaders/cloud_sky_material.tres" id="5_cloudsky"]
 [ext_resource type="PackedScene" path="res://ui/key_items/KeyItemsUI.tscn" id="6_keyitems"]
 [ext_resource type="Shader" uid="uid://cspds12nopkmg" path="res://vfx/shaders/screen_posterize_dither.gdshader" id="7_screenfx"]
+[ext_resource type="AudioStream" uid="uid://cuip57nqj36pc" path="res://assets/sounds/music/Voices From Heaven.ogg" id="8_kek77"]
+[ext_resource type="AudioStream" uid="uid://o0wy031u1fcy" path="res://assets/sounds/music/tree-rustle.ogg" id="9_4c57u"]
 
 [sub_resource type="Sky" id="Sky_s07ge"]
 sky_material = ExtResource("5_cloudsky")
 
 [sub_resource type="Environment" id="Environment_qy63d"]
-background_mode = 1
+background_mode = 2
 background_color = Color(0.06666667, 0.06666667, 0.06666667, 1)
+background_energy_multiplier = 0.34
 sky = SubResource("Sky_s07ge")
 ambient_light_source = 2
-ambient_light_color = Color(0.93995357, 0.90533847, 0.8063741, 1)
+ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_sky_contribution = 0.0
 tonemap_mode = 3
-tonemap_exposure = 0.8
+tonemap_exposure = 0.9
+ssao_enabled = true
+ssao_radius = 2.0
+ssao_intensity = 3.0
 glow_enabled = true
+glow_intensity = 0.4
+glow_strength = 0.66
 glow_bloom = 1.0
 fog_enabled = true
 fog_mode = 1
-fog_light_color = Color(0.6461, 0.69615495, 0.71, 1)
-fog_density = 0.3653
+fog_light_color = Color(0.6657462, 0.6985278, 0.65786326, 1)
+fog_density = 0.7415
 fog_sky_affect = 0.022
 fog_height = -20.0
 fog_height_density = 0.2
-fog_depth_curve = 1.1487024
-fog_depth_end = 50.0
-volumetric_fog_enabled = true
+fog_depth_curve = 6.498042
+fog_depth_begin = 20.0
+fog_depth_end = 40.0
 volumetric_fog_density = 0.001
-volumetric_fog_emission = Color(0.5108681, 0.46803832, 0.7841822, 1)
-adjustment_enabled = true
+volumetric_fog_albedo = Color(0, 0, 0, 1)
+volumetric_fog_emission = Color(0.58460003, 0.74, 0.70374, 1)
+volumetric_fog_length = 24.0
+volumetric_fog_sky_affect = 0.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_screenfx"]
 shader = ExtResource("7_screenfx")
@@ -52,15 +61,26 @@ shader_parameter/color6 = Color(0.329, 0.306, 0.408, 1)
 shader_parameter/color7 = Color(0.125, 0.236, 0.337, 1)
 shader_parameter/color8 = Color(0.05, 0.169, 0.271, 1)
 shader_parameter/enable_dithering = true
-shader_parameter/dither_strength = 0.400000019
+shader_parameter/dither_strength = 0.30000001425
 shader_parameter/dither_pixel_size = 1.0
 
-[sub_resource type="Curve3D" id="Curve3D_kek77"]
+[sub_resource type="Curve3D" id="Curve3D_4c57u"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0.6666667, 1.6666666, 0.6666667, 0, 0, 0, 0.33333337, -0.83333325, 0.16666675, -0.3333333, 0.8333335, -0.16666663, 1, 4.1666665, 1.1666666, 0.3333333, 0.8333335, 2.3333333, -0.33333337, -0.83333325, -2.3333333, -1, 4.1666665, -2.3333333, -0.6666667, 1.6666666, 3.666667, 0, 0, 0, 0, 0, -12),
 "tilts": PackedFloat32Array(0, 0, 0, 0)
 }
 point_count = 4
+
+[sub_resource type="Gradient" id="Gradient_4c57u"]
+interpolation_mode = 2
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_efxa6"]
+gradient = SubResource("Gradient_4c57u")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.95, 0.5)
 
 [node name="Main" type="Node3D" unique_id=1370251571]
 script = ExtResource("1_main")
@@ -90,9 +110,14 @@ mouse_filter = 2
 [node name="DialogueUI" parent="HUD" unique_id=1366009035 instance=ExtResource("3_dialogue")]
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1852918013]
-stream = ExtResource("4_music")
-volume_db = -67.564
+stream = ExtResource("8_kek77")
+volume_db = -30.0
 autoplay = true
+parameters/looping = false
+
+[node name="AmbiencePlayer" type="AudioStreamPlayer" parent="." unique_id=1372715654]
+stream = ExtResource("9_4c57u")
+parameters/looping = true
 
 [node name="Player" parent="." unique_id=1500000010 instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -107,13 +132,18 @@ jump_energy_cost = 20.0
 spring_length = 5.0
 
 [node name="NurbsPath3D" parent="Player" index="8" unique_id=290428690]
-curve = SubResource("Curve3D_kek77")
+curve = SubResource("Curve3D_4c57u")
 
 [node name="ModelSway" parent="Player" index="10" unique_id=618335865]
 wobble_degrees = 0.6
 wobble_hz = 1.0
 bob_height = 0.02
 bob_hz = 0.2
+
+[node name="BlobShadow" parent="Player" index="12" unique_id=137032353]
+texture_albedo = SubResource("GradientTexture2D_efxa6")
+exclude_owner = true
+owner_layer = 20
 
 [node name="OmniLight3D" type="OmniLight3D" parent="Player" unique_id=494559094]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5999999, 0.2)

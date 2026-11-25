@@ -73,6 +73,13 @@ class_name DashAbility
 ## bounce only once the dash finishes.
 @export var stop_on_hit: bool = true
 
+@export_group("Sound")
+## Played when a dash starts. Clear it for a silent dash.
+@export var sound: AudioStream = preload("res://assets/sounds/robot_jump.wav")
+@export_range(-40.0, 12.0, 0.5, "suffix:dB") var sound_volume_db: float = 0.0
+## Random pitch spread per dash (0.08 = ±8%), so repeats don't sound identical.
+@export_range(0.0, 0.5, 0.01) var sound_pitch_variation: float = 0.08
+
 @export_group("Aim")
 ## Camera the input direction is measured against.
 @export var camera_node: NodePath = ^"../CameraPivot/SpringArm3D/Camera3D"
@@ -82,6 +89,7 @@ class_name DashAbility
 var _camera: Node3D = null
 var _model: Node3D = null
 var _bump: Node = null
+var _sound_player: AudioStreamPlayer = null
 
 var _dashing: bool = false
 var _elapsed: float = 0.0
@@ -97,6 +105,9 @@ func _setup() -> void:
 	_camera = get_node_or_null(camera_node) as Node3D
 	_model = get_node_or_null(model_node) as Node3D
 	_bump = get_node_or_null(bump_component_node)
+	_sound_player = AudioStreamPlayer.new()
+	_sound_player.name = "DashSound"
+	add_child(_sound_player)
 	# Connected once and gated on `_dashing` rather than hooked up per dash —
 	# nothing to leave dangling if a dash ends by an unusual route.
 	Events.attack_hit.connect(_on_attack_hit)
@@ -137,6 +148,17 @@ func _activate() -> void:
 
 	if _bump:
 		_bump.set("airborne_mode", true)
+
+	_play_sound()
+
+
+func _play_sound() -> void:
+	if sound == null or _sound_player == null:
+		return
+	_sound_player.stream = sound
+	_sound_player.volume_db = sound_volume_db
+	_sound_player.pitch_scale = 1.0 + randf_range(-sound_pitch_variation, sound_pitch_variation)
+	_sound_player.play()
 
 
 func _tick(delta: float) -> void:

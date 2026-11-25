@@ -20,6 +20,10 @@ class_name PickupStep
 @export var item_root: NodePath
 ## Flag set on pickup and checked on load ("" = got_<item id>).
 @export var got_flag: StringName = &""
+## Played when the item is taken. Defaults to the shared pickup sound; set
+## another per item, or clear it for a silent pickup.
+@export var sound: AudioStream = preload("res://assets/sounds/clothing-rustle.wav")
+@export_range(-40.0, 12.0, 0.5, "suffix:dB") var sound_volume_db: float = 0.0
 
 
 func _ready() -> void:
@@ -35,6 +39,7 @@ func run(interaction: Interaction) -> void:
 		return
 	Inventory.add(item)
 	GameManager.set_flag(_flag())
+	_play_sound()
 	var root: Node = _root()
 	if root == null:
 		return
@@ -45,6 +50,20 @@ func run(interaction: Interaction) -> void:
 		# also pause the running Interaction's tweens (its camera blend back).
 		(root as CollisionObject3D).set_deferred(&"collision_layer", 0)
 	interaction.finished.connect(root.queue_free, CONNECT_ONE_SHOT)
+
+
+## Non-positional, and parented to the tree root rather than the item: the
+## item's scene is hidden now and freed when the Interaction ends, which would
+## cut the sound off.
+func _play_sound() -> void:
+	if sound == null:
+		return
+	var player: AudioStreamPlayer = AudioStreamPlayer.new()
+	player.stream = sound
+	player.volume_db = sound_volume_db
+	get_tree().root.add_child(player)
+	player.finished.connect(player.queue_free)
+	player.play()
 
 
 func _flag() -> StringName:
