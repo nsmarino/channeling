@@ -41,7 +41,15 @@ class_name ZigzagTwirlAction
 ## Seconds before the twirl can fling the same target again.
 @export var hit_cooldown: float = 0.5
 
+@export_group("Sound")
+## Played on each full turn of the spin, following the creature. Empty = silent.
+@export var swing_sound: AudioStream = preload("res://assets/sounds/whoosh.wav")
+@export var swing_sound_volume_db: float = 0.0
+## Random pitch spread (0.1 = ±10%).
+@export_range(0.0, 0.5, 0.01) var swing_pitch_variation: float = 0.1
+
 var _yaw: float = 0.0
+var _spun: float = 0.0  # radians turned since the last whoosh
 
 
 func _begin(token: int) -> bool:
@@ -58,15 +66,23 @@ func _begin(token: int) -> bool:
 		return false
 
 	_yaw = body.rotation.y
+	_spun = 0.0
 	# The sweeping "hands": the hitbox flings whoever it catches on its own
 	# per-target cooldown, so a spin is a series of impacts, not a per-frame barrage.
 	open_hitbox(damage, fling_force, fling_up, fling_duration, hit_cooldown)
+	Sfx.play_on(body, swing_sound, swing_sound_volume_db, swing_pitch_variation)
 	return true
 
 
 func _step(delta: float) -> void:
-	_yaw = wrapf(_yaw + deg_to_rad(spin_speed_deg) * delta, -PI, PI)
+	var turn: float = deg_to_rad(spin_speed_deg) * delta
+	_yaw = wrapf(_yaw + turn, -PI, PI)
 	set_facing(_yaw)
+	# One whoosh per full turn (the first played as the spin started).
+	_spun += absf(turn)
+	if _spun >= TAU:
+		_spun = fmod(_spun, TAU)
+		Sfx.play_on(body, swing_sound, swing_sound_volume_db, swing_pitch_variation)
 
 
 func _cleanup() -> void:

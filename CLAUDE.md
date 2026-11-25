@@ -233,6 +233,15 @@ promises rather than a function of how hard you fell.
 (Power Dive, being swallowed) — **anything that starts one is responsible for
 ending it**, including on abort, or the player is frozen until a restart.
 
+**Camera feel** (`objects/components/camera_feel.gd`, the Player's `CameraFeel`
+child): a trauma-based shake on taking damage (`add_trauma()`) and a dolly push-in
+on a landed bump (`punch()`, fired by `Events.attack_hit` with the player as
+attacker). The shake uses the camera's lens offsets (`h_offset` / `v_offset`),
+since the SpringArm3D rewrites the camera's transform each physics frame; the
+punch is subtracted from the spring length in `Player._process` via `get_dolly()`.
+Nothing else should write the camera's `h_offset` / `v_offset` (the shoulder
+offset moves the spring arm instead).
+
 Also: `hp`, `energy` (regenerates every frame), `spend_energy()` (all-or-nothing),
 `restore_energy()`, `take_damage()`.
 
@@ -623,6 +632,11 @@ against it without registering it first.
   `_ready()` if the mask misses layer 2 — Area3D's own default (mask 1) never sees
   the player, so a bare Area3D with one of these scripts attached would silently
   never fire. Do the same in any new player-detecting Area3D script.
+- **One-shot sounds from code**: `Sfx.play_at(context, stream, position, volume_db,
+  pitch_variation)` (parented to the scene, so it outlives a freed caller) or
+  `Sfx.play_on(node, …)` (follows a moving source). Export the stream with a
+  `preload` default so it's swappable in the Inspector. Scenes that already own a
+  player node (the mushroom's `WiggleSound` / `BounceSound`) play that instead.
 - Avoid concurrent edits to the same file in one batch — the second one's "file has
   been modified" error can leave half-applied changes.
 

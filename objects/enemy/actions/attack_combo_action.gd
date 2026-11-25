@@ -45,6 +45,19 @@ class_name AttackComboAction
 ## Seconds a swing hit suppresses the player's input.
 @export var knockback_duration: float = 0.18
 
+@export_group("Sound")
+## Played as each swing starts (the weapon going up). Empty = silent.
+@export var raise_sound: AudioStream = preload("res://assets/sounds/weapon-raise.wav")
+@export var raise_sound_volume_db: float = 0.0
+## Random pitch spread (0.1 = ±10%).
+@export_range(0.0, 0.5, 0.01) var raise_pitch_variation: float = 0.1
+## Played as each swing lands (when its hit window opens), hit or miss.
+## Empty = silent.
+@export var impact_sound: AudioStream = preload("res://assets/sounds/metal-impact.wav")
+@export var impact_sound_volume_db: float = 0.0
+## Random pitch spread (0.1 = ±10%), so a triple doesn't clang identically.
+@export_range(0.0, 0.5, 0.01) var impact_pitch_variation: float = 0.1
+
 @export_group("Approach")
 ## Distance it closes to before starting to swing. Must leave margin under the
 ## hitbox's actual reach, or an off-centre swing sails past — the enemy would
@@ -126,6 +139,7 @@ func _swing(token: int, base_yaw: float) -> bool:
 
 	anim.speed_scale = attack_speed_scale
 	anim.play(attack_animation)
+	Sfx.play_on(body, raise_sound, raise_sound_volume_db, raise_pitch_variation)
 
 	var open: bool = false
 
@@ -152,6 +166,7 @@ func _swing(token: int, base_yaw: float) -> bool:
 			open = should_open
 			if open:
 				open_hitbox(damage, knockback_force, knockback_up, knockback_duration, 1.0)
+				Sfx.play_on(body, impact_sound, impact_sound_volume_db, impact_pitch_variation)
 			else:
 				close_hitbox()
 

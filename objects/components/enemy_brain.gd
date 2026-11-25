@@ -56,6 +56,17 @@ enum State { WANDER, CHASE, COMBAT }
 ## AnimationPlayer for action clips. Empty = auto-find under the host.
 @export var animation_player_path: NodePath
 
+@export_group("Sound")
+## Played when the creature notices the player (leaves WANDER for CHASE or
+## COMBAT). Empty = silent.
+@export var alert_sound: AudioStream = preload("res://assets/sounds/mani-bark.wav")
+@export var alert_sound_volume_db: float = 0.0
+## Random pitch spread (0.1 = ±10%).
+@export_range(0.0, 0.5, 0.01) var alert_pitch_variation: float = 0.1
+## Seconds before it can bark again, so losing and re-spotting the player at
+## the edge of its vision doesn't bark over and over.
+@export_range(0.0, 30.0, 0.5) var alert_sound_cooldown: float = 4.0
+
 @export var debug_log: bool = true
 
 var _body: CharacterBody3D = null
@@ -91,6 +102,8 @@ var _slot_held: bool = false
 ## this at its start and bails the moment the two disagree — this is what keeps an
 ## aborted combo from resuming halfway through, three states later.
 var _action_token: int = 0
+## Engine time (ms) of the last alert sound, for `alert_sound_cooldown`.
+var _last_alert_ms: int = -1000000
 
 
 func _setup() -> void:
@@ -356,6 +369,8 @@ func _update_state() -> void:
 func _enter_state(next: State) -> void:
 	if next == _state:
 		return
+	if _state == State.WANDER:
+		_play_alert_sound()
 	_state = next
 	# Leaving the mode invalidates whatever action was mid-flight.
 	_abort_actions()
@@ -375,6 +390,14 @@ func _enter_state(next: State) -> void:
 
 	if debug_log:
 		print("[EnemyBrain] %s -> %s" % [String(host.name), get_state_name()])
+
+
+func _play_alert_sound() -> void:
+	var now: int = Time.get_ticks_msec()
+	if now - _last_alert_ms < int(alert_sound_cooldown * 1000.0):
+		return
+	_last_alert_ms = now
+	Sfx.play_on(_body, alert_sound, alert_sound_volume_db, alert_pitch_variation)
 
 
 func _flat_distance_to_player() -> float:

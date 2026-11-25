@@ -122,6 +122,11 @@ signal hit(amount: int)
 @export_range(0.0, 20.0, 0.1) var land_min_speed: float = 2.5
 ## Random pitch spread per landing (0.08 = ±8%).
 @export_range(0.0, 0.5, 0.01) var land_pitch_variation: float = 0.08
+## Played when the player takes damage. Clear it for silence.
+@export var hurt_sound: AudioStream = preload("res://assets/sounds/dunk.wav")
+@export_range(-40.0, 12.0, 0.5, "suffix:dB") var hurt_sound_volume_db: float = 0.0
+## Random pitch spread per hit (0.08 = ±8%).
+@export_range(0.0, 0.5, 0.01) var hurt_pitch_variation: float = 0.08
 
 @export_category("References")
 ## Pivot orbited for yaw/pitch. Holds the SpringArm3D + Camera3D.
@@ -184,6 +189,10 @@ var _weapon: Node = null
 var _weapon_socket: Node3D = null
 var _muzzle: Node3D = null
 var _land_player: AudioStreamPlayer = null
+var _hurt_player: AudioStreamPlayer = null
+## The spring length eased toward base + pull, before CameraFeel's dolly is added.
+var _spring_eased: float = 0.0
+var _camera_feel: Node = null
 
 
 func _ready() -> void:
@@ -213,6 +222,11 @@ func _ready() -> void:
 	_land_player = AudioStreamPlayer.new()
 	_land_player.name = "LandSound"
 	add_child(_land_player)
+	_hurt_player = AudioStreamPlayer.new()
+	_hurt_player.name = "HurtSound"
+	add_child(_hurt_player)
+	_spring_eased = _base_spring_length
+	_camera_feel = get_node_or_null(^"CameraFeel")
 	Events.cutscene_started.connect(_lock_control)
 	Events.cutscene_finished.connect(_unlock_control)
 	Events.interaction_started.connect(_on_interaction_started)
@@ -230,7 +244,11 @@ func _process(delta: float) -> void:
 		_camera_pull_until_floor = false
 		_camera_pull = 0.0
 	var target: float = _base_spring_length + _camera_pull
-	_spring_arm.spring_length = lerpf(_spring_arm.spring_length, target, 1.0 - exp(-camera_pull_speed * delta))
+	_spring_eased = lerpf(_spring_eased, target, 1.0 - exp(-camera_pull_speed * delta))
+	# CameraFeel's hit punch rides on top of the eased length, so the ease never
+	# swallows it.
+	var dolly: float = float(_camera_feel.call("get_dolly")) if _camera_feel else 0.0
+	_spring_arm.spring_length = maxf(_spring_eased - dolly, 0.5)
 
 
 ## Pull the camera back by `extra` metres (0 = back to normal). Eased, not
@@ -413,6 +431,15 @@ func _move_and_detect_landing() -> void:
 	move_and_slide()
 	if was_airborne and is_on_floor() and fall_speed >= land_min_speed:
 		_play_land_sound()
+
+
+func _play_hurt_sound() -> void:
+	if hurt_sound == null or _hurt_player == null:
+		return
+	_hurt_player.stream = hurt_sound
+	_hurt_player.volume_db = hurt_sound_volume_db
+	_hurt_player.pitch_scale = 1.0 + randf_range(-hurt_pitch_variation, hurt_pitch_variation)
+	_hurt_player.play()
 
 
 func _play_land_sound() -> void:
@@ -715,6 +742,7 @@ func take_damage(amount: int) -> void:
 	if hp <= 0:
 		return
 	hp = maxi(0, hp - amount)
+	_play_hurt_sound()
 	# Mirrors Destructible's `hit` signal so a HitReactComponent under the player
 	# auto-connects and flashes, with no player-specific wiring.
 	hit.emit(amount)

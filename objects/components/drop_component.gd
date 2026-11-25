@@ -42,6 +42,13 @@ class_name DropComponent
 ## Height above the host's origin the pickups spawn at.
 @export_range(0.0, 4.0, 0.1) var spawn_height: float = 1.0
 
+@export_group("Sound")
+## Played once per burst where the pickups pop out. Empty = silent.
+@export var emit_sound: AudioStream = preload("res://assets/sounds/rub.wav")
+@export var emit_sound_volume_db: float = 0.0
+## Random pitch spread (0.1 = ±10%).
+@export_range(0.0, 0.5, 0.01) var emit_pitch_variation: float = 0.1
+
 
 func _setup() -> void:
 	if host and host.has_signal("died"):
@@ -73,6 +80,7 @@ func spawn_burst(count: int) -> void:
 	if world == null or not (host is Node3D):
 		return
 	var origin: Vector3 = (host as Node3D).global_position + Vector3.UP * spawn_height
+	Sfx.play_at(self, emit_sound, origin, emit_sound_volume_db, emit_pitch_variation)
 
 	for _i in count:
 		var drop := drop_scene.instantiate() as Node3D

@@ -24,6 +24,8 @@ extends Node
 ## Optional sound played when the wiggle starts (an AudioStreamPlayer3D, or any
 ## player with play()). Nothing there = silent wiggle.
 @export var wiggle_sound_path: NodePath = ^"../WiggleSound"
+## Optional sound played on each bounce, like the wiggle sound.
+@export var bounce_sound_path: NodePath = ^"../BounceSound"
 
 @export_group("Wiggle")
 @export var wiggle_enabled: bool = true
@@ -51,11 +53,15 @@ extends Node
 @export_range(0.5, 10.0, 0.1) var bounce_frequency: float = 3.2
 ## Seconds until it settles.
 @export_range(0.1, 3.0, 0.05) var bounce_duration: float = 0.9
+## Random pitch spread on the bounce sound (0.1 = ±10%).
+@export_range(0.0, 0.5, 0.01) var bounce_pitch_variation: float = 0.08
 
 var _model: Node3D = null
 var _effect: Node = null
 var _wiggle_sound: Node = null
 var _wiggle_sound_pitch: float = 1.0
+var _bounce_sound: Node = null
+var _bounce_sound_pitch: float = 1.0
 var _body: Node3D = null  # the mushroom root, used for distances
 var _rest: Transform3D = Transform3D.IDENTITY
 
@@ -72,6 +78,9 @@ func _ready() -> void:
 	_wiggle_sound = get_node_or_null(wiggle_sound_path)
 	if _wiggle_sound and "pitch_scale" in _wiggle_sound:
 		_wiggle_sound_pitch = _wiggle_sound.get("pitch_scale")
+	_bounce_sound = get_node_or_null(bounce_sound_path)
+	if _bounce_sound and "pitch_scale" in _bounce_sound:
+		_bounce_sound_pitch = _bounce_sound.get("pitch_scale")
 	if _model:
 		_rest = _model.transform
 	else:
@@ -146,12 +155,15 @@ func _start_wiggle(to_player: Vector3) -> void:
 
 
 func _play_wiggle_sound() -> void:
-	if _wiggle_sound == null or not _wiggle_sound.has_method("play"):
+	_play_sound(_wiggle_sound, _wiggle_sound_pitch, wiggle_pitch_variation)
+
+
+func _play_sound(sound: Node, base_pitch: float, variation: float) -> void:
+	if sound == null or not sound.has_method("play"):
 		return
-	if "pitch_scale" in _wiggle_sound:
-		_wiggle_sound.set("pitch_scale",
-				_wiggle_sound_pitch * (1.0 + randf_range(-wiggle_pitch_variation, wiggle_pitch_variation)))
-	_wiggle_sound.call("play")
+	if "pitch_scale" in sound:
+		sound.set("pitch_scale", base_pitch * (1.0 + randf_range(-variation, variation)))
+	sound.call("play")
 
 
 func _on_launched(_launched_body: Node3D) -> void:
@@ -161,3 +173,4 @@ func _on_launched(_launched_body: Node3D) -> void:
 		_bounce_t = 0.0
 	if _effect and _effect.has_method("play"):
 		_effect.call("play")
+	_play_sound(_bounce_sound, _bounce_sound_pitch, bounce_pitch_variation)

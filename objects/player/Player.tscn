@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://dn6kt2xwvramr" path="res://objects/components/model_sway_component.gd" id="9_sway"]
 [ext_resource type="Script" uid="uid://bh3wq7xmnvk4t" path="res://objects/components/heal_ability.gd" id="10_heal"]
 [ext_resource type="Script" uid="uid://c2b1lscr5l8kc" path="res://objects/components/blob_shadow.gd" id="20_blobshadow"]
+[ext_resource type="Script" uid="uid://csg7qwjopw3c2" path="res://objects/components/camera_feel.gd" id="21_camerafeel"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
@@ -26,20 +27,20 @@ radius = 0.9
 _data = [Vector2(0, 0), 0.0, 0.17514817, 0, 0, Vector2(1, 1), 3.014817, 0.0, 0, 0]
 point_count = 2
 
-[sub_resource type="Curve3D" id="Curve3D_sq4k3"]
+[sub_resource type="Curve3D" id="Curve3D_cq43t"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0.6666667, 1.6666666, 0.6666667, 0, 0, 0, 0.33333337, -0.83333325, 0.16666675, -0.3333333, 0.8333335, -0.16666663, 1, 4.1666665, 1.1666666, 0.3333333, 0.8333335, 2.3333333, -0.33333337, -0.83333325, -2.3333333, -1, 4.1666665, -2.3333333, -0.6666667, 1.6666666, 3.666667, 0, 0, 0, 0, 0, -12),
 "tilts": PackedFloat32Array(0, 0, 0, 0)
 }
 point_count = 4
 
-[sub_resource type="Gradient" id="Gradient_sq4k3"]
+[sub_resource type="Gradient" id="Gradient_ercwk"]
 interpolation_mode = 2
 offsets = PackedFloat32Array(0, 0.45, 1)
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_cq43t"]
-gradient = SubResource("Gradient_sq4k3")
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_ijwuf"]
+gradient = SubResource("Gradient_ercwk")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(0.95, 0.5)
@@ -107,7 +108,7 @@ usable_in_air = false
 cooldown = 0.4
 
 [node name="NurbsPath3D" type="Path3D" parent="." unique_id=290428690]
-curve = SubResource("Curve3D_sq4k3")
+curve = SubResource("Curve3D_cq43t")
 script = ExtResource("5_h7ooo")
 control_points = Array[Vector3]([Vector3(0, 0, 0), Vector3(2, 5, 2), Vector3(-2, 5, -1), Vector3(0, 0, -12)])
 metadata/_custom_type_script = "uid://cn8rbspth3d0a"
@@ -128,7 +129,7 @@ cooldown = 0.5
 
 [node name="BlobShadow" type="Decal" parent="." unique_id=137032353]
 size = Vector3(1.2, 0.75, 2.5)
-texture_albedo = SubResource("GradientTexture2D_cq43t")
+texture_albedo = SubResource("GradientTexture2D_ijwuf")
 modulate = Color(0, 0, 0, 0.58)
 normal_fade = 0.5
 upper_fade = 0.0
@@ -142,5 +143,9 @@ softness = 0.55
 opacity = 0.58
 reach_above = 0.15
 reach_below = 0.6
-exclude_owner = null
-owner_layer = null
+
+[node name="CameraFeel" type="Node" parent="." unique_id=1105261846]
+script = ExtResource("21_camerafeel")
+punch_distance = 1.5
+punch_out_time = 1.0
+punch_overshoot = 0.3

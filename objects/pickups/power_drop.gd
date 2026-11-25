@@ -31,6 +31,13 @@ class_name PowerDrop
 ## Random tumble applied on launch (radians/sec).
 @export var spin: float = 6.0
 
+@export_group("Sound")
+## Played where the drop is collected. Empty = silent.
+@export var pickup_sound: AudioStream = preload("res://assets/sounds/ching.mp3")
+@export var pickup_sound_volume_db: float = 0.0
+## Random pitch spread (0.05 = ±5%), so a burst of pickups doesn't sound identical.
+@export_range(0.0, 0.5, 0.01) var pickup_pitch_variation: float = 0.05
+
 ## Speed below which the drop counts as settled. Checked at `settle_delay` so a
 ## drop still mid-bounce isn't frozen in mid-air.
 const SETTLE_SPEED: float = 0.6
@@ -105,4 +112,5 @@ func _collect(player: Node) -> void:
 	set_physics_process(false)
 	if player.has_method("add_power"):
 		player.call("add_power", power_restore)
+	Sfx.play_at(self, pickup_sound, global_position, pickup_sound_volume_db, pickup_pitch_variation)
 	queue_free()
